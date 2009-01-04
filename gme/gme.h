@@ -151,9 +151,18 @@ struct gme_type_t_
 };
 
 /* Emulator type constants for each supported file type */
-extern struct gme_type_t_ const gme_ay_type [], gme_gbs_type [], gme_gym_type [],
-		gme_hes_type [], gme_kss_type [], gme_nsf_type [], gme_nsfe_type [],
-		gme_sap_type [], gme_spc_type [], gme_vgm_type [], gme_vgz_type [];
+extern const gme_type_t
+	gme_ay_type,
+	gme_gbs_type,
+	gme_gym_type,
+	gme_hes_type,
+	gme_kss_type,
+	gme_nsf_type,
+	gme_nsfe_type,
+	gme_sap_type,
+	gme_spc_type,
+	gme_vgm_type,
+	gme_vgz_type;
 
 /* Type of this emulator */
 gme_type_t gme_type( Music_Emu const* );
@@ -166,7 +175,7 @@ gme_type_t const* gme_type_list();
 /******** Advanced file loading ********/
 
 /* Error returned if file type is not supported */
-extern const char gme_wrong_file_type [];
+extern const char* const gme_wrong_file_type;
 
 /* Same as gme_open_file(), but uses file data already in memory. Makes copy of data. */
 gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, long sample_rate );

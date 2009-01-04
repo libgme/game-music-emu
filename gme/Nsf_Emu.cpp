@@ -127,7 +127,9 @@ struct Nsf_File : Gme_Info_
 static Music_Emu* new_nsf_emu () { return BLARGG_NEW Nsf_Emu ; }
 static Music_Emu* new_nsf_file() { return BLARGG_NEW Nsf_File; }
 
-gme_type_t_ const gme_nsf_type [1] = { "Nintendo NES", 0, &new_nsf_emu, &new_nsf_file, "NSF", 1 };
+static gme_type_t_ const gme_nsf_type_ = { "Nintendo NES", 0, &new_nsf_emu, &new_nsf_file, "NSF", 1 };
+gme_type_t const gme_nsf_type = &gme_nsf_type_;
+
 
 // Setup
 

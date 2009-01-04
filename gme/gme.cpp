@@ -41,10 +41,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #endif
 
-static gme_type_t const gme_type_list_ [] = { GME_TYPE_LIST, 0 };
-
 gme_type_t const* gme_type_list()
 {
+	static gme_type_t const gme_type_list_ [] = { GME_TYPE_LIST, 0 };
 	return gme_type_list_;
 }
 
@@ -86,7 +85,7 @@ gme_type_t gme_identify_extension( const char* extension_ )
 	char extension [6];
 	to_uppercase( extension_, sizeof extension, extension );
 	
-	for ( gme_type_t const* types = gme_type_list_; *types; types++ )
+	for ( gme_type_t const* types = gme_type_list(); *types; types++ )
 		if ( !strcmp( extension, (*types)->extension_ ) )
 			return *types;
 	return 0;

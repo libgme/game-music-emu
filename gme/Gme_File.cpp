@@ -18,7 +18,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-const char gme_wrong_file_type [] = "Wrong file type for this emulator";
+const char* const gme_wrong_file_type = "Wrong file type for this emulator";
 
 void Gme_File::clear_playlist()
 {
