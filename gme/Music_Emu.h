@@ -197,7 +197,7 @@ inline blargg_err_t Music_Emu::start_track_( int )  { return 0; }
 inline void Music_Emu::set_voice_names( const char* const* names )
 {
 	// Intentional removal of const, so users don't have to remember obscure const in middle
-	voice_names_ = (const char**) names;
+	voice_names_ = const_cast<const char**> (names);
 }
 
 inline void Music_Emu::mute_voices_( int ) { }

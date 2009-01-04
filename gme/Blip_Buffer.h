@@ -6,13 +6,12 @@
 
 	// internal
 	#include <limits.h>
-	#if INT_MAX >= 0x7FFFFFFF
-		typedef int blip_long;
-		typedef unsigned blip_ulong;
-	#else
-		typedef long blip_long;
-		typedef unsigned long blip_ulong;
+	#if INT_MAX < 0x7FFFFFFF
+		#error "int must be at least 32 bits"
 	#endif
+	
+	typedef int blip_long;
+	typedef unsigned blip_ulong;
 
 // Time unit at source clock rate
 typedef blip_long blip_time_t;

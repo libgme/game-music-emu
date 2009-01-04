@@ -27,7 +27,7 @@ int const silent_buf_size = 1; // size used for Silent_Blip_Buffer
 
 Blip_Buffer::Blip_Buffer()
 {
-	factor_       = LONG_MAX;
+	factor_       = (blip_ulong)-1 / 2;
 	offset_       = 0;
 	buffer_       = 0;
 	buffer_size_  = 0;
@@ -85,7 +85,7 @@ Blip_Buffer::blargg_err_t Blip_Buffer::set_sample_rate( long new_rate, int msec 
 	}
 	
 	// start with maximum length that resampled time can represent
-	long new_size = (ULONG_MAX >> BLIP_BUFFER_ACCURACY) - blip_buffer_extra_ - 64;
+	long new_size = (UINT_MAX >> BLIP_BUFFER_ACCURACY) - blip_buffer_extra_ - 64;
 	if ( msec != blip_max_length )
 	{
 		long s = (new_rate * (msec + 1) + 999) / 1000;
