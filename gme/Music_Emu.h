@@ -160,7 +160,7 @@ private:
 	void emu_play( long count, sample_t* out );
 	
 	Multi_Buffer* effects_buffer;
-	friend Music_Emu* gme_new_emu( gme_type_t, long );
+	friend Music_Emu* gme_new_emu( gme_type_t, int );
 	friend void gme_set_stereo_depth( Music_Emu*, double );
 };
 

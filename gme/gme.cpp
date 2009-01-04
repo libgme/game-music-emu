@@ -106,7 +106,7 @@ gme_err_t gme_identify_file( const char* path, gme_type_t* type_out )
 	return 0;   
 }
 
-gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, long sample_rate )
+gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate )
 {
 	require( (data || !size) && out );
 	*out = 0;
@@ -130,7 +130,7 @@ gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, long samp
 	return err;
 }
 
-gme_err_t gme_open_file( const char* path, Music_Emu** out, long sample_rate )
+gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 {
 	require( path && out );
 	*out = 0;
@@ -167,7 +167,7 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, long sample_rate )
 	return err;
 }
 
-Music_Emu* gme_new_emu( gme_type_t type, long rate )
+Music_Emu* gme_new_emu( gme_type_t type, int rate )
 {
 	if ( type )
 	{
@@ -222,9 +222,82 @@ const char* gme_warning( Music_Emu* me ) { return me->warning(); }
 
 int gme_track_count( Music_Emu const* me ) { return me->track_count(); }
 
-const char* gme_track_info( Music_Emu const* me, track_info_t* out, int track )
+struct gme_info_t_ : gme_info_t
 {
-	return me->track_info( out, track );
+	track_info_t info;
+	
+	BLARGG_DISABLE_NOTHROW
+};
+
+gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
+{
+	*out = NULL;
+	
+	gme_info_t_* info = BLARGG_NEW gme_info_t_;
+	CHECK_ALLOC( info );
+	
+	gme_err_t err = me->track_info( &info->info, track );
+	if ( err )
+	{
+		gme_free_info( info );
+		return err;
+	}
+	
+	#define COPY(name) info->name = info->info.name;
+	
+	COPY( length );
+	COPY( intro_length );
+	COPY( loop_length );
+	
+	info->i4  = -1;
+	info->i5  = -1;
+	info->i6  = -1;
+	info->i7  = -1;
+	info->i8  = -1;
+	info->i9  = -1;
+	info->i10 = -1;
+	info->i11 = -1;
+	info->i12 = -1;
+	info->i13 = -1;
+	info->i14 = -1;
+	info->i15 = -1;
+	
+	info->s7  = "";
+	info->s8  = "";
+	info->s9  = "";
+	info->s10 = "";
+	info->s11 = "";
+	info->s12 = "";
+	info->s13 = "";
+	info->s14 = "";
+	info->s15 = "";
+	
+	COPY( system );
+	COPY( game );
+	COPY( song );
+	COPY( author );
+	COPY( copyright );
+	COPY( comment );
+	COPY( dumper );
+	
+	#undef COPY
+	
+	info->play_length = info->length;
+	if ( info->play_length <= 0 )
+	{
+		info->play_length = info->intro_length + 2 * info->loop_length; // intro + 2 loops
+		if ( info->play_length <= 0 )
+			info->play_length = 150 * 1000; // 2.5 minutes
+	}
+	
+	*out = info;
+	
+	return 0;
+}
+
+void gme_free_info( gme_info_t* info )
+{
+	delete STATIC_CAST(gme_info_t_*,info);
 }
 
 void gme_set_stereo_depth( Music_Emu* me, double depth )
@@ -240,16 +313,35 @@ void      gme_set_user_data  ( Music_Emu* me, void* new_user_data ) { me->set_us
 void      gme_set_user_cleanup(Music_Emu* me, gme_user_cleanup_t func ) { me->set_user_cleanup( func ); }
 
 gme_err_t gme_start_track    ( Music_Emu* me, int index )           { return me->start_track( index ); }
-gme_err_t gme_play           ( Music_Emu* me, long n, short* p )    { return me->play( n, p ); }
-void      gme_set_fade       ( Music_Emu* me, long start_msec )     { me->set_fade( start_msec ); }
+gme_err_t gme_play           ( Music_Emu* me, int n, short* p )     { return me->play( n, p ); }
+void      gme_set_fade       ( Music_Emu* me, int start_msec )      { me->set_fade( start_msec ); }
 int       gme_track_ended    ( Music_Emu const* me )                { return me->track_ended(); }
-long      gme_tell           ( Music_Emu const* me )                { return me->tell(); }
-gme_err_t gme_seek           ( Music_Emu* me, long msec )           { return me->seek( msec ); }
+int       gme_tell           ( Music_Emu const* me )                { return me->tell(); }
+gme_err_t gme_seek           ( Music_Emu* me, int msec )            { return me->seek( msec ); }
 int       gme_voice_count    ( Music_Emu const* me )                { return me->voice_count(); }
 void      gme_ignore_silence ( Music_Emu* me, int disable )         { me->ignore_silence( disable != 0 ); }
 void      gme_set_tempo      ( Music_Emu* me, double t )            { me->set_tempo( t ); }
 void      gme_mute_voice     ( Music_Emu* me, int index, int mute ) { me->mute_voice( index, mute != 0 ); }
 void      gme_mute_voices    ( Music_Emu* me, int mask )            { me->mute_voices( mask ); }
-void      gme_set_equalizer  ( Music_Emu* me, gme_equalizer_t const* eq ) { me->set_equalizer( *eq ); }
-gme_equalizer_t gme_equalizer( Music_Emu const* me )                { return me->equalizer(); }
-const char** gme_voice_names ( Music_Emu const* me )                { return me->voice_names(); }
+
+void      gme_set_equalizer  ( Music_Emu* me, gme_equalizer_t const* eq )
+{
+	Music_Emu::equalizer_t e = me->equalizer();
+	e.treble = eq->treble;
+	e.bass   = eq->bass;
+	me->set_equalizer( e );
+}
+
+void gme_equalizer( Music_Emu const* me, gme_equalizer_t* out )
+{
+	gme_equalizer_t e = { };
+	e.treble = me->equalizer().treble;
+	e.bass   = me->equalizer().bass;
+	*out = e;
+}
+
+const char* gme_voice_name( Music_Emu const* me, int i )
+{
+	assert( (unsigned) i < (unsigned) me->voice_count() );
+	return me->voice_names() [i];
+}

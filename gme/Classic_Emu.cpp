@@ -40,7 +40,7 @@ void Classic_Emu::set_equalizer_( equalizer_t const& eq )
 	Music_Emu::set_equalizer_( eq );
 	update_eq( eq.treble );
 	if ( buf )
-		buf->bass_freq( equalizer().bass );
+		buf->bass_freq( (int) equalizer().bass );
 }
 	
 blargg_err_t Classic_Emu::set_sample_rate_( long rate )

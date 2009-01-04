@@ -80,28 +80,31 @@ int main()
 	
 	/* Get and print main info for track */
 	{
-		track_info_t info;
+		gme_info_t* info;
 		handle_error( gme_track_info( emu, &info, track ) );
-		printf( "System   : %s\n", info.system );
-		printf( "Game     : %s\n", info.game );
-		printf( "Author   : %s\n", info.author );
-		printf( "Copyright: %s\n", info.copyright );
-		printf( "Comment  : %s\n", info.comment );
-		printf( "Dumper   : %s\n", info.dumper );
-		printf( "Tracks   : %d\n", (int) info.track_count );
+		
+		printf( "System   : %s\n", info->system );
+		printf( "Game     : %s\n", info->game );
+		printf( "Author   : %s\n", info->author );
+		printf( "Copyright: %s\n", info->copyright );
+		printf( "Comment  : %s\n", info->comment );
+		printf( "Dumper   : %s\n", info->dumper );
+		printf( "Tracks   : %d\n", (int) gme_track_count( emu ) );
 		printf( "\n" );
 		printf( "Track    : %d\n", (int) track + 1 );
-		printf( "Name     : %s\n", info.song );
+		printf( "Name     : %s\n", info->song );
 		printf( "Length   : %ld:%02ld",
-				(long) info.length / 1000 / 60, (long) info.length / 1000 % 60 );
-		if ( info.loop_length != 0 )
+				(long) info->length / 1000 / 60, (long) info->length / 1000 % 60 );
+		if ( info->loop_length != 0 )
 			printf( " (endless)" );
 		printf( "\n\n" );
+		
+		gme_free_info( info );
 	}
 	
 	/* Print voice names */
 	for ( i = 0; i < gme_voice_count( emu ); i++ )
-		printf( "Voice %d: %s\n", i, gme_voice_names( emu ) [i] );
+		printf( "Voice %d: %s\n", i, gme_voice_name( emu, i ) );
 	
 	/* Add some stereo enhancement */
 	gme_set_stereo_depth( emu, 0.20 );
@@ -109,6 +112,7 @@ int main()
 	/* Adjust equalizer for crisp, bassy sound */
 	{
 		gme_equalizer_t eq;
+		gme_equalizer( emu, &eq );
 		eq.treble = 0.0;
 		eq.bass   = 20;
 		gme_set_equalizer( emu, &eq );
