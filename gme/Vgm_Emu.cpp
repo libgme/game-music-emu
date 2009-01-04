@@ -177,7 +177,7 @@ struct Vgm_File : Gme_Info_
 		long gd3_offset = get_le32( h.gd3_offset ) - 0x2C;
 		long remain = file_size - Vgm_Emu::header_size - gd3_offset;
 		byte gd3_h [gd3_header_size];
-		if ( gd3_offset > 0 || remain >= gd3_header_size )
+		if ( gd3_offset > 0 && remain >= gd3_header_size )
 		{
 			RETURN_ERR( in.skip( gd3_offset ) );
 			RETURN_ERR( in.read( gd3_h, sizeof gd3_h ) );
