@@ -158,7 +158,7 @@ void Hes_Osc::run_until( synth_t& synth_, blip_time_t end_time )
 						//period = 0x1000 * 2;
 						period = 1;
 						//if ( !(volume_0 | volume_1) )
-						//  dprintf( "Used period 0\n" );
+						//  debug_printf( "Used period 0\n" );
 					}
 					
 					// maintain phase when silent
@@ -295,7 +295,7 @@ void Hes_Apu::write_data( blip_time_t time, int addr, int data )
 		 
 		 case 0x809:
 		 	if ( !(data & 0x80) && (data & 0x03) != 0 )
-		 		dprintf( "HES LFO not supported\n" );
+		 		debug_printf( "HES LFO not supported\n" );
 		}
 	}
 }

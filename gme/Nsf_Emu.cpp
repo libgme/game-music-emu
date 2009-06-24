@@ -442,7 +442,7 @@ void Nsf_Emu::cpu_write_misc( nes_addr_t addr, int data )
 		// memory mapper?
 		if ( addr == 0xFFF8 ) return;
 		
-		dprintf( "write_unmapped( 0x%04X, 0x%02X )\n", (unsigned) addr, (unsigned) data );
+		debug_printf( "write_unmapped( 0x%04X, 0x%02X )\n", (unsigned) addr, (unsigned) data );
 	}
 	#endif
 }

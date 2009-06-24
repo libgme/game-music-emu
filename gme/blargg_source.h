@@ -16,10 +16,10 @@
 
 // Like printf() except output goes to debug log file. Might be defined to do
 // nothing (not even evaluate its arguments).
-// void dprintf( const char* format, ... );
+// void debug_printf( const char* format, ... );
 inline void blargg_dprintf_( const char*, ... ) { }
-#undef dprintf
-#define dprintf (1) ? (void) 0 : blargg_dprintf_
+#undef debug_printf
+#define debug_printf (1) ? (void) 0 : blargg_dprintf_
 
 // If enabled, evaluate expr and if false, make debug log entry with source file
 // and line. Meant for finding situations that should be examined further, but that
@@ -70,7 +70,7 @@ typedef unsigned char byte;
 #define BLARGG_CHECK_ALLOC CHECK_ALLOC
 #define BLARGG_RETURN_ERR RETURN_ERR
 
-// BLARGG_SOURCE_BEGIN: If defined, #included, allowing redefition of dprintf and check
+// BLARGG_SOURCE_BEGIN: If defined, #included, allowing redefition of debug_printf and check
 #ifdef BLARGG_SOURCE_BEGIN
 	#include BLARGG_SOURCE_BEGIN
 #endif

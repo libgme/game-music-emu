@@ -54,7 +54,7 @@ static void get_spc_xid6( byte const* begin, long size, track_info_t* out )
 	byte const* in = begin + 8; 
 	if ( end - in > info_size )
 	{
-		dprintf( "Extra data after SPC xid6 info\n" );
+		debug_printf( "Extra data after SPC xid6 info\n" );
 		end = in + info_size;
 	}
 	
@@ -114,7 +114,7 @@ static void get_spc_xid6( byte const* begin, long size, track_info_t* out )
 			default:
 				if ( id < 0x01 || (id > 0x07 && id < 0x10) ||
 						(id > 0x14 && id < 0x30) || id > 0x36 )
-					dprintf( "Unknown SPC xid6 block: %X\n", (int) id );
+					debug_printf( "Unknown SPC xid6 block: %X\n", (int) id );
 				break;
 		}
 		if ( field )
@@ -134,7 +134,7 @@ static void get_spc_xid6( byte const* begin, long size, track_info_t* out )
 			{
 				// ...but some files have no padding
 				in = unaligned;
-				dprintf( "SPC info tag wasn't properly padded to align\n" );
+				debug_printf( "SPC info tag wasn't properly padded to align\n" );
 				break;
 			}
 		}

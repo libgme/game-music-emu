@@ -218,8 +218,8 @@ void Vgm_Emu::set_tempo_( double t )
 	{
 		vgm_rate = (long) (44100 * t + 0.5);
 		blip_time_factor = (long) floor( double (1L << blip_time_bits) / vgm_rate * psg_rate + 0.5 );
-		//dprintf( "blip_time_factor: %ld\n", blip_time_factor );
-		//dprintf( "vgm_rate: %ld\n", vgm_rate );
+		//debug_printf( "blip_time_factor: %ld\n", blip_time_factor );
+		//debug_printf( "vgm_rate: %ld\n", vgm_rate );
 		// TODO: remove? calculates vgm_rate more accurately (above differs at most by one Hz only)
 		//blip_time_factor = (long) floor( double (1L << blip_time_bits) * psg_rate / 44100 / t + 0.5 );
 		//vgm_rate = (long) floor( double (1L << blip_time_bits) * psg_rate / blip_time_factor + 0.5 );

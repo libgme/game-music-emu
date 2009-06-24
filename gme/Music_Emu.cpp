@@ -340,7 +340,7 @@ blargg_err_t Music_Emu::play( long out_count, sample_t* out )
 		assert( emu_time >= out_time );
 		
 		// prints nifty graph of how far ahead we are when searching for silence
-		//dprintf( "%*s \n", int ((emu_time - out_time) * 7 / sample_rate()), "*" );
+		//debug_printf( "%*s \n", int ((emu_time - out_time) * 7 / sample_rate()), "*" );
 		
 		long pos = 0;
 		if ( silence_count )

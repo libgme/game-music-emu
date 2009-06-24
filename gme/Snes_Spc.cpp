@@ -179,7 +179,7 @@ inline spc_time_t Snes_Spc::time() const
 void Snes_Spc::Timer::run_until_( spc_time_t time )
 {
 	if ( !enabled )
-		dprintf( "next_tick: %ld, time: %ld", (long) next_tick, (long) time );
+		debug_printf( "next_tick: %ld, time: %ld", (long) next_tick, (long) time );
 	assert( enabled ); // when disabled, next_tick should always be in the future
 	
 	int elapsed = ((time - next_tick) / divisor) + 1;
@@ -230,7 +230,7 @@ inline void Snes_Spc::check_for_echo_access( spc_addr_t addr )
 		unsigned end = start + 0x800 * dsp.read( 0x7D );
 		if ( start <= addr && addr < end ) {
 			echo_accessed = true;
-			dprintf( "Read/write at $%04X within echo buffer\n", (unsigned) addr );
+			debug_printf( "Read/write at $%04X within echo buffer\n", (unsigned) addr );
 		}
 	}
 }
@@ -242,7 +242,7 @@ int Snes_Spc::read( spc_addr_t addr )
 	int result = mem.ram [addr];
 	
 	if ( (rom_addr <= addr && addr < 0xFFFC || addr >= 0xFFFE) && rom_enabled )
-		dprintf( "Read from ROM: %04X -> %02X\n", addr, result );
+		debug_printf( "Read from ROM: %04X -> %02X\n", addr, result );
 	
 	if ( unsigned (addr - 0xF0) < 0x10 )
 	{
@@ -264,13 +264,13 @@ int Snes_Spc::read( spc_addr_t addr )
 		{
 			run_dsp( time() );
 			if ( mem.ram [0xF2] >= Spc_Dsp::register_count )
-				dprintf( "DSP read from $%02X\n", (int) mem.ram [0xF2] );
+				debug_printf( "DSP read from $%02X\n", (int) mem.ram [0xF2] );
 			return dsp.read( mem.ram [0xF2] & 0x7F );
 		}
 		
 		if ( addr == 0xF0 || addr == 0xF1 || addr == 0xF8 ||
 				addr == 0xF9 || addr == 0xFA )
-			dprintf( "Read from register $%02X\n", (int) addr );
+			debug_printf( "Read from register $%02X\n", (int) addr );
 		
 		// Registers which always read as 0 are handled by setting mem.ram [reg] to 0
 		// at startup then never changing that value.
@@ -337,13 +337,13 @@ void Snes_Spc::write( spc_addr_t addr, int data )
 				dsp.write( reg, data );
 			}
 			else {
-				dprintf( "DSP write to $%02X\n", (int) reg );
+				debug_printf( "DSP write to $%02X\n", (int) reg );
 			}
 			break;
 		}
 		
 		case 0xF0: // Test register
-			dprintf( "Wrote $%02X to $F0\n", (int) data );
+			debug_printf( "Wrote $%02X to $F0\n", (int) data );
 			break;
 		
 		// Config
@@ -408,7 +408,7 @@ void Snes_Spc::write( spc_addr_t addr, int data )
 		case 0xFD:
 		case 0xFE:
 		case 0xFF:
-			dprintf( "Wrote to counter $%02X\n", (int) addr );
+			debug_printf( "Wrote to counter $%02X\n", (int) addr );
 			timer [addr - 0xFD].counter = 0;
 			break;
 	}
@@ -471,7 +471,7 @@ blargg_err_t Snes_Spc::play( long count, sample_t* out )
 	int elapsed = cpu.run( duration - extra_cycles );
 	if ( elapsed > 0 )
 	{
-		dprintf( "Unhandled instruction $%02X, pc = $%04X\n",
+		debug_printf( "Unhandled instruction $%02X, pc = $%04X\n",
 				(int) cpu.read( cpu.r.pc ), (unsigned) cpu.r.pc );
 		return "Emulation error (illegal/unsupported instruction)";
 	}
