@@ -197,7 +197,7 @@ void handle_error( const char* error )
 		// put error in window title
 		char str [256];
 		sprintf( str, "Error: %s", error );
-		fprintf( stderr, str );
+		fprintf( stderr, "%s\n", str );
 		SDL_WM_SetCaption( str, str );
 		
 		// wait for keyboard or mouse activity
