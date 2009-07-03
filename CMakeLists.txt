@@ -9,4 +9,5 @@ cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 # Shared library defined here
 add_subdirectory(gme)
 
-# TODO: Add build rules for player and demo
+# EXCLUDE_FROM_ALL adds build rules but keeps it out of default build
+add_subdirectory(player EXCLUDE_FROM_ALL)
