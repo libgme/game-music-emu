@@ -11,3 +11,4 @@ add_subdirectory(gme)
 
 # EXCLUDE_FROM_ALL adds build rules but keeps it out of default build
 add_subdirectory(player EXCLUDE_FROM_ALL)
+add_subdirectory(demo EXCLUDE_FROM_ALL)
