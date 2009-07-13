@@ -22,28 +22,42 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-#ifndef GME_TYPE_LIST
-
-// Default list of all supported game music types (copy this to blargg_config.h
-// if you want to modify it)
-#define GME_TYPE_LIST \
-	gme_ay_type,\
-	gme_gbs_type,\
-	gme_gym_type,\
-	gme_hes_type,\
-	gme_kss_type,\
-	gme_nsf_type,\
-	gme_nsfe_type,\
-	gme_sap_type,\
-	gme_spc_type,\
-	gme_vgm_type,\
-	gme_vgz_type
-
-#endif
-
 gme_type_t const* gme_type_list()
 {
-	static gme_type_t const gme_type_list_ [] = { GME_TYPE_LIST, 0 };
+	static gme_type_t const gme_type_list_ [] = {
+#ifdef USE_GME_AY
+            gme_ay_type,
+#endif
+#ifdef USE_GME_GBS
+            gme_gbs_type,
+#endif
+#ifdef USE_GME_GYM
+            gme_gym_type,
+#endif
+#ifdef USE_GME_HES
+            gme_hes_type,
+#endif
+#ifdef USE_GME_KSS
+            gme_kss_type,
+#endif
+#if defined(USE_GME_NSF) || defined(USE_GME_NSFE)
+            gme_nsf_type,
+#endif
+#ifdef USE_GME_NSFE
+            gme_nsfe_type,
+#endif
+#ifdef USE_GME_SAP
+            gme_sap_type,
+#endif
+#ifdef USE_GME_SPC
+            gme_spc_type,
+#endif
+#ifdef USE_GME_VGM
+            gme_vgm_type,
+            gme_vgz_type,
+#endif
+            0 };
+
 	return gme_type_list_;
 }
 
@@ -344,4 +358,10 @@ const char* gme_voice_name( Music_Emu const* me, int i )
 {
 	assert( (unsigned) i < (unsigned) me->voice_count() );
 	return me->voice_names() [i];
+}
+
+const char* gme_type_system( gme_type_t type )
+{
+	assert( type );
+	return type->system;
 }
