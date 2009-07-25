@@ -10,7 +10,8 @@ if(SDL_FOUND)
     message(" ** SDL library located, player demo is available to be built in the /player directory")
 
     include_directories(${SDL_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
-        "${CMAKE_HOME_DIRECTORY}" "${CMAKE_HOME_DIRECTORY}/gme")
+        "${CMAKE_HOME_DIRECTORY}" "${CMAKE_HOME_DIRECTORY}/gme"
+        "${CMAKE_BINARY_DIR}/gme")
 
     add_executable(gme_player ${player_SRCS})
     target_link_libraries(gme_player ${SDL_LIBRARY} gme)
