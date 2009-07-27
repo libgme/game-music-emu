@@ -1,6 +1,6 @@
 // Super Nintendo (SNES) SPC-700 CPU emulator
 
-// Game_Music_Emu 0.5.2
+// Game_Music_Emu 0.5.5
 #ifndef SPC_CPU_H
 #define SPC_CPU_H
 

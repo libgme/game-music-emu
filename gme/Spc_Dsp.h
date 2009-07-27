@@ -1,6 +1,6 @@
 // Super Nintendo (SNES) SPC DSP emulator
 
-// Game_Music_Emu 0.5.2
+// Game_Music_Emu 0.5.5
 #ifndef SPC_DSP_H
 #define SPC_DSP_H
 

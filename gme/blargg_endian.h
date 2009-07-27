@@ -1,6 +1,6 @@
 // CPU Byte Order Utilities
 
-// Game_Music_Emu 0.5.2
+// Game_Music_Emu 0.5.5
 #ifndef BLARGG_ENDIAN
 #define BLARGG_ENDIAN
 

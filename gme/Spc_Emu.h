@@ -1,6 +1,6 @@
 // Super Nintendo SPC music file emulator
 
-// Game_Music_Emu 0.5.2
+// Game_Music_Emu 0.5.5
 #ifndef SPC_EMU_H
 #define SPC_EMU_H
 
