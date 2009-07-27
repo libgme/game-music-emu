@@ -1,6 +1,13 @@
 Game_Music_Emu Change Log
 -------------------------
 
+Game_Music_Emu 0.5.5
+--------------------
+- CMake build support has been added.  You can build Game_Music_Emu as
+a shared library and install it so that you do not have to include your
+own copy if you know libgme will be present on your target system.
+Requires CMake 2.6 or higher.
+
 Game_Music_Emu 0.5.2
 --------------------
 - *TONS* of changes and improvements. You should re-read the new header

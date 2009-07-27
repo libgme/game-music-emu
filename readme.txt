@@ -1,4 +1,4 @@
-Game_Music_Emu 0.5.2: Game Music Emulators
+Game_Music_Emu 0.5.5: Game Music Emulators
 ------------------------------------------
 Game_Music_Emu is a collection of video game music file emulators that
 support the following formats and systems:
@@ -42,8 +42,17 @@ License: GNU Lesser General Public License (LGPL)
 Getting Started
 ---------------
 Build a program consisting of demo/basics.c, demo/Wave_Writer.cpp, and
-all source files in gme/. Be sure "test.nsf" is in the same directory.
+all source files in gme/.
+
+If you have CMake 2.6 or higher you can use CMake to perform the build for
+you using standard CMake technique (i.e. cd to the source directory, run
+cmake, cd demo, run make)
+
+Be sure "test.nsf" is in the same directory.
 Running the program should generate the recording "out.wav".
+
+A slightly more extensive demo application is available in the player/
+directory.  It requires SDL to build.
 
 Read gme.txt for more information. Post to the discussion forum for
 assistance.
@@ -55,6 +64,7 @@ gme.txt               General notes about the library
 changes.txt           Changes made since previous releases
 design.txt            Library design notes
 license.txt           GNU Lesser General Public License
+CMakeLists.txt        CMake build rules
 
 test.nsf              Test file for NSF emulator
 test.m3u              Test m3u playlist for features.c demo
@@ -65,6 +75,7 @@ demo/
   features.c          Demonstrates many additional features
   Wave_Writer.h       WAVE sound file writer used for demo output
   Wave_Writer.cpp
+  CMakeLists.txt      CMake build rules
 
 player/               Player using the SDL multimedia library
   player.cpp          Simple music player with waveform display
@@ -72,20 +83,21 @@ player/               Player using the SDL multimedia library
   Music_Player.h
   Audio_Scope.cpp     Audio waveform scope
   Audio_Scope.h
+  CMakeLists.txt      CMake build rules
 
 gme/
   blargg_config.h     Library configuration (modify this file as needed)
 
   gme.h               C interface (also usable in C++, and simpler too)
   gme.cpp
-  
+
   Gme_File.h          File loading and track information
   Music_Emu.h         Track playback and adjustments
   Data_Reader.h       Custom data readers
-  
+
   Effects_Buffer.h    Sound buffer with stereo echo and panning
   Effects_Buffer.cpp
-  
+
   M3u_Playlist.h      M3U playlist support
   M3u_Playlist.cpp
 
@@ -113,7 +125,7 @@ gme/
   Hes_Cpu.h
   hes_cpu_io.h
   Hes_Emu.cpp
-  
+
   Kss_Emu.h           MSX Home Computer/other Z80 systems KSS emulator
   Kss_Emu.cpp
   Kss_Cpu.cpp
@@ -180,7 +192,7 @@ gme/
   Dual_Resampler.h
   Fir_Resampler.cpp
   Fir_Resampler.h
-  
+
   blargg_common.h     Common files needed by all emulators
   blargg_endian.h
   blargg_source.h
@@ -193,6 +205,7 @@ gme/
   Multi_Buffer.h
   Multi_Buffer.cpp
   Data_Reader.cpp
+  CMakeLists.txt      CMake build rules
 
 
 Legal
@@ -201,5 +214,5 @@ Game_Music_Emu library copyright (C) 2003-2006 Shay Green.
 SNES SPC DSP emulator based on OpenSPC, copyright (C) 2002 Brad Martin.
 Sega Genesis YM2612 emulator copyright (C) 2002 Stephane Dallongeville.
 
--- 
+--
 Shay Green <gblargg@gmail.com>
