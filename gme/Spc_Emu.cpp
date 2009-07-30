@@ -249,7 +249,8 @@ gme_type_t const gme_spc_type = &gme_spc_type_;
 
 blargg_err_t Spc_Emu::set_sample_rate_( long sample_rate )
 {
-	apu.set_gain( gain() );
+	RETURN_ERR( apu.init() );
+	//apu.set_gain( gain() );
 	if ( sample_rate != native_sample_rate )
 	{
 		RETURN_ERR( resampler.buffer_size( native_sample_rate / 20 * 2 ) );
@@ -277,7 +278,7 @@ blargg_err_t Spc_Emu::load_mem_( byte const* in, long size )
 
 // Emulation
 
-void Spc_Emu::set_tempo_( double t ) { apu.set_tempo( t ); }
+void Spc_Emu::set_tempo_( double t ) { apu.set_tempo( t * apu.tempo_unit ); }
 
 blargg_err_t Spc_Emu::start_track_( int track )
 {

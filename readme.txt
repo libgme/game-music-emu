@@ -210,8 +210,7 @@ gme/
 
 Legal
 -----
-Game_Music_Emu library copyright (C) 2003-2006 Shay Green.
-SNES SPC DSP emulator based on OpenSPC, copyright (C) 2002 Brad Martin.
+Game_Music_Emu library copyright (C) 2003-2009 Shay Green.
 Sega Genesis YM2612 emulator copyright (C) 2002 Stephane Dallongeville.
 
 --
