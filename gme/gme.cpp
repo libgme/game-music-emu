@@ -2,6 +2,7 @@
 
 #include "Music_Emu.h"
 
+#include "gme_types.h"
 #if !GME_DISABLE_STEREO_DEPTH
 #include "Effects_Buffer.h"
 #endif
@@ -25,38 +26,43 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 gme_type_t const* gme_type_list()
 {
 	static gme_type_t const gme_type_list_ [] = {
-#ifdef USE_GME_AY
-            gme_ay_type,
+#ifdef GME_TYPE_LIST
+	GME_TYPE_LIST,
+#else
+	#ifdef USE_GME_AY
+	            gme_ay_type,
+	#endif
+	#ifdef USE_GME_GBS
+	            gme_gbs_type,
+	#endif
+	#ifdef USE_GME_GYM
+	            gme_gym_type,
+	#endif
+	#ifdef USE_GME_HES
+	            gme_hes_type,
+	#endif
+	#ifdef USE_GME_KSS
+	            gme_kss_type,
+	#endif
+	#ifdef USE_GME_NSF
+	            gme_nsf_type,
+	#endif
+	#ifdef USE_GME_NSFE
+	            gme_nsfe_type,
+	#endif
+	#ifdef USE_GME_SAP
+	            gme_sap_type,
+	#endif
+	#ifdef USE_GME_SPC
+	            gme_spc_type,
+	#endif
+	#ifdef USE_GME_VGM
+	            gme_vgm_type,
+	            gme_vgz_type,
+	#endif
 #endif
-#ifdef USE_GME_GBS
-            gme_gbs_type,
-#endif
-#ifdef USE_GME_GYM
-            gme_gym_type,
-#endif
-#ifdef USE_GME_HES
-            gme_hes_type,
-#endif
-#ifdef USE_GME_KSS
-            gme_kss_type,
-#endif
-#if defined(USE_GME_NSF) || defined(USE_GME_NSFE)
-            gme_nsf_type,
-#endif
-#ifdef USE_GME_NSFE
-            gme_nsfe_type,
-#endif
-#ifdef USE_GME_SAP
-            gme_sap_type,
-#endif
-#ifdef USE_GME_SPC
-            gme_spc_type,
-#endif
-#ifdef USE_GME_VGM
-            gme_vgm_type,
-            gme_vgz_type,
-#endif
-            0 };
+        0
+    };
 
 	return gme_type_list_;
 }
