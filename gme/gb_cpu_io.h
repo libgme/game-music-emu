@@ -59,7 +59,7 @@ void Gbs_Emu::cpu_write( gb_addr_t addr, int data )
 #define CPU_READ_FAST_( emu, addr, time, out ) \
 {\
 	out = READ_PROG( addr );\
-	if ( unsigned (addr - Gb_Apu::start_addr) <= Gb_Apu::register_count )\
+	if ( unsigned (addr - Gb_Apu::start_addr) < Gb_Apu::register_count )\
 		out = emu->apu.read_register( emu->cpu_time - time * clocks_per_instr, addr );\
 	else\
 		check( out == emu->cpu_read( addr ) );\

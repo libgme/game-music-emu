@@ -212,11 +212,11 @@ blargg_err_t Gbs_Emu::start_track_( int track )
 	for ( int i = 0; i < (int) sizeof sound_data; i++ )
 		apu.write_register( 0, i + apu.start_addr, sound_data [i] );
 	
-	cpu::reset( rom.unmapped() );
-	
 	unsigned load_addr = get_le16( header_.load_addr );
-	cpu::rst_base = load_addr;
 	rom.set_addr( load_addr );
+	cpu::rst_base = load_addr;
+	
+	cpu::reset( rom.unmapped() );
 	
 	cpu::map_code( ram_addr, 0x10000 - ram_addr, ram );
 	cpu::map_code( 0, bank_size, rom.at_addr( 0 ) );
