@@ -7,6 +7,7 @@
 #include "Fir_Resampler.h"
 #include "Music_Emu.h"
 #include "Snes_Spc.h"
+#include "Spc_Filter.h"
 
 class Spc_Emu : public Music_Emu {
 public:
@@ -69,7 +70,10 @@ private:
 	byte const* file_data;
 	long        file_size;
 	Fir_Resampler<24> resampler;
+	SPC_Filter filter;
 	Snes_Spc apu;
+	
+	blargg_err_t play_and_filter( long count, sample_t out [] );
 };
 
 inline void Spc_Emu::disable_surround( bool b ) { apu.disable_surround( b ); }

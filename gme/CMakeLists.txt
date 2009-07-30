@@ -110,6 +110,7 @@ if (USE_GME_SPC)
                 Spc_Cpu.cpp
                 Spc_Dsp.cpp
                 Spc_Emu.cpp
+                Spc_Filter.cpp
         )
 endif()
 

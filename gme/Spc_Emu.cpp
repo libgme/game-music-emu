@@ -19,6 +19,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
+// TODO: support Spc_Filter's bass
+
 Spc_Emu::Spc_Emu()
 {
 	set_type( gme_spc_type );
@@ -250,7 +252,6 @@ gme_type_t const gme_spc_type = &gme_spc_type_;
 blargg_err_t Spc_Emu::set_sample_rate_( long sample_rate )
 {
 	RETURN_ERR( apu.init() );
-	//apu.set_gain( gain() );
 	if ( sample_rate != native_sample_rate )
 	{
 		RETURN_ERR( resampler.buffer_size( native_sample_rate / 20 * 2 ) );
@@ -278,14 +279,26 @@ blargg_err_t Spc_Emu::load_mem_( byte const* in, long size )
 
 // Emulation
 
-void Spc_Emu::set_tempo_( double t ) { apu.set_tempo( t * apu.tempo_unit ); }
+void Spc_Emu::set_tempo_( double t )
+{
+	apu.set_tempo( (int) (t * apu.tempo_unit) );
+}
 
 blargg_err_t Spc_Emu::start_track_( int track )
 {
 	RETURN_ERR( Music_Emu::start_track_( track ) );
 	resampler.clear();
+	filter.clear();
 	RETURN_ERR( apu.load_spc( file_data, file_size ) );
+	filter.set_gain( (int) (gain() * SPC_Filter::gain_unit) );
 	apu.clear_echo();
+	return 0;
+}
+
+blargg_err_t Spc_Emu::play_and_filter( long count, sample_t out [] )
+{
+	RETURN_ERR( apu.play( count, out ) );
+	filter.run( out, count );
 	return 0;
 }
 
@@ -300,7 +313,10 @@ blargg_err_t Spc_Emu::skip_( long count )
 	// TODO: shouldn't skip be adjusted for the 64 samples read afterwards?
 	
 	if ( count > 0 )
+	{
 		RETURN_ERR( apu.skip( count ) );
+		filter.clear();
+	}
 	
 	// eliminate pop due to resampler
 	const int resampler_latency = 64;
@@ -311,7 +327,7 @@ blargg_err_t Spc_Emu::skip_( long count )
 blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 {
 	if ( sample_rate() == native_sample_rate )
-		return apu.play( count, out );
+		return play_and_filter( count, out );
 	
 	long remain = count;
 	while ( remain > 0 )
@@ -320,7 +336,7 @@ blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 		if ( remain > 0 )
 		{
 			long n = resampler.max_write();
-			RETURN_ERR( apu.play( n, resampler.buffer() ) );
+			RETURN_ERR( play_and_filter( n, resampler.buffer() ) );
 			resampler.write( n );
 		}
 	}
