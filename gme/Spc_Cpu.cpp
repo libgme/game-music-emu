@@ -1,6 +1,6 @@
 // Core SPC emulation: CPU, timers, SMP registers, memory
 
-// snes_spc 0.9.0. http://www.slack.net/~ant/
+// Game_Music_Emu 0.5.5. http://www.slack.net/~ant/
 
 #include "Snes_Spc.h"
 

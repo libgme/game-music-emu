@@ -1,6 +1,6 @@
 // Fast SNES SPC-700 DSP emulator (about 3x speed of accurate one)
 
-// snes_spc 0.9.0
+// Game_Music_Emu 0.5.5
 #ifndef SPC_DSP_H
 #define SPC_DSP_H
 

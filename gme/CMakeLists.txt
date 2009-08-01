@@ -125,21 +125,7 @@ if (USE_GME_VGM)
 endif()
 
 # These headers are part of the generic gme interface.
-set (EXPORTED_HEADERS gme.h
-                      "${CMAKE_CURRENT_BINARY_DIR}/gme_types.h"
-                      blargg_config.h
-                      blargg_common.h
-                      blargg_source.h
-                      Music_Emu.h
-                      Blip_Buffer.h
-                      Classic_Emu.h
-                      Gme_File.h
-                      Data_Reader.h
-                      Dual_Resampler.h
-                      Effects_Buffer.h
-                      Fir_Resampler.h
-                      M3u_Playlist.h
-                      Multi_Buffer.h)
+set (EXPORTED_HEADERS gme.h)
 
 # Run during cmake phase, so this is available during make
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gme_types.h.in
@@ -152,10 +138,12 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_library(gme SHARED ${libgme_SRCS})
 
 # The version is the release.  The "soversion" is the API version.  As long
-# as only build fixes are performed (i.e. no changes/additions to API) the
-# SOVERSION should be the same even when bumping up VERSION.
+# as only build fixes are performed (i.e. no backwards-incompatible changes
+# to the API), the SOVERSION should be the same even when bumping up VERSION.
+# The way gme.h is designed, SOVERSION should very rarely be bumped, if ever.
+# Hopefully the API can stay compatible with old versions.
 set_target_properties(gme
-    PROPERTIES VERSION 0.5.3
+    PROPERTIES VERSION 0.5.6
                SOVERSION 0)
 
 # TODO: Libsuffix for 64-bit?

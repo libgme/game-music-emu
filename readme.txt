@@ -14,7 +14,7 @@ SPC       Super Nintendo/Super Famicom
 VGM/VGZ   Sega Master System/Mark III, Sega Genesis/Mega Drive,BBC Micro
 
 Features:
-* Can be used in C and C++ code
+* C interface for use in C, C++, and other compatible languages
 * High emphasis has been placed on making the library very easy to use
 * One set of common functions work with all emulators the same way
 * Several code examples, including music player using SDL
@@ -42,14 +42,14 @@ License: GNU Lesser General Public License (LGPL)
 Getting Started
 ---------------
 Build a program consisting of demo/basics.c, demo/Wave_Writer.cpp, and
-all source files in gme/.
+all source files in gme/. If you have CMake 2.6 or later, execute
 
-If you have CMake 2.6 or higher you can use CMake to perform the build for
-you using standard CMake technique (i.e. cd to the source directory, run
-cmake, cd demo, run make)
+	run cmake
+	cd demo
+	run make
 
-Be sure "test.nsf" is in the same directory.
-Running the program should generate the recording "out.wav".
+Be sure "test.nsf" is in the same directory as the program. Running it
+should generate the recording "out.wav".
 
 A slightly more extensive demo application is available in the player/
 directory.  It requires SDL to build.
@@ -71,7 +71,6 @@ test.m3u              Test m3u playlist for features.c demo
 
 demo/
   basics.c            Records NSF file to wave sound file
-  cpp_basics.cpp      C++ version of basics.c
   features.c          Demonstrates many additional features
   Wave_Writer.h       WAVE sound file writer used for demo output
   Wave_Writer.cpp
@@ -88,18 +87,8 @@ player/               Player using the SDL multimedia library
 gme/
   blargg_config.h     Library configuration (modify this file as needed)
 
-  gme.h               C interface (also usable in C++, and simpler too)
+  gme.h               Library interface header file
   gme.cpp
-
-  Gme_File.h          File loading and track information
-  Music_Emu.h         Track playback and adjustments
-  Data_Reader.h       Custom data readers
-
-  Effects_Buffer.h    Sound buffer with stereo echo and panning
-  Effects_Buffer.cpp
-
-  M3u_Playlist.h      M3U playlist support
-  M3u_Playlist.cpp
 
   Ay_Emu.h            ZX Spectrum AY emulator
   Ay_Emu.cpp
@@ -193,18 +182,28 @@ gme/
   Fir_Resampler.cpp
   Fir_Resampler.h
 
+  M3u_Playlist.h      M3U playlist support
+  M3u_Playlist.cpp
+
+  Effects_Buffer.h    Sound buffer with stereo echo and panning
+  Effects_Buffer.cpp
+
   blargg_common.h     Common files needed by all emulators
   blargg_endian.h
   blargg_source.h
   Blip_Buffer.cpp
   Blip_Buffer.h
+  Gme_File.h
   Gme_File.cpp
+  Music_Emu.h
   Music_Emu.cpp
   Classic_Emu.h
   Classic_Emu.cpp
   Multi_Buffer.h
   Multi_Buffer.cpp
+  Data_Reader.h
   Data_Reader.cpp
+  
   CMakeLists.txt      CMake build rules
 
 

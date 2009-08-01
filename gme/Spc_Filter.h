@@ -1,6 +1,6 @@
 // Simple low-pass and high-pass filter to better match sound output of a SNES
 
-// snes_spc 0.9.0
+// Game_Music_Emu 0.5.5
 #ifndef SPC_FILTER_H
 #define SPC_FILTER_H
 
