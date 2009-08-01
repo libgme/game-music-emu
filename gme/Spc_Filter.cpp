@@ -1,6 +1,6 @@
 // snes_spc 0.9.0. http://www.slack.net/~ant/
 
-#include "SPC_Filter.h"
+#include "Spc_Filter.h"
 
 #include <string.h>
 

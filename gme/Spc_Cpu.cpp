@@ -562,4 +562,4 @@ void Snes_Spc::end_frame( time_t end_time )
 }
 
 // Inclusion here allows static memory access functions and better optimization
-#include "SPC_CPU.h"
+#include "Spc_Cpu.h"
