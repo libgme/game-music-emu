@@ -7,4 +7,11 @@ link_directories(${CMAKE_BINARY_DIR}/gme)
 
 add_executable(demo Wave_Writer.cpp basics.c)
 
+# Add command to copy build file over.
+add_custom_command(TARGET demo
+    POST_BUILD
+    COMMAND cmake -E copy "${CMAKE_SOURCE_DIR}/test.nsf" ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Add convenience copy of test.nsf file for demo application"
+    VERBATIM) # VERBATIM is essentially required, "please use correct command line kthx"
+
 target_link_libraries(demo gme)
