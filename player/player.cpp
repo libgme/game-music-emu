@@ -5,6 +5,7 @@ Run program with path to a game music file.
 Left/Right  Change track
 Space       Pause/unpause
 E           Normal/slight stereo echo/more stereo echo
+A			Enable/disable accurate emulation
 -/=         Adjust tempo
 1-9         Toggle channel on/off
 0           Reset tempo and turn channels back on */
@@ -92,6 +93,7 @@ int main( int argc, char** argv )
 	double tempo = 1.0;
 	bool running = true;
 	double stereo_depth = 0.0;
+	bool accurate = false;
 	int muting_mask = 0;
 	while ( running )
 	{
@@ -156,6 +158,11 @@ int main( int argc, char** argv )
 				case SDLK_SPACE: // toggle pause
 					paused = !paused;
 					player->pause( paused );
+					break;
+				
+				case SDLK_a: // toggle accurate emulation
+					accurate = !accurate;
+					player->enable_accuracy( accurate );
 					break;
 				
 				case SDLK_e: // toggle echo

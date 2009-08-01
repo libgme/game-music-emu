@@ -40,6 +40,9 @@ public:
 	// Set stereo depth, where 0.0 = none and 1.0 = maximum
 	void set_stereo_depth( double );
 	
+	// Enable accurate sound emulation
+	void enable_accuracy( bool );
+	
 	// Set tempo, where 0.5 = half speed, 1.0 = normal, 2.0 = double speed
 	void set_tempo( double );
 	

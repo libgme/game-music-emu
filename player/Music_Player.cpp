@@ -147,6 +147,13 @@ void Music_Player::set_stereo_depth( double tempo )
 	resume();
 }
 
+void Music_Player::enable_accuracy( bool b )
+{
+	suspend();
+	gme_enable_accuracy( emu_, b );
+	resume();
+}
+
 void Music_Player::set_tempo( double tempo )
 {
 	suspend();
