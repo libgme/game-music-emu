@@ -106,6 +106,9 @@ int main()
 	for ( i = 0; i < gme_voice_count( emu ); i++ )
 		printf( "Voice %d: %s\n", i, gme_voice_name( emu, i ) );
 	
+	/* Enable most accurate sound emulation */
+	gme_enable_accuracy( emu, 1 );
+	
 	/* Add some stereo enhancement */
 	gme_set_stereo_depth( emu, 0.20 );
 	

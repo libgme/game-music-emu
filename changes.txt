@@ -1,16 +1,25 @@
 Game_Music_Emu Change Log
 -------------------------
 
+Game_Music_Emu 0.5.6
+--------------------
+- Switched to newer snes_spc 0.9.0 for SPC emulation. Uses fast DSP.
+
+- Fixed a couple of GBS bugs, one involving access of memory after realloc.
+
+- Removed documentation of C++ interface, as the C interface in gme.h is
+the only supported one.
+
+- Added gme_enable_accuracy() for enabling more accurate sound emulation
+options (currently affects SPC only).
+
+
 Game_Music_Emu 0.5.5
 --------------------
 - CMake build support has been added.  You can build Game_Music_Emu as
 a shared library and install it so that you do not have to include your
 own copy if you know libgme will be present on your target system.
 Requires CMake 2.6 or higher.
-
-- Switched to newer snes_spc 0.9.0 for SPC emulation. Uses fast DSP.
-
-- Fixed a couple of GBS bugs, one involving access of memory after realloc.
 
 
 Game_Music_Emu 0.5.2

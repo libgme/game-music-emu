@@ -66,6 +66,7 @@ protected:
 	blargg_err_t skip_( long );
 	void mute_voices_( int );
 	void set_tempo_( double );
+	void enable_accuracy_( bool );
 private:
 	byte const* file_data;
 	long        file_size;

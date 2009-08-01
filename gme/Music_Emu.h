@@ -82,6 +82,10 @@ public:
 	// on others this has no effect. Should be called only once *before* set_sample_rate().
 	virtual void set_buffer( Multi_Buffer* ) { }
 	
+	// Enables/disables accurate emulation options, if any are supported. Might change
+	// equalizer settings.
+	void enable_accuracy( bool enable = true );
+	
 // Sound equalization (treble/bass)
 
 	// Frequency equalizer parameters (see gme.txt)
@@ -111,7 +115,8 @@ protected:
 	void remute_voices();
 	
 	virtual blargg_err_t set_sample_rate_( long sample_rate ) = 0;
-	virtual void set_equalizer_( equalizer_t const& ) { };
+	virtual void set_equalizer_( equalizer_t const& ) { }
+	virtual void enable_accuracy_( bool enable ) { }
 	virtual void mute_voices_( int mask ) = 0;
 	virtual void set_tempo_( double ) = 0;
 	virtual blargg_err_t start_track_( int ) = 0; // tempo is set before this
@@ -169,6 +174,7 @@ struct Gme_Info_ : Music_Emu
 {
 	virtual blargg_err_t set_sample_rate_( long sample_rate );
 	virtual void set_equalizer_( equalizer_t const& );
+	virtual void enable_accuracy_( bool );
 	virtual void mute_voices_( int mask );
 	virtual void set_tempo_( double );
 	virtual blargg_err_t start_track_( int );
@@ -189,6 +195,7 @@ inline int Music_Emu::current_track() const         { return current_track_; }
 inline bool Music_Emu::track_ended() const          { return track_ended_; }
 inline const Music_Emu::equalizer_t& Music_Emu::equalizer() const { return equalizer_; }
 
+inline void Music_Emu::enable_accuracy( bool b )    { enable_accuracy_( b ); }
 inline void Music_Emu::set_tempo_( double t )       { tempo_ = t; }
 inline void Music_Emu::remute_voices()              { mute_voices( mute_mask_ ); }
 inline void Music_Emu::ignore_silence( bool b )     { ignore_silence_ = b; }

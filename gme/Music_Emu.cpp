@@ -404,6 +404,7 @@ blargg_err_t Gme_Info_::set_sample_rate_( long )            { return 0; }
 void         Gme_Info_::pre_load()                          { Gme_File::pre_load(); } // skip Music_Emu
 void         Gme_Info_::post_load_()                        { Gme_File::post_load_(); } // skip Music_Emu
 void         Gme_Info_::set_equalizer_( equalizer_t const& ){ check( false ); }
+void         Gme_Info_::enable_accuracy_( bool )            { check( false ); }
 void         Gme_Info_::mute_voices_( int )                 { check( false ); }
 void         Gme_Info_::set_tempo_( double )                { }
 blargg_err_t Gme_Info_::start_track_( int )                 { return "Use full emulator for playback"; }

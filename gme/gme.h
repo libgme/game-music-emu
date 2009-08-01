@@ -142,6 +142,8 @@ void gme_equalizer( Music_Emu const*, gme_equalizer_t* out );
 /* Change frequency equalizer parameters */
 void gme_set_equalizer( Music_Emu*, gme_equalizer_t const* eq );
 
+/* Enables/disables most accurate sound emulation options */
+void gme_enable_accuracy( Music_Emu*, int enabled );
 
 
 /******** Game music types ********/

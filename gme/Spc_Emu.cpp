@@ -252,12 +252,19 @@ gme_type_t const gme_spc_type = &gme_spc_type_;
 blargg_err_t Spc_Emu::set_sample_rate_( long sample_rate )
 {
 	RETURN_ERR( apu.init() );
+	enable_accuracy( false );
 	if ( sample_rate != native_sample_rate )
 	{
 		RETURN_ERR( resampler.buffer_size( native_sample_rate / 20 * 2 ) );
 		resampler.time_ratio( (double) native_sample_rate / sample_rate, 0.9965 );
 	}
 	return 0;
+}
+
+void Spc_Emu::enable_accuracy_( bool b )
+{
+	Music_Emu::enable_accuracy_( b );
+	filter.enable( b );
 }
 
 void Spc_Emu::mute_voices_( int m )
