@@ -218,7 +218,7 @@ struct Spc_File : Gme_Info_
 	blargg_err_t load_( Data_Reader& in )
 	{
 		long file_size = in.remain();
-		if ( file_size < Snes_Spc::spc_file_size )
+		if ( file_size < Snes_Spc::spc_min_file_size )
 			return gme_wrong_file_type;
 		RETURN_ERR( in.read( &header, Spc_Emu::header_size ) );
 		RETURN_ERR( check_spc_header( header.tag ) );
@@ -279,7 +279,7 @@ blargg_err_t Spc_Emu::load_mem_( byte const* in, long size )
 	file_data = in;
 	file_size = size;
 	set_voice_count( Snes_Spc::voice_count );
-	if ( size < Snes_Spc::spc_file_size )
+	if ( size < Snes_Spc::spc_min_file_size )
 		return gme_wrong_file_type;
 	return check_spc_header( in );
 }
