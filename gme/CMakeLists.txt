@@ -131,6 +131,9 @@ set (EXPORTED_HEADERS gme.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gme_types.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/gme_types.h)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libgme.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc @ONLY)
+
 # For the gme_types.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -150,3 +153,4 @@ set_target_properties(gme
 install(TARGETS gme LIBRARY DESTINATION lib)
 
 install(FILES ${EXPORTED_HEADERS} DESTINATION include/gme)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc DESTINATION lib/pkgconfig)
