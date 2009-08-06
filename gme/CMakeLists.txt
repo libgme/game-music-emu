@@ -146,7 +146,7 @@ add_library(gme SHARED ${libgme_SRCS})
 # The way gme.h is designed, SOVERSION should very rarely be bumped, if ever.
 # Hopefully the API can stay compatible with old versions.
 set_target_properties(gme
-    PROPERTIES VERSION 0.5.6
+    PROPERTIES VERSION ${GME_VERSION}
                SOVERSION 0)
 
 # TODO: Libsuffix for 64-bit?
