@@ -150,7 +150,9 @@ set_target_properties(gme
                SOVERSION 0)
 
 # TODO: Libsuffix for 64-bit?
-install(TARGETS gme LIBRARY DESTINATION lib)
+install(TARGETS gme LIBRARY DESTINATION lib
+                    RUNTIME DESTINATION bin  # DLL platforms
+                    ARCHIVE DESTINATION lib) # DLL platforms
 
 install(FILES ${EXPORTED_HEADERS} DESTINATION include/gme)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc DESTINATION lib/pkgconfig)
