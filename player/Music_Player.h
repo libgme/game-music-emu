@@ -4,18 +4,18 @@
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
-#include "gme/Music_Emu.h"
+#include "gme.h"
 
 class Music_Player {
 public:
 	// Initialize player and set sample rate
-	blargg_err_t init( long sample_rate = 44100 );
+	gme_err_t init( long sample_rate = 44100 );
 	
 	// Load game music file. NULL on success, otherwise error string.
-	blargg_err_t load_file( const char* path );
+	gme_err_t load_file( const char* path );
 	
 	// (Re)start playing track. Tracks are numbered from 0 to track_count() - 1.
-	blargg_err_t start_track( int track );
+	gme_err_t start_track( int track );
 	
 	// Stop playing current file
 	void stop();
@@ -26,7 +26,7 @@ public:
 	int track_count() const;
 	
 	// Info for current track
-	track_info_t const& track_info() const { return track_info_; }
+	gme_info_t const& track_info() const { return *track_info_; }
 	
 	// Pause/resume playing current track.
 	void pause( int );
@@ -62,7 +62,7 @@ private:
 	long sample_rate;
 	int scope_buf_size;
 	bool paused;
-	track_info_t track_info_;
+	gme_info_t* track_info_;
 	
 	void suspend();
 	void resume();

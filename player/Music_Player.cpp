@@ -2,12 +2,10 @@
 
 #include "Music_Player.h"
 
-#include "gme/Music_Emu.h"
-
 #include <string.h>
 #include <ctype.h>
 
-/* Copyright (C) 2005-2006 by Shay Green. Permission is hereby granted, free of
+/* Copyright (C) 2005-2010 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
 documentation files (the "Software"), to deal in the Software without
 restriction, including without limitation the rights to use, copy, modify,
@@ -22,7 +20,12 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
-#include "blargg_source.h"
+#define RETURN_ERR( expr ) \
+	do {\
+		gme_err_t err_ = (expr);\
+		if ( err_ )\
+			return err_;\
+	} while ( 0 )
 
 // Number of audio buffers per second. Adjust if you encounter audio skipping.
 const int fill_rate = 45;
@@ -36,12 +39,13 @@ static void sound_cleanup();
 
 Music_Player::Music_Player()
 {
-	emu_      = 0;
-	scope_buf = 0;
-	paused    = false;
+	emu_        = 0;
+	scope_buf   = 0;
+	paused      = false;
+	track_info_ = NULL;
 }
 
-blargg_err_t Music_Player::init( long rate )
+gme_err_t Music_Player::init( long rate )
 {
 	sample_rate = rate;
 	
@@ -56,17 +60,18 @@ blargg_err_t Music_Player::init( long rate )
 void Music_Player::stop()
 {
 	sound_stop();
-	delete emu_;
-	emu_ = 0;
+	gme_delete( emu_ );
+	emu_ = NULL;
 }
 
 Music_Player::~Music_Player()
 {
 	stop();
 	sound_cleanup();
+	gme_free_info( track_info_ );
 }
 
-blargg_err_t Music_Player::load_file( const char* path )
+gme_err_t Music_Player::load_file( const char* path )
 {
 	stop();
 	
@@ -79,34 +84,36 @@ blargg_err_t Music_Player::load_file( const char* path )
 	if ( !p )
 		p = m3u_path + strlen( m3u_path );
 	strcpy( p, ".m3u" );
-	if ( emu_->load_m3u( m3u_path ) ) { } // ignore error
+	if ( gme_load_m3u( emu_, m3u_path ) ) { } // ignore error
 	
 	return 0;
 }
 
 int Music_Player::track_count() const
 {
-	return emu_ ? emu_->track_count() : false;
+	return emu_ ? gme_track_count( emu_ ) : false;
 }
 
-blargg_err_t Music_Player::start_track( int track )
+gme_err_t Music_Player::start_track( int track )
 {
 	if ( emu_ )
 	{
+		gme_free_info( track_info_ );
+		track_info_ = NULL;
+		RETURN_ERR( gme_track_info( emu_, &track_info_, track ) );
+	
 		// Sound must not be running when operating on emulator
 		sound_stop();
-		RETURN_ERR( emu_->start_track( track ) );
+		RETURN_ERR( gme_start_track( emu_, track ) );
 		
 		// Calculate track length
-		if ( !emu_->track_info( &track_info_ ) )
-		{
-			if ( track_info_.length <= 0 )
-				track_info_.length = track_info_.intro_length +
-						track_info_.loop_length * 2;
-		}
-		if ( track_info_.length <= 0 )
-			track_info_.length = (long) (2.5 * 60 * 1000);
-		emu_->set_fade( track_info_.length );
+		if ( track_info_->length <= 0 )
+			track_info_->length = track_info_->intro_length +
+						track_info_->loop_length * 2;
+		
+		if ( track_info_->length <= 0 )
+			track_info_->length = (long) (2.5 * 60 * 1000);
+		gme_set_fade( emu_, track_info_->length );
 		
 		paused = false;
 		sound_start();
@@ -137,7 +144,7 @@ void Music_Player::resume()
 
 bool Music_Player::track_ended() const
 {
-	return emu_ ? emu_->track_ended() : false;
+	return emu_ ? gme_track_ended( emu_ ) : false;
 }
 
 void Music_Player::set_stereo_depth( double tempo )
@@ -157,15 +164,15 @@ void Music_Player::enable_accuracy( bool b )
 void Music_Player::set_tempo( double tempo )
 {
 	suspend();
-	emu_->set_tempo( tempo );
+	gme_set_tempo( emu_, tempo );
 	resume();
 }
 
 void Music_Player::mute_voices( int mask )
 {
 	suspend();
-	emu_->mute_voices( mask );
-	emu_->ignore_silence( mask != 0 );
+	gme_mute_voices( emu_, mask );
+	gme_ignore_silence( emu_, mask != 0 );
 	resume();
 }
 
@@ -174,7 +181,7 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 	Music_Player* self = (Music_Player*) data;
 	if ( self->emu_ )
 	{
-		if ( self->emu_->play( count, out ) ) { } // ignore error
+		if ( gme_play( self->emu_, count, out ) ) { } // ignore error
 		
 		if ( self->scope_buf )
 			memcpy( self->scope_buf, out, self->scope_buf_size * sizeof *self->scope_buf );

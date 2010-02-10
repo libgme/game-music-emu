@@ -87,6 +87,17 @@ inline T max( T x, T y )
 #define byte byte_
 typedef unsigned char byte;
 
+// Setup compiler defines useful for exporting required public API symbols in gme.cpp
+#ifndef BLARGG_EXPORT
+    #if defined (_WIN32) && defined(BLARGG_BUILD_DLL)
+        #define BLARGG_EXPORT __declspec(dllexport)
+    #elif defined (LIBGME_VISIBILITY)
+        #define BLARGG_EXPORT __attribute__((visibility ("default")))
+    #else
+        #define BLARGG_EXPORT
+    #endif
+#endif
+
 // deprecated
 #define BLARGG_CHECK_ALLOC CHECK_ALLOC
 #define BLARGG_RETURN_ERR RETURN_ERR
