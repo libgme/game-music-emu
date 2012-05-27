@@ -154,8 +154,7 @@ set_target_properties(gme
     PROPERTIES VERSION ${GME_VERSION}
                SOVERSION 0)
 
-# TODO: Libsuffix for 64-bit?
-install(TARGETS gme LIBRARY DESTINATION lib
+install(TARGETS gme LIBRARY DESTINATION lib${LIB_SUFFIX}
                     RUNTIME DESTINATION bin  # DLL platforms
                     ARCHIVE DESTINATION lib) # DLL platforms
 
