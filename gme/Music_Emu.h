@@ -97,6 +97,14 @@ public:
 	
 	// Set frequency equalizer parameters
 	void set_equalizer( equalizer_t const& );
+
+	// Construct equalizer of given treble/bass settings
+	static const equalizer_t make_equalizer( double treble, double bass )
+	{
+	    const Music_Emu::equalizer_t e = { treble, bass,
+		0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+	    return e;
+	}
 	
 	// Equalizer settings for TV speaker
 	static equalizer_t const tv_eq;
@@ -116,7 +124,7 @@ protected:
 	
 	virtual blargg_err_t set_sample_rate_( long sample_rate ) = 0;
 	virtual void set_equalizer_( equalizer_t const& ) { }
-	virtual void enable_accuracy_( bool enable ) { }
+	virtual void enable_accuracy_( bool /* enable */ ) { }
 	virtual void mute_voices_( int mask ) = 0;
 	virtual void set_tempo_( double ) = 0;
 	virtual blargg_err_t start_track_( int ) = 0; // tempo is set before this

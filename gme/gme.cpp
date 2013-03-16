@@ -357,7 +357,7 @@ BLARGG_EXPORT void      gme_set_equalizer  ( Music_Emu* me, gme_equalizer_t cons
 
 BLARGG_EXPORT void gme_equalizer( Music_Emu const* me, gme_equalizer_t* out )
 {
-	gme_equalizer_t e = { };
+	gme_equalizer_t e = gme_equalizer_t(); // Default-init all fields to 0.0f
 	e.treble = me->equalizer().treble;
 	e.bass   = me->equalizer().bass;
 	*out = e;

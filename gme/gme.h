@@ -128,6 +128,7 @@ voices, 0 unmutes them all, 0x01 mutes just the first voice, etc. */
 void gme_mute_voices( Music_Emu*, int muting_mask );
 
 /* Frequency equalizer parameters (see gme.txt) */
+/* Implementers: If modified, also adjust Music_Emu::make_equalizer as needed */
 typedef struct gme_equalizer_t
 {
 	double treble; /* -50.0 = muffled, 0 = flat, +5.0 = extra-crisp */
