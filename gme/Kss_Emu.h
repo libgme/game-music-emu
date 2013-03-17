@@ -1,6 +1,6 @@
 // MSX computer KSS music file emulator
 
-// Game_Music_Emu 0.5.5
+// Game_Music_Emu 0.6.0
 #ifndef KSS_EMU_H
 #define KSS_EMU_H
 

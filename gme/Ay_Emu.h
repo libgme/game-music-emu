@@ -1,6 +1,6 @@
 // Sinclair Spectrum AY music file emulator
 
-// Game_Music_Emu 0.5.5
+// Game_Music_Emu 0.6.0
 #ifndef AY_EMU_H
 #define AY_EMU_H
 

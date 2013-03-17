@@ -1,6 +1,6 @@
 // Simple game music file player
 
-// Game_Music_Emu 0.5.5
+// Game_Music_Emu 0.6.0
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 

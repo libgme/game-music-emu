@@ -1,6 +1,6 @@
 // AY-3-8910 sound chip emulator
 
-// Game_Music_Emu 0.5.5
+// Game_Music_Emu 0.6.0
 #ifndef AY_APU_H
 #define AY_APU_H
 

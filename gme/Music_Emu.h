@@ -1,6 +1,6 @@
 // Common interface to game music file emulators
 
-// Game_Music_Emu 0.5.5
+// Game_Music_Emu 0.6.0
 #ifndef MUSIC_EMU_H
 #define MUSIC_EMU_H
 
