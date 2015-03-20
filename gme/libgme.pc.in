@@ -13,3 +13,4 @@ URL: http://code.google.com/p/game-music-emu/
 Version: @GME_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir} -lgme
+Libs.private: -lstdc++

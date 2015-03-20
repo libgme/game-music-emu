@@ -57,6 +57,8 @@ if (USE_GME_NSFE AND NOT USE_GME_NSF)
     SET(USE_GME_NSF 1 CACHE BOOL "Enable NES NSF music emulation" FORCE)
 endif()
 
+option(BUILD_SHARED_LIBS "Build shared library (set to OFF for static library)" ON)
+
 # Check for GCC "visibility" support.
 if (CMAKE_COMPILER_IS_GNUCXX)
    check_cxx_compiler_flag (-fvisibility=hidden __LIBGME_TEST_VISIBILITY)
