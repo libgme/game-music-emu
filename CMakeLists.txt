@@ -81,10 +81,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
          endif()
       endif()
    endif() # test visibility
-endif (CMAKE_COMPILER_IS_GNUCXX)
 
-# Cache this result
-set( LIBGME_HAVE_GCC_VISIBILITY ${ENABLE_VISIBILITY} CACHE BOOL "GCC support for hidden visibility")
+    # Cache this result
+    set( LIBGME_HAVE_GCC_VISIBILITY ${ENABLE_VISIBILITY} CACHE BOOL "GCC support for hidden visibility")
+endif (CMAKE_COMPILER_IS_GNUCXX)
 
 # Shared library defined here
 add_subdirectory(gme)
