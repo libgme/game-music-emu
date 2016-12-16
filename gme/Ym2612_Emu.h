@@ -1,6 +1,6 @@
 // YM2612 FM sound chip emulator interface
 
-// Game_Music_Emu 0.6.0
+// Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 #ifndef YM2612_EMU_H
 #define YM2612_EMU_H
 

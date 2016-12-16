@@ -1,6 +1,6 @@
 // Finite impulse response (FIR) resampler with adjustable FIR size
 
-// Game_Music_Emu 0.6.0
+// Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 #ifndef FIR_RESAMPLER_H
 #define FIR_RESAMPLER_H
 

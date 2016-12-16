@@ -1,6 +1,6 @@
 // Multi-channel effects buffer with panning, echo and reverb
 
-// Game_Music_Emu 0.6.0
+// Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 #ifndef EFFECTS_BUFFER_H
 #define EFFECTS_BUFFER_H
 

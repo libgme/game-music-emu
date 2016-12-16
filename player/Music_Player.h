@@ -1,6 +1,6 @@
 // Simple game music file player
 
-// Game_Music_Emu 0.6.0
+// Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
