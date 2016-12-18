@@ -174,8 +174,6 @@ bool Kss_Cpu::run( cpu_time_t end_time )
 	this->state = &s;
 	bool warning = false;
 	
-	typedef BOOST::int8_t int8_t;
-	
 	union {
 		regs_t rg;
 		pairs_t rp;
@@ -315,7 +313,7 @@ possibly_out_of_time:
 // JR
 // TODO: more efficient way to handle negative branch that wraps PC around
 #define JR( cond ) {\
-	int offset = (BOOST::int8_t) data;\
+	int offset = (int8_t) data;\
 	pc++;\
 	if ( !(cond) )\
 		goto jr_not_taken;\
