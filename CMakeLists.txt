@@ -59,6 +59,8 @@ endif()
 
 option(BUILD_SHARED_LIBS "Build shared library (set to OFF for static library)" ON)
 
+option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ON)
+
 # Check for GCC "visibility" support.
 if (CMAKE_COMPILER_IS_GNUCXX)
    check_cxx_compiler_flag (-fvisibility=hidden __LIBGME_TEST_VISIBILITY)
@@ -81,6 +83,10 @@ if (CMAKE_COMPILER_IS_GNUCXX)
          endif()
       endif()
    endif() # test visibility
+
+   if (ENABLE_UBSAN)
+       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+   endif()
 
     # Cache this result
     set( LIBGME_HAVE_GCC_VISIBILITY ${ENABLE_VISIBILITY} CACHE BOOL "GCC support for hidden visibility")
