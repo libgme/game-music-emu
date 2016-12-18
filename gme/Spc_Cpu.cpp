@@ -401,8 +401,6 @@ void Snes_Spc::cpu_write_high( int data, int i, rel_time_t time )
 		RAM [i + rom_addr] = m.rom [i]; // restore overwritten ROM
 }
 
-int const bits_in_int = CHAR_BIT * sizeof (int);
-
 void Snes_Spc::cpu_write( int data, uint16_t addr, rel_time_t time )
 {
 	MEM_ACCESS( time, addr )

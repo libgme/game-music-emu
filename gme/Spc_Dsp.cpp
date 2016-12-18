@@ -498,8 +498,9 @@ void Spc_Dsp::run( int clock_count )
 					// Decode four samples
 					for ( end = pos + 4; pos < end; pos++, nybbles <<= 4 )
 					{
-						// Extract upper nybble and scale appropriately
-						int s = ((int16_t) nybbles >> right_shift) << left_shift;
+						// Extract upper nybble and scale appropriately. Every cast is
+						// necessary to maintain correctness and avoid undef behavior
+						int s = int16_t(uint16_t((int16_t) nybbles >> right_shift) << left_shift);
 						
 						// Apply IIR filter (8 is the most commonly used)
 						int const filter = brr_header & 0x0C;

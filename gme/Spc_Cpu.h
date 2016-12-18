@@ -259,8 +259,7 @@ loop:
 				REGS [i] = (uint8_t) data;
 				
 				// Registers other than $F2 and $F4-$F7
-				//if ( i != 2 && i != 4 && i != 5 && i != 6 && i != 7 )
-				if ( ((~0x2F00 << (bits_in_int - 16)) << i) < 0 ) // 12%
+				if ( i != 2 && (i < 4 || i > 7)) // 12%
 					cpu_write_smp_reg( data, rel_time, i );
 			}
 		}
