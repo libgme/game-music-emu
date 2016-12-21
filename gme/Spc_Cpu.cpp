@@ -393,7 +393,7 @@ void Snes_Spc::cpu_write_smp_reg( int data, rel_time_t time, uint16_t addr )
 		cpu_write_smp_reg_( data, time, addr );
 }
 
-void Snes_Spc::cpu_write_high( int data, int i, rel_time_t time )
+void Snes_Spc::cpu_write_high( int data, uint8_t i )
 {
 	assert ( i < rom_size );
 	m.hi_ram [i] = (uint8_t) data;
@@ -407,9 +407,9 @@ void Snes_Spc::cpu_write( int data, uint16_t addr, rel_time_t time )
 	
 	// RAM
 	RAM [addr] = (uint8_t) data;
-	int reg = addr - 0xF0;
-	if ( reg >= 0 ) // 64%
+	if ( addr >= 0xF0 ) // 64%
 	{
+		const uint16_t reg = addr - 0xF0;
 		// $F0-$FF
 		if ( reg < reg_count ) // 87%
 		{
@@ -427,12 +427,8 @@ void Snes_Spc::cpu_write( int data, uint16_t addr, rel_time_t time )
 				cpu_write_smp_reg( data, time, reg );
 		}
 		// High mem/address wrap-around
-		else
-		{
-			reg -= rom_addr - 0xF0;
-			if ( reg >= 0 ) // 1% in IPL ROM area or address wrapped around
-				cpu_write_high( data, reg, time );
-		}
+		else if ( addr >= rom_addr ) // 1% in IPL ROM area or address wrapped around
+			cpu_write_high( data, addr - rom_addr );
 	}
 }
 

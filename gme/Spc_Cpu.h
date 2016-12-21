@@ -66,7 +66,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #define READ_DP(  time, addr )              READ ( time, DP_ADDR( addr ) )
 #define WRITE_DP( time, addr, data )        WRITE( time, DP_ADDR( addr ), data )
 
-#define READ_PROG16( addr )                 (RAM [addr & 0xffff] | (RAM [(addr + 1) & 0xffff] << 8))
+#define READ_PROG16( addr )                 (RAM [(addr) & 0xffff] | (RAM [((addr) + 1) & 0xffff] << 8))
 
 #define SET_PC( n )     (pc = n)
 #define GET_PC()        (pc)
