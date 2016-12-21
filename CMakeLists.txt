@@ -84,6 +84,8 @@ if (CMAKE_COMPILER_IS_GNUCXX)
       endif()
    endif() # test visibility
 
+   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wextra")
+
    if (ENABLE_UBSAN)
        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
    endif()
