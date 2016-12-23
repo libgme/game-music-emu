@@ -3,6 +3,7 @@
 #include "Wave_Writer.h"
 
 #include <assert.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 /* Copyright (C) 2003-2006 by Shay Green. Permission is hereby granted, free
@@ -119,28 +120,29 @@ void Wave_Writer::close()
 		flush();
 		
 		// generate header
-		long ds = sample_count_ * sizeof (sample_t);
-		long rs = header_size - 8 + ds;
-		int frame_size = chan_count * sizeof (sample_t);
-		long bps = rate * frame_size;
+		uint32_t ds = sample_count_ * sizeof (sample_t);
+		uint32_t rs = header_size - 8 + ds;
+		uint32_t frame_size = chan_count * sizeof (sample_t);
+		uint32_t bps = rate * frame_size;
+
+#define LE32(x) (unsigned char)(x), (unsigned char)((x)>>8), \
+		(unsigned char)((x)>>16), (unsigned char)((x)>>24)
+
 		unsigned char header [header_size] =
 		{
 			'R','I','F','F',
-			rs,rs>>8,           // length of rest of file
-			rs>>16,rs>>24,
+			LE32(rs),           // length of rest of file
 			'W','A','V','E',
 			'f','m','t',' ',
 			0x10,0,0,0,         // size of fmt chunk
 			1,0,                // uncompressed format
-			chan_count,0,       // channel count
-			rate,rate >> 8,     // sample rate
-			rate>>16,rate>>24,
-			bps,bps>>8,         // bytes per second
-			bps>>16,bps>>24,
-			frame_size,0,       // bytes per sample frame
+			(unsigned char)chan_count,0,// channel count
+			LE32(rate),         // sample rate
+			LE32(bps),          // bytes per second
+			(unsigned char)frame_size,0,// bytes per sample frame
 			16,0,               // bits per sample
 			'd','a','t','a',
-			ds,ds>>8,ds>>16,ds>>24// size of sample data
+			LE32(ds)            // size of sample data
 			// ...              // sample data
 		};
 		
