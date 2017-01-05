@@ -1146,11 +1146,8 @@ loop:
 	
 	case 0xFF:{// STOP
 		// handle PC wrap-around
-		unsigned addr = GET_PC() - 1;
-		if ( addr >= 0x10000 )
+		if ( pc == 0x0000 )
 		{
-			addr &= 0xFFFF;
-			SET_PC( addr );
 			debug_printf( "SPC: PC wrapped around\n" );
 			goto loop;
 		}
