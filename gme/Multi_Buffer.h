@@ -103,16 +103,18 @@ public:
 	void clock_rate( long );
 	void bass_freq( int );
 	void clear();
-	channel_t channel( int, int ) { return chan; }
+	channel_t channel( int voice, int type ) { return chan[voice % buf_count]; }
 	void end_frame( blip_time_t );
 	
 	long samples_avail() const { return bufs [0].samples_avail() * 2; }
 	long read_samples( blip_sample_t*, long );
 	
 private:
-	enum { buf_count = 3 };
-	Blip_Buffer bufs [buf_count];
-	channel_t chan;
+	int buf_count;
+	Blip_Buffer* bufs;
+        
+	channel_t* chan;
+        
 	int stereo_added;
 	int was_stereo;
 	
