@@ -187,6 +187,9 @@ const char* gme_type_system( gme_type_t );
 /* True if this music file type supports multiple tracks */
 int gme_type_multitrack( gme_type_t );
 
+/* whether the pcm output retrieved by gme_play() will have all 8 voices rendered to their
+ * individual stereo channel or (if false) these voices get mixed into one single stereo channel */
+int gme_multi_channel( Music_Emu const* );
 
 /******** Advanced file loading ********/
 
