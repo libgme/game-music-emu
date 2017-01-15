@@ -6,6 +6,8 @@
 
 #include "Multi_Buffer.h"
 
+#include <vector>
+
 // Effects_Buffer uses several buffers and outputs stereo sample pairs.
 class Effects_Buffer : public Multi_Buffer {
 public:
@@ -50,21 +52,21 @@ public:
 	long samples_avail() const;
 private:
 	typedef long fixed_t;
-	
+	enum { max_voices = 8 };
 	enum { max_buf_count = 7 };
-	Blip_Buffer bufs [max_buf_count];
+	Blip_Buffer bufs [max_voices*max_buf_count];
 	enum { chan_types_count = 3 };
-	channel_t chan_types [chan_types_count];
+	channel_t chan_types [max_voices*chan_types_count];
 	config_t config_;
 	long stereo_remain;
 	long effect_remain;
 	int buf_count;
 	bool effects_enabled;
 	
-	blargg_vector<blip_sample_t> reverb_buf;
-	blargg_vector<blip_sample_t> echo_buf;
-	int reverb_pos;
-	int echo_pos;
+	std::vector<std::vector<blip_sample_t> > reverb_buf;
+	std::vector<std::vector<blip_sample_t> > echo_buf;
+	int reverb_pos[max_voices];
+	int echo_pos[max_voices];
 	
 	struct {
 		fixed_t pan_1_levels [2];
