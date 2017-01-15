@@ -61,7 +61,7 @@ Stereo_Buffer::Stereo_Buffer(int nVoices) : Multi_Buffer( 2 * nVoices )
 {
     this->buf_count = 3 * nVoices;
     this->bufs = new Blip_Buffer[this->buf_count];
-    this->chan = new channel_t[nVoices]
+    this->chan = new channel_t[nVoices];
     
     for(int i = 0; i<nVoices; i++)
     {

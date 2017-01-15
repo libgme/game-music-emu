@@ -48,7 +48,7 @@ blargg_err_t Classic_Emu::set_sample_rate_( long rate )
 	if ( !buf )
 	{
 		if ( !stereo_buffer )
-			CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer );
+			CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer(1) );
 		buf = stereo_buffer;
 	}
 	return buf->set_sample_rate( rate, 1000 / 20 );
