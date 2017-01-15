@@ -52,7 +52,8 @@ void Music_Emu::unload()
 Music_Emu::Music_Emu()
 {
 	effects_buffer = 0;
-	
+        
+	multi_channel_ = false;
 	sample_rate_ = 0;
 	mute_mask_   = 0;
 	tempo_       = 1.0;
@@ -94,6 +95,25 @@ void Music_Emu::set_equalizer( equalizer_t const& eq )
 {
 	equalizer_ = eq;
 	set_equalizer_( eq );
+}
+
+bool Music_Emu::multi_channel() const
+{
+        return this->multi_channel_;
+}
+
+blargg_err_t Music_Emu::set_multi_channel( bool )
+{
+        // by default not supported, derived may override this
+        return "unsupported for this emulator type";
+}
+
+blargg_err_t Music_Emu::set_multi_channel_( bool isEnabled )
+{
+        // multi channel support must be set at the very beginning
+        require( !sample_rate() );
+        multi_channel_ = isEnabled;
+        return 0;
 }
 
 void Music_Emu::mute_voice( int index, bool mute )

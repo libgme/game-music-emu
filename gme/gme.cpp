@@ -150,7 +150,7 @@ BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** 
 	return err;
 }
 
-BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
+BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate, bool multi_channel )
 {
 	require( path && out );
 	*out = 0;
@@ -171,7 +171,7 @@ BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sa
 	if ( !file_type )
 		return gme_wrong_file_type;
 	
-	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
+	Music_Emu* emu = gme_new_emu( file_type, sample_rate, multi_channel );
 	CHECK_ALLOC( emu );
 	
 	// optimization: avoids seeking/re-reading header
@@ -187,7 +187,7 @@ BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sa
 	return err;
 }
 
-BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate )
+BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate, bool multi_channel )
 {
 	if ( type )
 	{
@@ -197,6 +197,8 @@ BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate )
 		Music_Emu* me = type->new_emu();
 		if ( me )
 		{
+                        me->set_multi_channel( multi_channel );
+                    
 		#if !GME_DISABLE_STEREO_DEPTH
 			if ( type->flags_ & 1 )
 			{

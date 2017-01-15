@@ -13,6 +13,8 @@ public:
 
 	// Set output sample rate. Must be called only once before loading file.
 	blargg_err_t set_sample_rate( long sample_rate );
+        
+        virtual blargg_err_t set_multi_channel( bool isEnabled );
 	
 	// Start a track, where 0 is the first track. Also clears warning string.
 	blargg_err_t start_track( int );
@@ -35,6 +37,8 @@ public:
 	
 	// Names of voices
 	const char** voice_names() const;
+        
+        bool multi_channel() const;
 	
 // Track status/control
 
@@ -127,6 +131,7 @@ protected:
 	double gain() const                         { return gain_; }
 	double tempo() const                        { return tempo_; }
 	void remute_voices();
+        blargg_err_t set_multi_channel_( bool isEnabled );
 	
 	virtual blargg_err_t set_sample_rate_( long sample_rate ) = 0;
 	virtual void set_equalizer_( equalizer_t const& ) { }
@@ -149,7 +154,8 @@ private:
 	int mute_mask_;
 	double tempo_;
 	double gain_;
-	
+	bool multi_channel_;
+        
 	long sample_rate_;
 	blargg_long msec_to_samples( blargg_long msec ) const;
 	
@@ -179,7 +185,7 @@ private:
 	void emu_play( long count, sample_t* out );
 	
 	Multi_Buffer* effects_buffer;
-	friend Music_Emu* gme_new_emu( gme_type_t, int );
+	friend Music_Emu* gme_new_emu( gme_type_t, int, bool );
 	friend void gme_set_stereo_depth( Music_Emu*, double );
 };
 

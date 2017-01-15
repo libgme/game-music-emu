@@ -48,10 +48,25 @@ blargg_err_t Classic_Emu::set_sample_rate_( long rate )
 	if ( !buf )
 	{
 		if ( !stereo_buffer )
-			CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer(1) );
+                {
+                        if( multi_channel() )
+                        {
+                            CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer(8) );
+                        }
+                        else
+                        {
+                            CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer(1) );
+                        }
+                }
 		buf = stereo_buffer;
 	}
 	return buf->set_sample_rate( rate, 1000 / 20 );
+}
+
+blargg_err_t Classic_Emu::set_multi_channel ( bool isEnabled )
+{
+        RETURN_ERR( Music_Emu::set_multi_channel_( isEnabled ) );
+        return 0;
 }
 
 void Classic_Emu::mute_voices_( int mask )
