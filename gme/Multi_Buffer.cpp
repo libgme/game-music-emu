@@ -92,7 +92,7 @@ void Stereo_Buffer::clock_rate( long rate )
 
 void Stereo_Buffer::bass_freq( int bass )
 {
-	for ( unsigned i = 0; i < buf_count; i++ )
+	for ( int i = 0; i < buf_count; i++ )
 		bufs [i].bass_freq( bass );
 }
 
@@ -107,7 +107,7 @@ void Stereo_Buffer::clear()
 void Stereo_Buffer::end_frame( blip_time_t clock_count )
 {
 	stereo_added = 0;
-	for ( unsigned i = 0; i < buf_count; i++ )
+	for ( int i = 0; i < buf_count; i++ )
 	{
 		stereo_added |= bufs [i].clear_modified() << i;
 		bufs [i].end_frame( clock_count );
