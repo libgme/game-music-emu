@@ -350,6 +350,7 @@ BLARGG_EXPORT void      gme_mute_voices    ( Music_Emu* me, int mask )          
 BLARGG_EXPORT void      gme_enable_accuracy( Music_Emu* me, int enabled )         { me->enable_accuracy( enabled ); }
 BLARGG_EXPORT void      gme_clear_playlist ( Music_Emu* me )                      { me->clear_playlist(); }
 BLARGG_EXPORT int       gme_type_multitrack( gme_type_t t )                       { return t->track_count != 1; }
+BLARGG_EXPORT int       gme_multi_channel  ( Music_Emu const* me )                { return me->multi_channel(); }
 
 BLARGG_EXPORT void      gme_set_equalizer  ( Music_Emu* me, gme_equalizer_t const* eq )
 {

@@ -160,7 +160,7 @@ long Stereo_Buffer::read_samples( blip_sample_t* out, long count )
 }
 
 void Stereo_Buffer::mix_stereo( blip_sample_t* out_, blargg_long count )
-{        
+{
         for(int i=0; i<buf_count/3; i++)
         {
             blip_sample_t* BLIP_RESTRICT out = out_;

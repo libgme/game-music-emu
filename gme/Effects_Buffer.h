@@ -54,7 +54,7 @@ private:
 	enum { max_buf_count = 7 };
 	Blip_Buffer bufs [max_buf_count];
 	enum { chan_types_count = 3 };
-	channel_t chan_types [3];
+	channel_t chan_types [chan_types_count];
 	config_t config_;
 	long stereo_remain;
 	long effect_remain;
