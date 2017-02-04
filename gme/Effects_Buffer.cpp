@@ -3,7 +3,7 @@
 #include "Effects_Buffer.h"
 
 #include <string.h>
-#include <iostream>
+
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -379,7 +379,9 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 }
 
 void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
-{std::cerr << "mono" << std::endl;
+{
+    for(int i=0; i<max_voices; i++)
+    {
 	blip_sample_t* BLIP_RESTRICT out = out_;
 	int const bass = BLIP_READER_BASS( bufs [0] );
 	BLIP_READER_BEGIN( c, bufs [0] );
@@ -421,7 +423,9 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
 }
 
 void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long count )
-{std::cerr << "stereo" << std::endl;
+{
+    for(int i=0; i<max_voices; i++)
+    {
 	blip_sample_t* BLIP_RESTRICT out = out_;
 	int const bass = BLIP_READER_BASS( bufs [0] );
 	BLIP_READER_BEGIN( c, bufs [0] );
@@ -455,8 +459,7 @@ void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long count )
 }
 
 void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames )
-{std::cerr << "mono enhanced" << std::endl;
-    
+{
     for(int i=0; i<max_voices; i++)
     {
 	blip_sample_t* BLIP_RESTRICT out = out_;
