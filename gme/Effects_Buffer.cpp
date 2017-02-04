@@ -272,7 +272,7 @@ void Effects_Buffer::end_frame( blip_time_t clock_count )
 	}
 	
 	int stereo_mask = (config_.effects_enabled ? 0x78 : 0x06);
-	if ( (bufs_used & stereo_mask) && buf_count == max_buf_count )
+// TODO FIXME! 	if ( (bufs_used & stereo_mask) && buf_count == max_voices*max_buf_count )
 		stereo_remain = bufs [0].samples_avail() + bufs [0].output_latency();
 	
 	if ( effects_enabled || config_.effects_enabled )
@@ -494,81 +494,86 @@ void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames 
     }
 }
 
-void Effects_Buffer::mix_enhanced( blip_sample_t* out_, blargg_long count )
-{std::cerr << "enhanced" << std::endl;
-// 	blip_sample_t* BLIP_RESTRICT out = out_;
-// 	int const bass = BLIP_READER_BASS( bufs [2] );
-// 	BLIP_READER_BEGIN( center, bufs [2] );
-// 	BLIP_READER_BEGIN( l1, bufs [3] );
-// 	BLIP_READER_BEGIN( r1, bufs [4] );
-// 	BLIP_READER_BEGIN( l2, bufs [5] );
-// 	BLIP_READER_BEGIN( r2, bufs [6] );
-// 	BLIP_READER_BEGIN( sq1, bufs [0] );
-// 	BLIP_READER_BEGIN( sq2, bufs [1] );
-// 	
-// 	blip_sample_t* const reverb_buf = this->reverb_buf.begin();
-// 	blip_sample_t* const echo_buf = this->echo_buf.begin();
-// 	int echo_pos = this->echo_pos;
-// 	int reverb_pos = this->reverb_pos;
-// 	
-// 	while ( count-- )
-// 	{
-// 		int sum1_s = BLIP_READER_READ( sq1 );
-// 		int sum2_s = BLIP_READER_READ( sq2 );
-// 		
-// 		BLIP_READER_NEXT( sq1, bass );
-// 		BLIP_READER_NEXT( sq2, bass );
-// 		
-// 		int new_reverb_l = FMUL( sum1_s, chans.pan_1_levels [0] ) +
-// 				FMUL( sum2_s, chans.pan_2_levels [0] ) + BLIP_READER_READ( l1 ) +
-// 				reverb_buf [(reverb_pos + chans.reverb_delay_l) & reverb_mask];
-// 		
-// 		int new_reverb_r = FMUL( sum1_s, chans.pan_1_levels [1] ) +
-// 				FMUL( sum2_s, chans.pan_2_levels [1] ) + BLIP_READER_READ( r1 ) +
-// 				reverb_buf [(reverb_pos + chans.reverb_delay_r) & reverb_mask];
-// 		
-// 		BLIP_READER_NEXT( l1, bass );
-// 		BLIP_READER_NEXT( r1, bass );
-// 		
-// 		fixed_t reverb_level = chans.reverb_level;
-// 		reverb_buf [reverb_pos] = (blip_sample_t) FMUL( new_reverb_l, reverb_level );
-// 		reverb_buf [reverb_pos + 1] = (blip_sample_t) FMUL( new_reverb_r, reverb_level );
-// 		reverb_pos = (reverb_pos + 2) & reverb_mask;
-// 		
-// 		int sum3_s = BLIP_READER_READ( center );
-// 		BLIP_READER_NEXT( center, bass );
-// 		
-// 		int left = new_reverb_l + sum3_s + BLIP_READER_READ( l2 ) + FMUL( chans.echo_level,
-// 				echo_buf [(echo_pos + chans.echo_delay_l) & echo_mask] );
-// 		int right = new_reverb_r + sum3_s + BLIP_READER_READ( r2 ) + FMUL( chans.echo_level,
-// 				echo_buf [(echo_pos + chans.echo_delay_r) & echo_mask] );
-// 		
-// 		BLIP_READER_NEXT( l2, bass );
-// 		BLIP_READER_NEXT( r2, bass );
-// 		
-// 		echo_buf [echo_pos] = sum3_s;
-// 		echo_pos = (echo_pos + 1) & echo_mask;
-// 		
-// 		if ( (int16_t) left != left )
-// 			left = 0x7FFF - (left >> 24);
-// 		
-// 		out [0] = left;
-// 		out [1] = right;
-// 		
-// 		out += 2;
-// 		
-// 		if ( (int16_t) right != right )
-// 			out [-1] = 0x7FFF - (right >> 24);
-// 	}
-// 	this->reverb_pos = reverb_pos;
-// 	this->echo_pos = echo_pos;
-// 	
-// 	BLIP_READER_END( l1, bufs [3] );
-// 	BLIP_READER_END( r1, bufs [4] );
-// 	BLIP_READER_END( l2, bufs [5] );
-// 	BLIP_READER_END( r2, bufs [6] );
-// 	BLIP_READER_END( sq1, bufs [0] );
-// 	BLIP_READER_END( sq2, bufs [1] );
-// 	BLIP_READER_END( center, bufs [2] );
+void Effects_Buffer::mix_enhanced( blip_sample_t* out_, blargg_long frames )
+{
+    for(int i=0; i<max_voices; i++)
+    {
+	blip_sample_t* BLIP_RESTRICT out = out_;
+	int const bass = BLIP_READER_BASS( bufs [i*max_buf_count+2] );
+	BLIP_READER_BEGIN( center, bufs [i*max_buf_count+2] );
+	BLIP_READER_BEGIN( l1, bufs [i*max_buf_count+3] );
+	BLIP_READER_BEGIN( r1, bufs [i*max_buf_count+4] );
+	BLIP_READER_BEGIN( l2, bufs [i*max_buf_count+5] );
+	BLIP_READER_BEGIN( r2, bufs [i*max_buf_count+6] );
+	BLIP_READER_BEGIN( sq1, bufs [i*max_buf_count+0] );
+	BLIP_READER_BEGIN( sq2, bufs [i*max_buf_count+1] );
+	
+	blip_sample_t* const reverb_buf = &this->reverb_buf[i][0];
+	blip_sample_t* const echo_buf = &this->echo_buf[i][0];
+	int echo_pos = this->echo_pos[i];
+	int reverb_pos = this->reverb_pos[i];
+	
+        int count = frames;
+	while ( count-- )
+	{
+		int sum1_s = BLIP_READER_READ( sq1 );
+		int sum2_s = BLIP_READER_READ( sq2 );
+		
+		BLIP_READER_NEXT( sq1, bass );
+		BLIP_READER_NEXT( sq2, bass );
+		
+		int new_reverb_l = FMUL( sum1_s, chans.pan_1_levels [0] ) +
+				FMUL( sum2_s, chans.pan_2_levels [0] ) + BLIP_READER_READ( l1 ) +
+				reverb_buf [(reverb_pos + chans.reverb_delay_l) & reverb_mask];
+		
+		int new_reverb_r = FMUL( sum1_s, chans.pan_1_levels [1] ) +
+				FMUL( sum2_s, chans.pan_2_levels [1] ) + BLIP_READER_READ( r1 ) +
+				reverb_buf [(reverb_pos + chans.reverb_delay_r) & reverb_mask];
+		
+		BLIP_READER_NEXT( l1, bass );
+		BLIP_READER_NEXT( r1, bass );
+		
+		fixed_t reverb_level = chans.reverb_level;
+		reverb_buf [reverb_pos] = (blip_sample_t) FMUL( new_reverb_l, reverb_level );
+		reverb_buf [reverb_pos + 1] = (blip_sample_t) FMUL( new_reverb_r, reverb_level );
+		reverb_pos = (reverb_pos + 2) & reverb_mask;
+		
+		int sum3_s = BLIP_READER_READ( center );
+		BLIP_READER_NEXT( center, bass );
+		
+		int left = new_reverb_l + sum3_s + BLIP_READER_READ( l2 ) + FMUL( chans.echo_level,
+				echo_buf [(echo_pos + chans.echo_delay_l) & echo_mask] );
+		int right = new_reverb_r + sum3_s + BLIP_READER_READ( r2 ) + FMUL( chans.echo_level,
+				echo_buf [(echo_pos + chans.echo_delay_r) & echo_mask] );
+		
+		BLIP_READER_NEXT( l2, bass );
+		BLIP_READER_NEXT( r2, bass );
+		
+		echo_buf [echo_pos] = sum3_s;
+		echo_pos = (echo_pos + 1) & echo_mask;
+		
+		if ( (int16_t) left != left )
+			left = 0x7FFF - (left >> 24);
+		
+                if ( (int16_t) right != right )
+                        right = 0x7FFF - (right >> 24);
+                
+		out [i*2+0] = left;
+		out [i*2+1] = right;
+		
+		out += max_voices*2;
+		
+	}
+	this->reverb_pos[i] = reverb_pos;
+	this->echo_pos[i] = echo_pos;
+	
+	BLIP_READER_END( l1, bufs [i*max_buf_count+3] );
+	BLIP_READER_END( r1, bufs [i*max_buf_count+4] );
+	BLIP_READER_END( l2, bufs [i*max_buf_count+5] );
+	BLIP_READER_END( r2, bufs [i*max_buf_count+6] );
+	BLIP_READER_END( sq1, bufs [i*max_buf_count+0] );
+	BLIP_READER_END( sq2, bufs [i*max_buf_count+1] );
+	BLIP_READER_END( center, bufs [i*max_buf_count+2] );
+    }
 }
 
