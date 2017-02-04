@@ -45,22 +45,13 @@ void Classic_Emu::set_equalizer_( equalizer_t const& eq )
 	
 blargg_err_t Classic_Emu::set_sample_rate_( long rate )
 {
-	if ( !buf )
-	{
-		if ( !stereo_buffer )
-                {
-                        if( multi_channel() )
-                        {
-                            CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer(8) );
-                        }
-                        else
-                        {
-                            CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer(1) );
-                        }
-                }
-		buf = stereo_buffer;
-	}
-	return buf->set_sample_rate( rate, 1000 / 20 );
+        if ( !buf )
+        {
+                if ( !stereo_buffer )
+                        CHECK_ALLOC( stereo_buffer = BLARGG_NEW Stereo_Buffer );
+                buf = stereo_buffer;
+        }
+        return buf->set_sample_rate( rate, 1000 / 20 );
 }
 
 blargg_err_t Classic_Emu::set_multi_channel ( bool isEnabled )
