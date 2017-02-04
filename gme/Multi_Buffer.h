@@ -97,24 +97,22 @@ public:
 	Blip_Buffer* right()        { return &bufs [2]; }
 	
 public:
-	Stereo_Buffer(int nVoices);
+	Stereo_Buffer();
 	~Stereo_Buffer();
 	blargg_err_t set_sample_rate( long, int msec = blip_default_length );
 	void clock_rate( long );
 	void bass_freq( int );
 	void clear();
-	channel_t channel( int voice, int /*type*/ ) { return chan[voice % buf_count]; }
+	channel_t channel( int, int ) { return chan; }
 	void end_frame( blip_time_t );
 	
 	long samples_avail() const { return bufs [0].samples_avail() * 2; }
 	long read_samples( blip_sample_t*, long );
 	
 private:
-	int buf_count;
-	Blip_Buffer* bufs;
-        
-	channel_t* chan;
-        
+	enum { buf_count = 3 };
+	Blip_Buffer bufs [buf_count];
+	channel_t chan;
 	int stereo_added;
 	int was_stereo;
 	

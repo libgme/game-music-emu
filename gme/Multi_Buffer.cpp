@@ -57,25 +57,14 @@ blargg_err_t Mono_Buffer::set_sample_rate( long rate, int msec )
 
 // Stereo_Buffer
 
-Stereo_Buffer::Stereo_Buffer(int nVoices) : Multi_Buffer( 2 * nVoices )
+Stereo_Buffer::Stereo_Buffer() : Multi_Buffer( 2 )
 {
-    this->buf_count = 3 * nVoices;
-    this->bufs = new Blip_Buffer[this->buf_count];
-    this->chan = new channel_t[nVoices];
-    
-    for(int i = 0; i<nVoices; i++)
-    {
-	chan[i].center = &bufs [i*3+0];
-	chan[i].left   = &bufs [i*3+1];
-	chan[i].right  = &bufs [i*3+2];
-    }
+	chan.center = &bufs [0];
+	chan.left = &bufs [1];
+	chan.right = &bufs [2];
 }
 
-Stereo_Buffer::~Stereo_Buffer() 
-{
-    delete [] this->chan;
-    delete [] this->bufs;
-}
+Stereo_Buffer::~Stereo_Buffer() { }
 
 blargg_err_t Stereo_Buffer::set_sample_rate( long rate, int msec )
 {
@@ -161,39 +150,35 @@ long Stereo_Buffer::read_samples( blip_sample_t* out, long count )
 
 void Stereo_Buffer::mix_stereo( blip_sample_t* out_, blargg_long count )
 {
-        for(int i=0; i<buf_count/3; i++)
-        {
-            blip_sample_t* BLIP_RESTRICT out = out_;
-        
-            int const bass = BLIP_READER_BASS( bufs [i*3+1] );
-            BLIP_READER_BEGIN( left, bufs [i*3+1] );
-            BLIP_READER_BEGIN( right, bufs [i*3+2] );
-            BLIP_READER_BEGIN( center, bufs [i*3+0] );
-            
-            for ( ; count; --count )
-            {
-                    int c = BLIP_READER_READ( center );
-                    blargg_long l = c + BLIP_READER_READ( left );
-                    blargg_long r = c + BLIP_READER_READ( right );
-                    if ( (int16_t) l != l )
-                            l = 0x7FFF - (l >> 24);
-                    
-                    BLIP_READER_NEXT( center, bass );
-                    if ( (int16_t) r != r )
-                            r = 0x7FFF - (r >> 24);
-                    
-                    BLIP_READER_NEXT( left, bass );
-                    BLIP_READER_NEXT( right, bass );
-                    
-                    out [i*2+0] = l;
-                    out [i*2+1] = r;
-                    out += (buf_count/3)*2;
-            }
-            
-            BLIP_READER_END( center, bufs [i*3+0] );
-            BLIP_READER_END( right, bufs [i*3+2] );
-            BLIP_READER_END( left, bufs [i*3+1] );
-        }
+	blip_sample_t* BLIP_RESTRICT out = out_;
+	int const bass = BLIP_READER_BASS( bufs [1] );
+	BLIP_READER_BEGIN( left, bufs [1] );
+	BLIP_READER_BEGIN( right, bufs [2] );
+	BLIP_READER_BEGIN( center, bufs [0] );
+	
+	for ( ; count; --count )
+	{
+		int c = BLIP_READER_READ( center );
+		blargg_long l = c + BLIP_READER_READ( left );
+		blargg_long r = c + BLIP_READER_READ( right );
+		if ( (int16_t) l != l )
+			l = 0x7FFF - (l >> 24);
+		
+		BLIP_READER_NEXT( center, bass );
+		if ( (int16_t) r != r )
+			r = 0x7FFF - (r >> 24);
+		
+		BLIP_READER_NEXT( left, bass );
+		BLIP_READER_NEXT( right, bass );
+		
+		out [0] = l;
+		out [1] = r;
+		out += 2;
+	}
+	
+	BLIP_READER_END( center, bufs [0] );
+	BLIP_READER_END( right, bufs [2] );
+	BLIP_READER_END( left, bufs [1] );
 }
 
 void Stereo_Buffer::mix_stereo_no_center( blip_sample_t* out_, blargg_long count )
