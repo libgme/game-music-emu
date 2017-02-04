@@ -13,7 +13,7 @@ class Effects_Buffer : public Multi_Buffer {
 public:
 	// If center_only is true, only center buffers are created and
 	// less memory is used.
-	Effects_Buffer( bool center_only = false );
+	Effects_Buffer( int nVoices = 1, bool center_only = false );
 	
 	// Channel  Effect    Center Pan
 	// ---------------------------------
@@ -52,11 +52,11 @@ public:
 	long samples_avail() const;
 private:
 	typedef long fixed_t;
-	enum { max_voices = 8 };
+	int max_voices;
 	enum { max_buf_count = 7 };
-	Blip_Buffer bufs [max_voices*max_buf_count];
+	Blip_Buffer* bufs;
 	enum { chan_types_count = 3 };
-	channel_t chan_types [max_voices*chan_types_count];
+	channel_t* chan_types;
 	config_t config_;
 	long stereo_remain;
 	long effect_remain;
@@ -65,8 +65,8 @@ private:
 	
 	std::vector<std::vector<blip_sample_t> > reverb_buf;
 	std::vector<std::vector<blip_sample_t> > echo_buf;
-	int reverb_pos[max_voices];
-	int echo_pos[max_voices];
+	int* reverb_pos;
+	int* echo_pos;
 	
 	struct {
 		fixed_t pan_1_levels [2];

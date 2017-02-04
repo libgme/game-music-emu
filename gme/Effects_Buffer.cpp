@@ -63,12 +63,30 @@ void Effects_Buffer::set_depth( double d )
 	config( c );
 }
 
-Effects_Buffer::Effects_Buffer( bool center_only ) : Multi_Buffer( 2*max_voices ),
-                                                     reverb_buf(max_voices, std::vector<blip_sample_t>(reverb_size)),
-                                                     echo_buf(max_voices, std::vector<blip_sample_t>(echo_size))
+Effects_Buffer::Effects_Buffer( int nVoices, bool center_only ) : Multi_Buffer( 2*nVoices ),
+                                                     reverb_buf(nVoices, std::vector<blip_sample_t>(reverb_size)),
+                                                     echo_buf(nVoices, std::vector<blip_sample_t>(echo_size))
 {
-	buf_count = center_only ? max_buf_count - 4 : max_buf_count;
-	buf_count *= max_voices;
+        max_voices = nVoices;
+        
+        bufs = BLARGG_NEW Blip_Buffer[max_voices*max_buf_count];
+        
+        if ( bufs )
+        {
+            buf_count = center_only ? max_buf_count - 4 : max_buf_count;
+            buf_count *= max_voices;
+        }
+        
+        chan_types = BLARGG_NEW channel_t[max_voices*chan_types_count];
+        
+        echo_pos   = BLARGG_NEW int[max_voices];
+        reverb_pos = BLARGG_NEW int[max_voices];
+
+// TODO how to properly handle bad alloc here (throwing exception??)        
+//         if( !bufs || !chan_types || !echo_pos || !reverb_pos )
+//         {
+//             buf_count = 0;
+//         }
         
         memset( &echo_pos[0],   0, max_voices * sizeof echo_pos[0] );
         memset( &reverb_pos[0], 0, max_voices * sizeof reverb_pos[0] );
@@ -79,7 +97,17 @@ Effects_Buffer::Effects_Buffer( bool center_only ) : Multi_Buffer( 2*max_voices 
 	set_depth( 0 );
 }
 
-Effects_Buffer::~Effects_Buffer() { }
+Effects_Buffer::~Effects_Buffer()
+{
+    delete [] reverb_pos;
+    reverb_pos = 0;
+    delete [] echo_pos;
+    echo_pos = 0;
+    delete [] chan_types;
+    chan_types = 0;
+    delete [] bufs;
+    bufs = 0;
+}
 
 blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec )
 {
@@ -259,7 +287,7 @@ Effects_Buffer::channel_t Effects_Buffer::channel( int i, int type )
 	{
 		out = type & 1;
 	}
-	return chan_types [i*chan_types_count+out];
+	return chan_types [(i%max_voices)*chan_types_count+out];
 }
 	
 void Effects_Buffer::end_frame( blip_time_t clock_count )
