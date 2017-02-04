@@ -14,6 +14,9 @@ public:
 	// Set output sample rate. Must be called only once before loading file.
 	blargg_err_t set_sample_rate( long sample_rate );
         
+        // specifies if all 8 voices get rendered to their own stereo channel
+        // default implementation of Music_Emu always returns not supported error (i.e. no multichannel support by default)
+        // derived emus must override this if they support multichannel rendering
         virtual blargg_err_t set_multi_channel( bool isEnabled );
 	
 	// Start a track, where 0 is the first track. Also clears warning string.
@@ -155,6 +158,9 @@ private:
 	double tempo_;
 	double gain_;
 	bool multi_channel_;
+        
+        // returns the number of output channels, i.e. usually 2 for stereo, unlesss multi_channel_ == true
+        int out_channels() const { return this->multi_channel() ? 2*8 : 2; }
         
 	long sample_rate_;
 	blargg_long msec_to_samples( blargg_long msec ) const;

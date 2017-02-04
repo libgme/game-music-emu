@@ -18,7 +18,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-int const stereo = 2; // number of channels for stereo
 int const silence_max = 6; // seconds
 int const silence_threshold = 0x10;
 long const fade_block_size = 512;
@@ -165,7 +164,7 @@ blargg_err_t Music_Emu::start_track( int track )
 	if ( !ignore_silence_ )
 	{
 		// play until non-silence or end of track
-		for ( long end = max_initial_silence * stereo*8 * sample_rate(); emu_time < end; )
+		for ( long end = max_initial_silence * out_channels() * sample_rate(); emu_time < end; )
 		{
 			fill_buf();
 			if ( buf_remain | (int) emu_track_ended_ )
@@ -195,7 +194,7 @@ blargg_long Music_Emu::msec_to_samples( blargg_long msec ) const
 {
 	blargg_long sec = msec / 1000;
 	msec -= sec * 1000;
-	return (sec * sample_rate() + msec * sample_rate() / 1000) * stereo*8;
+	return (sec * sample_rate() + msec * sample_rate() / 1000) * out_channels();
 }
 
 long Music_Emu::tell_samples() const
@@ -205,7 +204,7 @@ long Music_Emu::tell_samples() const
 
 long Music_Emu::tell() const
 {
-	blargg_long rate = sample_rate() * stereo*8;
+	blargg_long rate = sample_rate() * out_channels();
 	blargg_long sec = out_time / rate;
 	return sec * 1000 + (out_time - sec * rate) * 1000 / rate;
 }
@@ -283,7 +282,7 @@ blargg_err_t Music_Emu::skip_( long count )
 
 void Music_Emu::set_fade( long start_msec, long length_msec )
 {
-	fade_step = sample_rate() * length_msec / (fade_block_size * fade_shift * 1000 / (stereo*8));
+	fade_step = sample_rate() * length_msec / (fade_block_size * fade_shift * 1000 / out_channels());
 	fade_start = msec_to_samples( start_msec );
 }
 
@@ -365,7 +364,7 @@ blargg_err_t Music_Emu::play( long out_count, sample_t* out )
 	else
 	{
 		require( current_track() >= 0 );
-		require( out_count % stereo*8 == 0 );
+		require( out_count % out_channels() == 0 );
 		
 		assert( emu_time >= out_time );
 		
@@ -385,7 +384,7 @@ blargg_err_t Music_Emu::play( long out_count, sample_t* out )
 			memset( out, 0, pos * sizeof *out );
 			silence_count -= pos;
 			
-			if ( emu_time - silence_time > silence_max * stereo*8 * sample_rate() )
+			if ( emu_time - silence_time > silence_max * out_channels() * sample_rate() )
 			{
 				track_ended_  = emu_track_ended_ = true;
 				silence_count = 0;
