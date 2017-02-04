@@ -1,6 +1,12 @@
 Game_Music_Emu Change Log
 -------------------------
 
+recent git
+--------------------
+
+- support multichannel rendering for Classic_Emu (i.e. rendering each voice
+  to a distinct stereo channel)
+
 Game_Music_Emu 0.6.1
 --------------------
 
