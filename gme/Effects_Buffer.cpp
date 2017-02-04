@@ -383,8 +383,8 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
     for(int i=0; i<max_voices; i++)
     {
 	blip_sample_t* BLIP_RESTRICT out = out_;
-	int const bass = BLIP_READER_BASS( bufs [0] );
-	BLIP_READER_BEGIN( c, bufs [0] );
+	int const bass = BLIP_READER_BASS( bufs [i*max_buf_count+0] );
+	BLIP_READER_BEGIN( c, bufs [i*max_buf_count+0] );
 	
 	// unrolled loop
 	for ( blargg_long n = count >> 1; n; --n )
@@ -397,41 +397,43 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
 		
 		if ( (int16_t) cs0 != cs0 )
 			cs0 = 0x7FFF - (cs0 >> 24);
-		((uint32_t*) out) [0] = ((uint16_t) cs0) | (cs0 << 16);
+		((uint32_t*) out) [i*2+0] = ((uint16_t) cs0) | (cs0 << 16);
 		
 		if ( (int16_t) cs1 != cs1 )
 			cs1 = 0x7FFF - (cs1 >> 24);
-		((uint32_t*) out) [1] = ((uint16_t) cs1) | (cs1 << 16);
-		out += 4;
+		((uint32_t*) out) [i*2+1] = ((uint16_t) cs1) | (cs1 << 16);
+		out += max_voices*4;
 	}
 	
 	if ( count & 1 )
 	{
 		int s = BLIP_READER_READ( c );
 		BLIP_READER_NEXT( c, bass );
-		out [0] = s;
-		out [1] = s;
+		out [i*2+0] = s;
+		out [i*2+1] = s;
 		if ( (int16_t) s != s )
 		{
 			s = 0x7FFF - (s >> 24);
-			out [0] = s;
-			out [1] = s;
+			out [i*2+0] = s;
+			out [i*2+1] = s;
 		}
 	}
 	
-	BLIP_READER_END( c, bufs [0] );
+	BLIP_READER_END( c, bufs [i*max_buf_count+0] );
+    }
 }
 
-void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long count )
+void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long frames )
 {
     for(int i=0; i<max_voices; i++)
     {
 	blip_sample_t* BLIP_RESTRICT out = out_;
-	int const bass = BLIP_READER_BASS( bufs [0] );
-	BLIP_READER_BEGIN( c, bufs [0] );
-	BLIP_READER_BEGIN( l, bufs [1] );
-	BLIP_READER_BEGIN( r, bufs [2] );
-	
+	int const bass = BLIP_READER_BASS( bufs [i*max_buf_count+0] );
+	BLIP_READER_BEGIN( c, bufs [i*max_buf_count+0] );
+	BLIP_READER_BEGIN( l, bufs [i*max_buf_count+1] );
+	BLIP_READER_BEGIN( r, bufs [i*max_buf_count+2] );
+
+	int count = frames;
 	while ( count-- )
 	{
 		int cs = BLIP_READER_READ( c );
@@ -444,18 +446,20 @@ void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long count )
 		if ( (int16_t) left != left )
 			left = 0x7FFF - (left >> 24);
 		
-		out [0] = left;
-		out [1] = right;
+                if ( (int16_t) right != right )
+                        right = 0x7FFF - (right >> 24);
+                
+		out [i*2+0] = left;
+		out [i*2+1] = right;
 		
-		out += 2;
+		out += max_voices*2;
 		
-		if ( (int16_t) right != right )
-			out [-1] = 0x7FFF - (right >> 24);
 	}
 	
-	BLIP_READER_END( r, bufs [2] );
-	BLIP_READER_END( l, bufs [1] );
-	BLIP_READER_END( c, bufs [0] );
+	BLIP_READER_END( r, bufs [i*max_buf_count+2] );
+	BLIP_READER_END( l, bufs [i*max_buf_count+1] );
+	BLIP_READER_END( c, bufs [i*max_buf_count+0] );
+    }
 }
 
 void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames )
