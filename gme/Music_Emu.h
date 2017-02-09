@@ -17,7 +17,7 @@ public:
         // specifies if all 8 voices get rendered to their own stereo channel
         // default implementation of Music_Emu always returns not supported error (i.e. no multichannel support by default)
         // derived emus must override this if they support multichannel rendering
-        virtual blargg_err_t set_multi_channel( bool isEnabled );
+        virtual blargg_err_t set_multi_channel( bool is_enabled );
 	
 	// Start a track, where 0 is the first track. Also clears warning string.
 	blargg_err_t start_track( int );
@@ -134,7 +134,7 @@ protected:
 	double gain() const                         { return gain_; }
 	double tempo() const                        { return tempo_; }
 	void remute_voices();
-        blargg_err_t set_multi_channel_( bool isEnabled );
+        blargg_err_t set_multi_channel_( bool is_enabled );
 	
 	virtual blargg_err_t set_sample_rate_( long sample_rate ) = 0;
 	virtual void set_equalizer_( equalizer_t const& ) { }

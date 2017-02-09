@@ -63,11 +63,11 @@ void Effects_Buffer::set_depth( double d )
 	config( c );
 }
 
-Effects_Buffer::Effects_Buffer( int nVoices, bool center_only ) : Multi_Buffer( 2*nVoices ),
-                                                     reverb_buf(nVoices, std::vector<blip_sample_t>(reverb_size)),
-                                                     echo_buf(nVoices, std::vector<blip_sample_t>(echo_size))
+Effects_Buffer::Effects_Buffer( int num_voices, bool center_only ) : Multi_Buffer( 2*num_voices ),
+                                                     reverb_buf(num_voices, std::vector<blip_sample_t>(reverb_size)),
+                                                     echo_buf(num_voices, std::vector<blip_sample_t>(echo_size))
 {
-        max_voices = nVoices;
+        max_voices = num_voices;
         
         bufs = BLARGG_NEW Blip_Buffer[max_voices*max_buf_count];
         
