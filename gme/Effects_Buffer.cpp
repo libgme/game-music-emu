@@ -63,34 +63,23 @@ void Effects_Buffer::set_depth( double d )
 	config( c );
 }
 
-Effects_Buffer::Effects_Buffer( int num_voices, bool center_only ) : Multi_Buffer( 2*num_voices ),
-                                                     reverb_buf(num_voices, std::vector<blip_sample_t>(reverb_size)),
-                                                     echo_buf(num_voices, std::vector<blip_sample_t>(echo_size))
+Effects_Buffer::Effects_Buffer( int num_voices, bool center_only )
+				: Multi_Buffer( 2*num_voices )
+				, reverb_buf(num_voices, std::vector<blip_sample_t>(reverb_size))
+				, echo_buf(num_voices, std::vector<blip_sample_t>(echo_size))
 {
-        max_voices = num_voices;
-        
-        bufs = BLARGG_NEW Blip_Buffer[max_voices*max_buf_count];
-        
-        if ( bufs )
-        {
-            buf_count = center_only ? max_buf_count - 4 : max_buf_count;
-            buf_count *= max_voices;
-        }
-        
-        chan_types = BLARGG_NEW channel_t[max_voices*chan_types_count];
-        
-        echo_pos   = BLARGG_NEW int[max_voices];
-        reverb_pos = BLARGG_NEW int[max_voices];
+	max_voices = num_voices;
 
-// TODO how to properly handle bad alloc here (throwing exception??)        
-//         if( !bufs || !chan_types || !echo_pos || !reverb_pos )
-//         {
-//             buf_count = 0;
-//         }
-        
-        memset( &echo_pos[0],   0, max_voices * sizeof echo_pos[0] );
-        memset( &reverb_pos[0], 0, max_voices * sizeof reverb_pos[0] );
-	
+	buf_count = center_only ? max_buf_count - 4 : max_buf_count;
+	buf_count *= max_voices;
+	// copy ctor of BlipBuffer is private, so we cant vector::resize() here
+	bufs = std::vector<Blip_Buffer>(buf_count);
+
+	chan_types.resize(max_voices*chan_types_count);
+
+	echo_pos.resize(max_voices);
+	reverb_pos.resize(max_voices);
+
 	stereo_remain = 0;
 	effect_remain = 0;
 	effects_enabled = false;
@@ -98,16 +87,7 @@ Effects_Buffer::Effects_Buffer( int num_voices, bool center_only ) : Multi_Buffe
 }
 
 Effects_Buffer::~Effects_Buffer()
-{
-    delete [] reverb_pos;
-    reverb_pos = 0;
-    delete [] echo_pos;
-    echo_pos = 0;
-    delete [] chan_types;
-    chan_types = 0;
-    delete [] bufs;
-    bufs = 0;
-}
+{}
 
 blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec )
 {

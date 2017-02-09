@@ -54,9 +54,9 @@ private:
 	typedef long fixed_t;
 	int max_voices;
 	enum { max_buf_count = 7 };
-	Blip_Buffer* bufs;
+	std::vector<Blip_Buffer> bufs;
 	enum { chan_types_count = 3 };
-	channel_t* chan_types;
+	std::vector<channel_t> chan_types;
 	config_t config_;
 	long stereo_remain;
 	long effect_remain;
@@ -65,8 +65,8 @@ private:
 	
 	std::vector<std::vector<blip_sample_t> > reverb_buf;
 	std::vector<std::vector<blip_sample_t> > echo_buf;
-	int* reverb_pos;
-	int* echo_pos;
+	std::vector<int> reverb_pos;
+	std::vector<int> echo_pos;
 	
 	struct {
 		fixed_t pan_1_levels [2];
