@@ -136,16 +136,16 @@ void Effects_Buffer::clear()
 {
 	stereo_remain = 0;
 	effect_remain = 0;
-        
-        for(int i=0; i<max_voices; i++)
-        {
-            if ( echo_buf[i].size() )
-                    memset( &echo_buf[i][0], 0, echo_size * sizeof echo_buf[i][0] );
-            
-            if ( reverb_buf[i].size() )
-                    memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
-        }
-        
+	
+	for(int i=0; i<max_voices; i++)
+	{
+		if ( echo_buf[i].size() )
+				memset( &echo_buf[i][0], 0, echo_size * sizeof echo_buf[i][0] );
+		
+		if ( reverb_buf[i].size() )
+				memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
+	}
+	
 	for ( int i = 0; i < buf_count; i++ )
 		bufs [i].clear();
 }
@@ -166,13 +166,13 @@ void Effects_Buffer::config( const config_t& cfg )
 	// clear echo and reverb buffers
 	if ( !config_.effects_enabled && cfg.effects_enabled )
 	{
-            for(int i=0; i<max_voices; i++)
-            {
-                    memset( &echo_buf[i][0], 0, echo_size * sizeof echo_buf[i][0] );
-                    memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
-            }
+		for(int i=0; i<max_voices; i++)
+		{
+			memset( &echo_buf[i][0], 0, echo_size * sizeof echo_buf[i][0] );
+			memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
+		}
 	}
-	
+
 	config_ = cfg;
 	
 	if ( config_.effects_enabled )
@@ -202,48 +202,48 @@ void Effects_Buffer::config( const config_t& cfg )
 		chans.echo_delay_r = pin_range( echo_size - 1 - (echo_sample_delay + delay_offset),
 				echo_size - 1 );
 		
-                for(int i=0; i<max_voices; i++)
-                {
-                    chan_types [i*chan_types_count+0].center = &bufs [i*max_buf_count+0];
-                    chan_types [i*chan_types_count+0].left   = &bufs [i*max_buf_count+3];
-                    chan_types [i*chan_types_count+0].right  = &bufs [i*max_buf_count+4];
-                    
-                    chan_types [i*chan_types_count+1].center = &bufs [i*max_buf_count+1];
-                    chan_types [i*chan_types_count+1].left   = &bufs [i*max_buf_count+3];
-                    chan_types [i*chan_types_count+1].right  = &bufs [i*max_buf_count+4];
-                    
-                    chan_types [i*chan_types_count+2].center = &bufs [i*max_buf_count+2];
-                    chan_types [i*chan_types_count+2].left   = &bufs [i*max_buf_count+5];
-                    chan_types [i*chan_types_count+2].right  = &bufs [i*max_buf_count+6];
-                }
+		for(int i=0; i<max_voices; i++)
+		{
+			chan_types [i*chan_types_count+0].center = &bufs [i*max_buf_count+0];
+			chan_types [i*chan_types_count+0].left   = &bufs [i*max_buf_count+3];
+			chan_types [i*chan_types_count+0].right  = &bufs [i*max_buf_count+4];
+			
+			chan_types [i*chan_types_count+1].center = &bufs [i*max_buf_count+1];
+			chan_types [i*chan_types_count+1].left   = &bufs [i*max_buf_count+3];
+			chan_types [i*chan_types_count+1].right  = &bufs [i*max_buf_count+4];
+			
+			chan_types [i*chan_types_count+2].center = &bufs [i*max_buf_count+2];
+			chan_types [i*chan_types_count+2].left   = &bufs [i*max_buf_count+5];
+			chan_types [i*chan_types_count+2].right  = &bufs [i*max_buf_count+6];
+		}
 		assert( 2 < chan_types_count );
 	}
 	else
 	{
-                for(int i=0; i<max_voices; i++)
-                {
-                    // set up outputs
-                    for ( int j = 0; j < chan_types_count; j++ )
-                    {
-                            channel_t& c = chan_types [i*chan_types_count+j];
-                            c.center = &bufs [i*max_buf_count+0];
-                            c.left   = &bufs [i*max_buf_count+1];
-                            c.right  = &bufs [i*max_buf_count+2];
-                    }
-                }
+		for(int i=0; i<max_voices; i++)
+		{
+			// set up outputs
+			for ( int j = 0; j < chan_types_count; j++ )
+			{
+					channel_t& c = chan_types [i*chan_types_count+j];
+					c.center = &bufs [i*max_buf_count+0];
+					c.left   = &bufs [i*max_buf_count+1];
+					c.right  = &bufs [i*max_buf_count+2];
+			}
+		}
 	}
 	
 	if ( buf_count < max_buf_count ) // if center_only
 	{
-                for(int i=0; i<max_voices; i++)
-                {
-                    for ( int j = 0; j < chan_types_count; j++ )
-                    {
-                            channel_t& c = chan_types [i*chan_types_count+j];
-                            c.left   = c.center;
-                            c.right  = c.center;
-                    }
-                }
+		for(int i=0; i<max_voices; i++)
+		{
+			for ( int j = 0; j < chan_types_count; j++ )
+			{
+					channel_t& c = chan_types [i*chan_types_count+j];
+					c.left   = c.center;
+					c.right  = c.center;
+			}
+		}
 	}
 }
 
@@ -289,12 +289,12 @@ long Effects_Buffer::samples_avail() const
 
 long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 {
-        const int n_channels = max_voices * 2;
+	const int n_channels = max_voices * 2;
     
 	require( total_samples % n_channels == 0 ); // as many items needed to fill at least one frame
         
 	long remain = bufs [0].samples_avail();
-        total_samples = remain = min( remain, total_samples/n_channels );
+	total_samples = remain = min( remain, total_samples/n_channels );
 
 	while ( remain )
 	{
@@ -419,8 +419,8 @@ void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long frames )
 		if ( (int16_t) left != left )
 			left = 0x7FFF - (left >> 24);
 		
-                if ( (int16_t) right != right )
-                        right = 0x7FFF - (right >> 24);
+		if ( (int16_t) right != right )
+				right = 0x7FFF - (right >> 24);
                 
 		out [i*2+0] = left;
 		out [i*2+1] = right;
@@ -437,8 +437,8 @@ void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long frames )
 
 void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames )
 {
-    for(int i=0; i<max_voices; i++)
-    {
+	for(int i=0; i<max_voices; i++)
+	{
 	blip_sample_t* BLIP_RESTRICT out = out_;
 	int const bass = BLIP_READER_BASS( bufs [i*max_buf_count+2] );
 	BLIP_READER_BEGIN( center, bufs [i*max_buf_count+2] );
@@ -450,7 +450,7 @@ void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames 
 	int echo_pos = this->echo_pos[i];
 	int reverb_pos = this->reverb_pos[i];
 	
-        int count = frames;
+	int count = frames;
 	while ( count-- )
 	{
 		int sum1_s = BLIP_READER_READ( sq1 );
@@ -486,12 +486,12 @@ void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames 
 		if ( (int16_t) left != left )
 			left = 0x7FFF - (left >> 24);
 		
-                if ( (int16_t) right != right )
-                        right = 0x7FFF - (right >> 24);
+		if ( (int16_t) right != right )
+				right = 0x7FFF - (right >> 24);
                 
 		out [i*2+0] = left;
 		out [i*2+1] = right;
-                out += max_voices*2;
+		out += max_voices*2;
 	}
 	this->reverb_pos[i] = reverb_pos;
 	this->echo_pos[i] = echo_pos;
@@ -521,7 +521,7 @@ void Effects_Buffer::mix_enhanced( blip_sample_t* out_, blargg_long frames )
 	int echo_pos = this->echo_pos[i];
 	int reverb_pos = this->reverb_pos[i];
 	
-        int count = frames;
+	int count = frames;
 	while ( count-- )
 	{
 		int sum1_s = BLIP_READER_READ( sq1 );
@@ -563,14 +563,13 @@ void Effects_Buffer::mix_enhanced( blip_sample_t* out_, blargg_long frames )
 		if ( (int16_t) left != left )
 			left = 0x7FFF - (left >> 24);
 		
-                if ( (int16_t) right != right )
-                        right = 0x7FFF - (right >> 24);
+		if ( (int16_t) right != right )
+				right = 0x7FFF - (right >> 24);
                 
 		out [i*2+0] = left;
 		out [i*2+1] = right;
 		
 		out += max_voices*2;
-		
 	}
 	this->reverb_pos[i] = reverb_pos;
 	this->echo_pos[i] = echo_pos;
