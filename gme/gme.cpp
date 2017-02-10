@@ -197,19 +197,19 @@ BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate, bool multi_chan
 		Music_Emu* me = type->new_emu();
 		if ( me )
 		{
-                        me->set_multi_channel( multi_channel );
+			me->set_multi_channel( multi_channel );
                     
 		#if !GME_DISABLE_STEREO_DEPTH
 			if ( type->flags_ & 1 )
 			{
-                                if ( me->multi_channel() ) 
-                                {
-                                    me->effects_buffer = BLARGG_NEW Effects_Buffer(8);
-                                }
-                                else
-                                {
-                                    me->effects_buffer = BLARGG_NEW Effects_Buffer(1);
-                                }
+				if ( me->multi_channel() ) 
+				{
+					me->effects_buffer = BLARGG_NEW Effects_Buffer(8);
+				}
+				else
+				{
+					me->effects_buffer = BLARGG_NEW Effects_Buffer(1);
+				}
 				if ( me->effects_buffer )
 					me->set_buffer( me->effects_buffer );
 			}
