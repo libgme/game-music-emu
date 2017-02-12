@@ -126,7 +126,7 @@ BLARGG_EXPORT gme_err_t gme_identify_file( const char* path, gme_type_t* type_ou
 	return 0;   
 }
 
-BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate )
+BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate, int multi_channel )
 {
 	require( (data || !size) && out );
 	*out = 0;
@@ -137,7 +137,7 @@ BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** 
 	if ( !file_type )
 		return gme_wrong_file_type;
 	
-	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
+	Music_Emu* emu = gme_new_emu( file_type, sample_rate, multi_channel );
 	CHECK_ALLOC( emu );
 	
 	gme_err_t err = gme_load_data( emu, data, size );
