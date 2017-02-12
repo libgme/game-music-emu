@@ -51,7 +51,6 @@ void Music_Emu::unload()
 Music_Emu::Music_Emu()
 {
 	effects_buffer = 0;
-        
 	multi_channel_ = false;
 	sample_rate_ = 0;
 	mute_mask_   = 0;

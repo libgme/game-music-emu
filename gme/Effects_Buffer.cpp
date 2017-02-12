@@ -64,9 +64,9 @@ void Effects_Buffer::set_depth( double d )
 }
 
 Effects_Buffer::Effects_Buffer( int num_voices, bool center_only )
-				: Multi_Buffer( 2*num_voices )
-				, reverb_buf(num_voices, std::vector<blip_sample_t>(reverb_size))
-				, echo_buf(num_voices, std::vector<blip_sample_t>(echo_size))
+	: Multi_Buffer( 2*num_voices )
+	, reverb_buf(num_voices, std::vector<blip_sample_t>(reverb_size))
+	, echo_buf(num_voices, std::vector<blip_sample_t>(echo_size))
 {
 	max_voices = num_voices;
 
@@ -97,12 +97,12 @@ blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec )
 		{
 			if ( !echo_buf[i].size() )
 			{
-					echo_buf[i].resize( echo_size );
+				echo_buf[i].resize( echo_size );
 			}
 			
 			if ( !reverb_buf[i].size() )
 			{
-					reverb_buf[i].resize( reverb_size );
+				reverb_buf[i].resize( reverb_size );
 			}
 		}
 	}
@@ -110,7 +110,7 @@ blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec )
 	{
 		return "Out of memory";
 	}
-        
+
 	for ( int i = 0; i < buf_count; i++ )
 		RETURN_ERR( bufs [i].set_sample_rate( rate, msec ) );
 	
@@ -140,10 +140,10 @@ void Effects_Buffer::clear()
 	for(int i=0; i<max_voices; i++)
 	{
 		if ( echo_buf[i].size() )
-				memset( &echo_buf[i][0], 0, echo_size * sizeof echo_buf[i][0] );
+			memset( &echo_buf[i][0], 0, echo_size * sizeof echo_buf[i][0] );
 		
 		if ( reverb_buf[i].size() )
-				memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
+			memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
 	}
 	
 	for ( int i = 0; i < buf_count; i++ )
@@ -227,10 +227,10 @@ void Effects_Buffer::config( const config_t& cfg )
 			// set up outputs
 			for ( int j = 0; j < chan_types_count; j++ )
 			{
-					channel_t& c = chan_types [i*chan_types_count+j];
-					c.center = &bufs [i*max_buf_count+0];
-					c.left   = &bufs [i*max_buf_count+1];
-					c.right  = &bufs [i*max_buf_count+2];
+				channel_t& c = chan_types [i*chan_types_count+j];
+				c.center = &bufs [i*max_buf_count+0];
+				c.left   = &bufs [i*max_buf_count+1];
+				c.right  = &bufs [i*max_buf_count+2];
 			}
 		}
 	}
@@ -241,9 +241,9 @@ void Effects_Buffer::config( const config_t& cfg )
 		{
 			for ( int j = 0; j < chan_types_count; j++ )
 			{
-					channel_t& c = chan_types [i*chan_types_count+j];
-					c.left   = c.center;
-					c.right  = c.center;
+				channel_t& c = chan_types [i*chan_types_count+j];
+				c.left   = c.center;
+				c.right  = c.center;
 			}
 		}
 	}
@@ -293,9 +293,9 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 {
 	const int n_channels = max_voices * 2;
 	const int buf_count_per_voice = buf_count/max_voices;
-    
+
 	require( total_samples % n_channels == 0 ); // as many items needed to fill at least one frame
-        
+
 	long remain = bufs [0].samples_avail();
 	total_samples = remain = min( remain, total_samples/n_channels );
 
@@ -429,8 +429,8 @@ void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long frames )
 			left = 0x7FFF - (left >> 24);
 		
 		if ( (int16_t) right != right )
-				right = 0x7FFF - (right >> 24);
-                
+			right = 0x7FFF - (right >> 24);
+
 		out [i*2+0] = left;
 		out [i*2+1] = right;
 		
@@ -496,8 +496,8 @@ void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames 
 			left = 0x7FFF - (left >> 24);
 		
 		if ( (int16_t) right != right )
-				right = 0x7FFF - (right >> 24);
-                
+			right = 0x7FFF - (right >> 24);
+
 		out [i*2+0] = left;
 		out [i*2+1] = right;
 		out += max_voices*2;
@@ -573,11 +573,11 @@ void Effects_Buffer::mix_enhanced( blip_sample_t* out_, blargg_long frames )
 			left = 0x7FFF - (left >> 24);
 		
 		if ( (int16_t) right != right )
-				right = 0x7FFF - (right >> 24);
-                
+			right = 0x7FFF - (right >> 24);
+
 		out [i*2+0] = left;
 		out [i*2+1] = right;
-		
+
 		out += max_voices*2;
 	}
 	this->reverb_pos[i] = reverb_pos;
