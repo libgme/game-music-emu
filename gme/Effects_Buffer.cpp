@@ -292,6 +292,7 @@ long Effects_Buffer::samples_avail() const
 long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 {
 	const int n_channels = max_voices * 2;
+	const int buf_count_per_voice = buf_count/max_voices;
     
 	require( total_samples % n_channels == 0 ); // as many items needed to fill at least one frame
         
@@ -300,7 +301,7 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 
 	while ( remain )
 	{
-		int active_bufs = buf_count;
+		int active_bufs = buf_count_per_voice;
 		long count = remain;
 		
 		// optimizing mixing to skip any channels which had nothing added
@@ -316,18 +317,18 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 			else
 			{
 				mix_mono_enhanced( out, count );
-				active_bufs = max_voices * 3;
+				active_bufs = 3;
 			}
 		}
 		else if ( stereo_remain )
 		{
 			mix_stereo( out, count );
-			active_bufs = max_voices * 3; 
+			active_bufs = 3; 
 		}
 		else
 		{
 			mix_mono( out, count );
-			active_bufs = max_voices * 1; 
+			active_bufs = 1; 
 		}
 		
 		out += count * n_channels;
@@ -341,12 +342,18 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 		if ( effect_remain < 0 )
 			effect_remain = 0;
 		
-		for ( int i = 0; i < buf_count; i++ )
+		// skip the output from any buffers that didn't contribute to the sound output
+		// during this frame (e.g. if we only render mono then only the very first buf
+		// is 'active')
+		for ( int v = 0; v < max_voices; v++ ) // foreach voice
 		{
-			if ( i < active_bufs )
-				bufs [i].remove_samples( count );
-			else
-				bufs [i].remove_silence( count ); // keep time synchronized
+			for ( int i = 0; i < buf_count_per_voice; i++) // foreach buffer of that voice
+			{
+				if ( i < active_bufs )
+					bufs [v*buf_count_per_voice + i].remove_samples( count );
+				else // keep time synchronized
+					bufs [v*buf_count_per_voice + i].remove_silence( count );
+			}
 		}
 	}
 	
