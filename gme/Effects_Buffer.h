@@ -11,6 +11,8 @@
 // Effects_Buffer uses several buffers and outputs stereo sample pairs.
 class Effects_Buffer : public Multi_Buffer {
 public:
+	// nVoices indicates the number of voices for which buffers will be allocated
+	// to make Effects_Buffer work as "mix everything to one", nVoices will be 1
 	// If center_only is true, only center buffers are created and
 	// less memory is used.
 	Effects_Buffer( int nVoices = 1, bool center_only = false );

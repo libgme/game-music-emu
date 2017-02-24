@@ -164,7 +164,9 @@ void Effects_Buffer::config( const config_t& cfg )
 	channels_changed();
 	
 	// clear echo and reverb buffers
-	if ( !config_.effects_enabled && cfg.effects_enabled )
+	// ensure the echo/reverb buffers have already been allocated, so this method can be
+	// called before set_sample_rate is called
+	if ( !config_.effects_enabled && cfg.effects_enabled && echo_buf[0].size() )
 	{
 		for(int i=0; i<max_voices; i++)
 		{
