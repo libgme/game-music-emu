@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	
 	/* Open music file in new emulator */
 	Music_Emu* emu;
-	handle_error( gme_open_file( filename, &emu, sample_rate, 0 ) );
+	handle_error( gme_open_file( filename, &emu, sample_rate ) );
 	
 	/* Start track */
 	handle_error( gme_start_track( emu, track ) );
