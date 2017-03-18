@@ -20,7 +20,15 @@ typedef struct Music_Emu Music_Emu;
 /******** Basic operations ********/
 
 /* Create emulator and load game music file/data into it. Sets *out to new emulator. */
-gme_err_t gme_open_file( const char path [], Music_Emu** out, int sample_rate, int multi_channel );
+gme_err_t gme_open_file( const char path [], Music_Emu** out, int sample_rate );
+
+/* Create emulator and load game music file/data into it. Sets *out to new emulator.
+ * multichannel output is enabled on audio emulators that support segmenting audio output based
+ * on the hardware's audio channel.
+ * 
+ * @since 0.6.2
+ */
+gme_err_t gme_open_file_multichannel( const char path [], Music_Emu** out, int sample_rate );
 
 /* Number of tracks available */
 int gme_track_count( Music_Emu const* );

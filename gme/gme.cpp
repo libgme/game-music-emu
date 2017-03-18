@@ -150,7 +150,8 @@ BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** 
 	return err;
 }
 
-BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate, int multi_channel )
+// Handles gme_open_file and gme_open_file_multichannel
+gme_err_t gme_internal_open_file( const char* path, Music_Emu** out, int sample_rate, int multi_channel )
 {
 	require( path && out );
 	*out = 0;
@@ -185,6 +186,16 @@ BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sa
 		*out = emu;
 	
 	return err;
+}
+
+BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
+{
+	return gme_internal_open_file( path, out, sample_rate, 0 );
+}
+
+BLARGG_EXPORT gme_err_t gme_open_file_multichannel( const char* path, Music_Emu** out, int sample_rate )
+{
+	return gme_internal_open_file( path, out, sample_rate, 1 );
 }
 
 BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate, int multi_channel )
