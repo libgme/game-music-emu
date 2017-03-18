@@ -136,7 +136,7 @@ void Effects_Buffer::clear()
 {
 	stereo_remain = 0;
 	effect_remain = 0;
-	
+
 	for(int i=0; i<max_voices; i++)
 	{
 		if ( echo_buf[i].size() )
@@ -145,7 +145,7 @@ void Effects_Buffer::clear()
 		if ( reverb_buf[i].size() )
 			memset( &reverb_buf[i][0], 0, reverb_size * sizeof reverb_buf[i][0] );
 	}
-	
+
 	for ( int i = 0; i < buf_count; i++ )
 		bufs [i].clear();
 }
@@ -268,18 +268,18 @@ Effects_Buffer::channel_t Effects_Buffer::channel( int i, int type )
 void Effects_Buffer::end_frame( blip_time_t clock_count )
 {
 	int bufs_used = 0;
+	int stereo_mask = (config_.effects_enabled ? 0x78 : 0x06);
+
 	for ( int i = 0; i < buf_count; i++ )
 	{
 		bufs_used |= bufs [i].clear_modified() << i;
 		bufs [i].end_frame( clock_count );
+
+		if ( (bufs_used & stereo_mask) && buf_count == max_voices*max_buf_count )
+			stereo_remain = max(stereo_remain, bufs [i].samples_avail() + bufs [i].output_latency());
+		if ( effects_enabled || config_.effects_enabled )
+			effect_remain = max(effect_remain, bufs [i].samples_avail() + bufs [i].output_latency());
 	}
-	
-	int stereo_mask = (config_.effects_enabled ? 0x78 : 0x06);
-// TODO FIXME! 	if ( (bufs_used & stereo_mask) && buf_count == max_voices*max_buf_count )
-		stereo_remain = bufs [0].samples_avail() + bufs [0].output_latency();
-	
-	if ( effects_enabled || config_.effects_enabled )
-		effect_remain = bufs [0].samples_avail() + bufs [0].output_latency();
 	
 	effects_enabled = config_.effects_enabled;
 }
