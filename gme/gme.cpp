@@ -126,7 +126,7 @@ BLARGG_EXPORT gme_err_t gme_identify_file( const char* path, gme_type_t* type_ou
 	return 0;   
 }
 
-BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate, int multi_channel )
+BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate )
 {
 	require( (data || !size) && out );
 	*out = 0;
@@ -137,7 +137,7 @@ BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** 
 	if ( !file_type )
 		return gme_wrong_file_type;
 	
-	Music_Emu* emu = gme_new_emu( file_type, sample_rate, multi_channel );
+	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
 	
 	gme_err_t err = gme_load_data( emu, data, size );
@@ -150,8 +150,7 @@ BLARGG_EXPORT gme_err_t gme_open_data( void const* data, long size, Music_Emu** 
 	return err;
 }
 
-// Handles gme_open_file and gme_open_file_multichannel
-gme_err_t gme_internal_open_file( const char* path, Music_Emu** out, int sample_rate, int multi_channel )
+BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 {
 	require( path && out );
 	*out = 0;
@@ -172,7 +171,7 @@ gme_err_t gme_internal_open_file( const char* path, Music_Emu** out, int sample_
 	if ( !file_type )
 		return gme_wrong_file_type;
 	
-	Music_Emu* emu = gme_new_emu( file_type, sample_rate, multi_channel );
+	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
 	
 	// optimization: avoids seeking/re-reading header
@@ -188,17 +187,8 @@ gme_err_t gme_internal_open_file( const char* path, Music_Emu** out, int sample_
 	return err;
 }
 
-BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
-{
-	return gme_internal_open_file( path, out, sample_rate, 0 );
-}
-
-BLARGG_EXPORT gme_err_t gme_open_file_multichannel( const char* path, Music_Emu** out, int sample_rate )
-{
-	return gme_internal_open_file( path, out, sample_rate, 1 );
-}
-
-BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate, int multi_channel )
+// Used to implement gme_new_emu and gme_new_emu_multi_channel
+Music_Emu* gme_internal_new_emu_( gme_type_t type, int rate, bool multi_channel )
 {
 	if ( type )
 	{
@@ -238,6 +228,17 @@ BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate, int multi_chann
 		}
 	}
 	return 0;
+}
+
+BLARGG_EXPORT Music_Emu* gme_new_emu( gme_type_t type, int rate )
+{
+    return gme_internal_new_emu_( type, rate, false /* no multichannel */);
+}
+
+BLARGG_EXPORT Music_Emu* gme_new_emu_multi_channel( gme_type_t type, int rate )
+{
+    // multi-channel emulator (if possible, not all emu types support multi-channel)
+    return gme_internal_new_emu_( type, rate, true /* multichannel */);
 }
 
 BLARGG_EXPORT gme_err_t gme_load_file( Music_Emu* me, const char* path ) { return me->load_file( path ); }

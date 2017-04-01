@@ -22,14 +22,6 @@ typedef struct Music_Emu Music_Emu;
 /* Create emulator and load game music file/data into it. Sets *out to new emulator. */
 gme_err_t gme_open_file( const char path [], Music_Emu** out, int sample_rate );
 
-/* Create emulator and load game music file/data into it. Sets *out to new emulator.
- * multichannel output is enabled on audio emulators that support segmenting audio output based
- * on the hardware's audio channel.
- * 
- * @since 0.6.2
- */
-gme_err_t gme_open_file_multichannel( const char path [], Music_Emu** out, int sample_rate );
-
 /* Number of tracks available */
 int gme_track_count( Music_Emu const* );
 
@@ -196,7 +188,8 @@ const char* gme_type_system( gme_type_t );
 int gme_type_multitrack( gme_type_t );
 
 /* whether the pcm output retrieved by gme_play() will have all 8 voices rendered to their
- * individual stereo channel or (if false) these voices get mixed into one single stereo channel */
+ * individual stereo channel or (if false) these voices get mixed into one single stereo channel
+ * @since 0.6.2 */
 int gme_multi_channel( Music_Emu const* );
 
 /******** Advanced file loading ********/
@@ -204,8 +197,9 @@ int gme_multi_channel( Music_Emu const* );
 /* Error returned if file type is not supported */
 extern const char* const gme_wrong_file_type;
 
-/* Same as gme_open_file(), but uses file data already in memory. Makes copy of data. */
-gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate, int multi_channel );
+/* Same as gme_open_file(), but uses file data already in memory. Makes copy of data.
+ * The resulting Music_Emu object will be set to single channel mode. */
+gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate );
 
 /* Determine likely game music type based on first four bytes of file. Returns
 string containing proper file suffix (i.e. "NSF", "SPC", etc.) or "" if
@@ -221,7 +215,14 @@ gme_err_t gme_identify_file( const char path [], gme_type_t* type_out );
 
 /* Create new emulator and set sample rate. Returns NULL if out of memory. If you only need
 track information, pass gme_info_only for sample_rate. */
-Music_Emu* gme_new_emu( gme_type_t, int sample_rate, int multi_channel );
+Music_Emu* gme_new_emu( gme_type_t, int sample_rate );
+
+/* Create new multichannel emulator and set sample rate. Returns NULL if out of memory.
+ * If you only need track information, pass gme_info_only for sample_rate.
+ * (see gme_multi_channel for more information on multichannel support)
+ * @since 0.6.2
+ */
+Music_Emu* gme_new_emu_multi_channel( gme_type_t, int sample_rate );
 
 /* Load music file into emulator */
 gme_err_t gme_load_file( Music_Emu*, const char path [] );
