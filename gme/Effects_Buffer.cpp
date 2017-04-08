@@ -265,15 +265,20 @@ void Effects_Buffer::end_frame( blip_time_t clock_count )
 	int bufs_used = 0;
 	int stereo_mask = (config_.effects_enabled ? 0x78 : 0x06);
 
-	for ( int i = 0; i < buf_count; i++ )
+	const int buf_count_per_voice = buf_count/max_voices;
+	for ( int v = 0; v < max_voices; v++ ) // foreach voice
 	{
-		bufs_used |= bufs [i].clear_modified() << i;
-		bufs [i].end_frame( clock_count );
+		for ( int i = 0; i < buf_count_per_voice; i++) // foreach buffer of that voice
+		{
+			bufs_used |= bufs [v*buf_count_per_voice + i].clear_modified() << i;
+			bufs [v*buf_count_per_voice + i].end_frame( clock_count );
 
-		if ( (bufs_used & stereo_mask) && buf_count == max_voices*max_buf_count )
-			stereo_remain = max(stereo_remain, bufs [i].samples_avail() + bufs [i].output_latency());
-		if ( effects_enabled || config_.effects_enabled )
-			effect_remain = max(effect_remain, bufs [i].samples_avail() + bufs [i].output_latency());
+			if ( (bufs_used & stereo_mask) && buf_count == max_voices*max_buf_count )
+				stereo_remain = max(stereo_remain, bufs [v*buf_count_per_voice + i].samples_avail() + bufs [v*buf_count_per_voice + i].output_latency());
+			if ( effects_enabled || config_.effects_enabled )
+				effect_remain = max(effect_remain, bufs [v*buf_count_per_voice + i].samples_avail() + bufs [v*buf_count_per_voice + i].output_latency());
+		}
+		bufs_used = 0;
 	}
 	
 	effects_enabled = config_.effects_enabled;
