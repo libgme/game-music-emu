@@ -54,6 +54,12 @@ blargg_err_t Classic_Emu::set_sample_rate_( long rate )
 	return buf->set_sample_rate( rate, 1000 / 20 );
 }
 
+blargg_err_t Classic_Emu::set_multi_channel ( bool is_enabled )
+{
+        RETURN_ERR( Music_Emu::set_multi_channel_( is_enabled ) );
+        return 0;
+}
+
 void Classic_Emu::mute_voices_( int mask )
 {
 	Music_Emu::mute_voices_( mask );

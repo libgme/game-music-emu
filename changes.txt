@@ -1,6 +1,16 @@
 Game_Music_Emu Change Log
 -------------------------
 
+recent git
+--------------------
+
+- Compiler support for C++11 is now required.  The code has not been
+  C++11'ified to any significant extent yet, but that will follow.
+  The official API will continue to be the C API exported in gme/gme.h
+- support multichannel rendering for Classic_Emu (i.e. rendering each voice
+  to a distinct stereo channel).  See gme_new_emu_multi_channel and
+  gme_multi_channel.
+
 Game_Music_Emu 0.6.1
 --------------------
 
