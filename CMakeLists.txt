@@ -86,6 +86,14 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wextra")
    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+   check_cxx_compiler_flag (-Wimplicit-fallthrough __LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
+
+   if (__LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
+       # Avoid warning spam about switch fallthroughs, which are numerous in
+       # the codebase.
+       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-fallthrough=0")
+   endif()
+
    if (ENABLE_UBSAN)
        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
    endif()
