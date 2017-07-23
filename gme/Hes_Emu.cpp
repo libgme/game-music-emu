@@ -133,7 +133,7 @@ static Music_Emu* new_hes_emu () { return BLARGG_NEW Hes_Emu ; }
 static Music_Emu* new_hes_file() { return BLARGG_NEW Hes_File; }
 
 static gme_type_t_ const gme_hes_type_ = { "PC Engine", 256, &new_hes_emu, &new_hes_file, "HES", 1 };
-gme_type_t const gme_hes_type = &gme_hes_type_;
+BLARGG_EXPORT extern gme_type_t const gme_hes_type = &gme_hes_type_;
 
 
 // Setup

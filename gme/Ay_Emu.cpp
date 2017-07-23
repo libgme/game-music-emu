@@ -117,7 +117,7 @@ static Music_Emu* new_ay_emu () { return BLARGG_NEW Ay_Emu ; }
 static Music_Emu* new_ay_file() { return BLARGG_NEW Ay_File; }
 
 static gme_type_t_ const gme_ay_type_ = { "ZX Spectrum", 0, &new_ay_emu, &new_ay_file, "AY", 1 };
-gme_type_t const gme_ay_type = &gme_ay_type_;
+BLARGG_EXPORT extern gme_type_t const gme_ay_type = &gme_ay_type_;
 
 // Setup
 
