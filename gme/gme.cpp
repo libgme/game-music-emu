@@ -111,6 +111,14 @@ BLARGG_EXPORT gme_type_t gme_identify_extension( const char* extension_ )
 	return 0;
 }
 
+BLARGG_EXPORT const char *gme_type_extension( gme_type_t music_type )
+{
+	const gme_type_t_ *const music_typeinfo = static_cast<const gme_type_t_ *>( music_type );
+	if ( music_type )
+		return music_typeinfo->extension_;
+	return "";
+}
+
 BLARGG_EXPORT gme_err_t gme_identify_file( const char* path, gme_type_t* type_out )
 {
 	*type_out = gme_identify_extension( path );

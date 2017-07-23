@@ -209,6 +209,14 @@ const char* gme_identify_header( void const* header );
 /* Get corresponding music type for file path or extension passed in. */
 gme_type_t gme_identify_extension( const char path_or_extension [] );
 
+/**
+ * Get typical file extension for a given music type.  This is not a replacement
+ * for a file content identification library (but see gme_identify_header).
+ *
+ * @since 0.6.2
+ */
+const char* gme_type_extension( gme_type_t music_type );
+
 /* Determine file type based on file's extension or header (if extension isn't recognized).
 Sets *type_out to type, or 0 if unrecognized or error. */
 gme_err_t gme_identify_file( const char path [], gme_type_t* type_out );
