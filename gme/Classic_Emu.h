@@ -13,7 +13,7 @@ public:
 	Classic_Emu();
 	~Classic_Emu();
 	void set_buffer( Multi_Buffer* );
-	virtual blargg_err_t set_multi_channel( bool is_enabled );
+	blargg_err_t set_multi_channel( bool is_enabled ) override;
 protected:
 	// Services
 	enum { wave_type = 0x100, noise_type = 0x200, mixed_type = wave_type | noise_type };

@@ -233,6 +233,24 @@ blargg_err_t Vgm_Emu::set_sample_rate_( long sample_rate )
 	return Classic_Emu::set_sample_rate_( sample_rate );
 }
 
+blargg_err_t Vgm_Emu::set_multi_channel ( bool is_enabled )
+{
+	// we acutally should check here whether this is classic emu or not
+	// however set_multi_channel() is called before setup_fm() resulting in uninited is_classic_emu()
+	// hard code it to unsupported
+#if 0
+	if ( is_classic_emu() )
+	{
+		RETURN_ERR( Music_Emu::set_multi_channel_( is_enabled ) );
+		return 0;
+	}
+	else
+#endif
+	{
+		return "multichannel rendering not supported for YM2*** FM sound chip emulators";
+	}
+}
+
 void Vgm_Emu::update_eq( blip_eq_t const& eq )
 {
 	psg.treble_eq( eq );
