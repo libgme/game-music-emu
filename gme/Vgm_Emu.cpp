@@ -247,6 +247,7 @@ blargg_err_t Vgm_Emu::set_multi_channel ( bool is_enabled )
 	else
 #endif
 	{
+		(void) is_enabled;
 		return "multichannel rendering not supported for YM2*** FM sound chip emulators";
 	}
 }
