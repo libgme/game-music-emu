@@ -1,4 +1,4 @@
-Game_Music_Emu 0.6.1: Game Music Emulators
+Game_Music_Emu 0.6.2: Game Music Emulators
 ------------------------------------------
 Game_Music_Emu is a collection of video game music file emulators that
 support the following formats and systems:
@@ -34,8 +34,7 @@ several architectures, Mac OS, MorphOS, Xbox, PlayStation Portable,
 GP2X, and Nintendo DS.
 
 Author : Shay Green <gblargg@gmail.com>
-Website: http://www.slack.net/~ant/
-Forum  : http://groups.google.com/group/blargg-sound-libs
+Website: https://bitbucket.org/mpyne/game-music-emu/wiki/Home
 License: GNU Lesser General Public License (LGPL)
 
 Current Maintainer: Michael Pyne <mpyne@purinchu.net>
