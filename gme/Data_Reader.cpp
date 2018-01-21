@@ -20,6 +20,11 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
+#ifdef HAVE_ZLIB_H
+#include <zlib.h>
+#include "GZipHelper.h"
+#endif
+
 const char Data_Reader::eof_error [] = "Unexpected end of file";
 
 #define RETURN_VALIDITY_CHECK( cond ) \
@@ -34,10 +39,10 @@ blargg_err_t Data_Reader::read( void* p, long s )
 	{
 		if ( result >= 0 && result < s )
 			return eof_error;
-		
+
 		return "Read error";
 	}
-	
+
 	return 0;
 }
 
@@ -147,7 +152,7 @@ Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 {
 	pos = 0;
 }
-	
+
 long Mem_File_Reader::size() const { return size_; }
 
 long Mem_File_Reader::read_avail( void* p, long s )
@@ -171,6 +176,53 @@ blargg_err_t Mem_File_Reader::seek( long n )
 	pos = n;
 	return 0;
 }
+
+
+#ifdef HAVE_ZLIB_H
+
+GZipMem_File_Reader::GZipMem_File_Reader( const void* p, long s ) :
+	begin_compressed( (const char*) p ),
+	size_compressed_( s ),
+	begin(NULL),
+	pos(0)
+{
+	CGZIP2A a((LPGZIP)begin_compressed, size_compressed_);
+	size_=a.Length;
+	begin=(char*)malloc(a.Length);
+	memcpy( begin, a.psz, size_);
+}
+
+GZipMem_File_Reader::~GZipMem_File_Reader()
+{
+	if(begin)
+	{
+		free(begin);
+	}
+}
+
+long GZipMem_File_Reader::size() const { return size_; }
+
+long GZipMem_File_Reader::read_avail( void* p, long s )
+{
+	long r = remain();
+	if ( s > r )
+		s = r;
+	memcpy( p, begin + pos, s );
+	pos += s;
+	return s;
+}
+
+long GZipMem_File_Reader::tell() const { return pos; }
+
+blargg_err_t GZipMem_File_Reader::seek( long n )
+{
+	if ( n > size_ )
+		return eof_error;
+	pos = n;
+	return 0;
+}
+#endif //HAVE_ZLIB_H
+
 
 // Callback_Reader
 
@@ -269,7 +321,7 @@ static const char* get_gzip_eof( const char* path, long* eof )
 	FILE* file = fopen( path, "rb" );
 	if ( !file )
 		return "Couldn't open file";
-	
+
 	unsigned char buf [4];
 	if ( fread( buf, 2, 1, file ) > 0 && buf [0] == 0x1F && buf [1] == 0x8B )
 	{
@@ -294,13 +346,13 @@ Gzip_File_Reader::~Gzip_File_Reader() { close(); }
 blargg_err_t Gzip_File_Reader::open( const char* path )
 {
 	close();
-	
+
 	RETURN_ERR( get_gzip_eof( path, &size_ ) );
-	
+
 	file_ = gzopen( path, "rb" );
 	if ( !file_ )
 		return "Couldn't open file";
-	
+
 	return 0;
 }
 
