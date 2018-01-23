@@ -69,6 +69,7 @@ then
     rm new/"$outname"
     rm curm/"$outname"
     rm newm/"$outname"
+    printf "All checks has been passed!\n"
     exit 0
 else
     printf "$outname differed\n"
