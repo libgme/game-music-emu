@@ -39,71 +39,6 @@ static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 #define COMMENT      0x10 /* bit 4 set: file comment present */
 #define RESERVED     0xE0 /* bits 5..7: reserved */
 
-
-#if MAX_MEM_LEVEL >= 8
-#  define DEF_MEM_LEVEL 8
-#else
-#  define DEF_MEM_LEVEL  MAX_MEM_LEVEL
-#endif
-
-#if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
-#  define OS_CODE  0x00
-#endif
-
-#ifdef AMIGA
-#  define OS_CODE  1
-#endif
-
-#if defined(VAXC) || defined(VMS)
-#  define OS_CODE  2
-#endif
-
-#ifdef __370__
-#  if __TARGET_LIB__ < 0x20000000
-#	define OS_CODE 4
-#  elif __TARGET_LIB__ < 0x40000000
-#	define OS_CODE 11
-#  else
-#	define OS_CODE 8
-#  endif
-#endif
-
-#if defined(ATARI) || defined(atarist)
-#  define OS_CODE  5
-#endif
-
-#ifdef OS2
-#  define OS_CODE  6
-#endif
-
-#if defined(MACOS) || defined(TARGET_OS_MAC)
-#  define OS_CODE  7
-#endif
-
-#ifdef __acorn
-#  define OS_CODE 13
-#endif
-
-#if defined(WIN32) && !defined(__CYGWIN__)
-#  define OS_CODE  10
-#endif
-
-#ifdef _BEOS_
-#  define OS_CODE  16
-#endif
-
-#ifdef __TOS_OS400__
-#  define OS_CODE 18
-#endif
-
-#ifdef __APPLE__
-#  define OS_CODE 19
-#endif
-
-#ifndef OS_CODE
-#  define OS_CODE  3	 /* assume Unix */
-#endif
-
 #endif /* HAVE_ZLIB_H */
 
 const char Data_Reader::eof_error [] = "Unexpected end of file";
@@ -238,10 +173,10 @@ Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 	m_gzip_pos(0),
 	m_begin(0),
 	m_size(0),
-	#else //HAVE_ZLIB_H
+	#else /* HAVE_ZLIB_H */
 	m_begin( (const char*) p ),
 	m_size( max( 0l, s ) ),
-	#endif //HAVE_ZLIB_H
+	#endif /* HAVE_ZLIB_H */
 	m_pos(0)
 {
 	#ifdef HAVE_ZLIB_H
@@ -288,7 +223,7 @@ Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 	m_begin = (const char* const)m_raw_data.data();
 	m_size = (long)m_raw_data.size();
 
-	#endif //HAVE_ZLIB_H
+	#endif  /* HAVE_ZLIB_H */
 }
 
 long Mem_File_Reader::size() const { return m_size; }
@@ -494,7 +429,7 @@ int Mem_File_Reader::gz_destroy()
 	return err;
 }
 
-#endif //HAVE_ZLIB_H
+#endif /* HAVE_ZLIB_H */
 
 
 // Callback_Reader

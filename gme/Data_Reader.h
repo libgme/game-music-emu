@@ -74,7 +74,7 @@ private:
 #ifdef HAVE_ZLIB_H
 	gzFile gzfile_;
 	long size_;
-#endif//HAVE_ZLIB_H
+#endif /* HAVE_ZLIB_H */
 };
 
 
@@ -111,7 +111,7 @@ private:
 	size_t m_gzip_len;
 	size_t m_gzip_pos;
 	std::vector<char> m_raw_data;
-#endif//HAVE_ZLIB_H
+#endif /* HAVE_ZLIB_H */
 
 	const char* m_begin;
 	long m_size;
