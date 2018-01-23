@@ -149,8 +149,8 @@ add_library(gme ${libgme_SRCS})
 
 if(ZLIB_FOUND)
     message(" ** ZLib library located, compressed file formats will be supported")
-    add_definitions(-DHAVE_ZLIB_H)
-    include_directories(${ZLIB_INCLUDE_DIRS})
+    target_compile_definitions(gme PRIVATE -DHAVE_ZLIB_H)
+    target_include_directories(gme PRIVATE ${ZLIB_INCLUDE_DIRS})
     target_link_libraries(gme ${ZLIB_LIBRARIES})
     # Is not to be installed though
 else()

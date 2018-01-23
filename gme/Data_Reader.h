@@ -8,6 +8,7 @@
 
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
+#include <vector>
 #endif
 
 // Supports reading and finding out how many bytes are remaining
@@ -72,43 +73,45 @@ private:
 	void* file_;
 };
 
-// Treats range of memory as a file
+#ifdef HAVE_ZLIB_H
+typedef  unsigned char GZIP;
+typedef  GZIP* LPGZIP;
+#endif
+
+// Treats range of memory as a compressed file
 class Mem_File_Reader : public File_Reader {
 public:
 	Mem_File_Reader( const void*, long size );
-	
+
 public:
 	long size() const;
 	long read_avail( void*, long );
 	long tell() const;
 	blargg_err_t seek( long );
 private:
-	const char* const begin;
-	const long size_;
-	long pos;
+	#ifdef HAVE_ZLIB_H
+	void gz_check_head();
+	int  gz_get_byte();
+	uInt gz_read_raw( LPGZIP buf, size_t size );
+	long gz_read( char* buf,size_t len );
+	size_t write( char* buf, size_t count );
+	int  gz_destroy();
+
+	z_stream m_zstream;
+	int	  m_z_err;   /* error code for last stream operation */
+	Byte *m_inbuf; /* output buffer */
+	int	  m_z_eof;
+	int	  m_transparent;
+	LPGZIP m_gzip;
+	size_t m_gzip_len;
+	size_t m_gzip_pos;
+	std::vector<char> m_raw_data;
+	#endif//HAVE_ZLIB_H
+
+	const char* m_begin;
+	long m_size;
+	long m_pos;
 };
-
-
-#ifdef HAVE_ZLIB_H
-// Treats range of memory as a compressed file
-class GZipMem_File_Reader : public File_Reader {
-public:
-	GZipMem_File_Reader( const void*, long size );
-	~GZipMem_File_Reader();
-
-public:
-	long size() const;
-    long read_avail( void*, long );
-    long tell() const;
-    blargg_err_t seek( long );
-private:
-	const char* const begin_compressed;
-	const long size_compressed_;
-	char* begin;
-	long size_;
-	long pos;
-};
-#endif
 
 
 // Makes it look like there are only count bytes remaining

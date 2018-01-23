@@ -49,17 +49,26 @@ fi
 outname=$(basename "$filepath").out
 
 # Ensure directories present
-mkdir -p cur new
+mkdir -p cur new curm newm
 
 (cd cur ; ../demo "$filepath" "$outname")
 (cd new ; LD_PRELOAD="$LIBGME_NEW_PATH" ../demo "$filepath" "$outname")
 
+(cd curm ; ../demo_mem "$filepath" "$outname")
+(cd newm ; LD_PRELOAD="$LIBGME_NEW_PATH" ../demo_mem "$filepath" "$outname")
+
 out1=$(sha1sum cur/"$outname" | cut -f1 -d' ')
 out2=$(sha1sum new/"$outname" | cut -f1 -d' ')
 
-if [ "x$out1" = "x$out2" -a "x" != "x$out1" ]
+out1m=$(sha1sum curm/"$outname" | cut -f1 -d' ')
+out2m=$(sha1sum newm/"$outname" | cut -f1 -d' ')
+
+if [ "x$out1" = "x$out2" -a "x$out1m" = "x$out2m" -a "x" != "x$out1" -a "x" != "x$out1m" ]
 then
-    rm {cur,new}/"$outname"
+    rm cur/"$outname"
+    rm new/"$outname"
+    rm curm/"$outname"
+    rm newm/"$outname"
     exit 0
 else
     printf "$outname differed\n"

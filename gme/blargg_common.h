@@ -81,7 +81,7 @@ public:
 	((a&0xFF)*0x1000000L + (b&0xFF)*0x10000L + (c&0xFF)*0x100L + (d&0xFF))
 
 #define BLARGG_2CHAR( a, b ) \
-	((a&0xFF)*0x1000000L + (b&0xFF)*0x10000L)
+	((a&0xFF)*0x100L + (b&0xFF))
 
 // BOOST_STATIC_ASSERT( expr ): Generates compile error if expr is 0.
 #ifndef BOOST_STATIC_ASSERT

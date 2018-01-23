@@ -69,7 +69,6 @@ BLARGG_EXPORT gme_type_t const* gme_type_list()
 
 BLARGG_EXPORT const char* gme_identify_header( void const* header )
 {
-	blargg_ulong magic = get_be32( header );
 	switch ( get_be32( header ) )
 	{
 		case BLARGG_4CHAR('Z','X','A','Y'):  return "AY";
@@ -84,7 +83,7 @@ BLARGG_EXPORT const char* gme_identify_header( void const* header )
 		case BLARGG_4CHAR('S','N','E','S'):  return "SPC";
 		case BLARGG_4CHAR('V','g','m',' '):  return "VGM";
 	}
-	if ((magic & 0xFFFF0000L) == BLARGG_2CHAR(0x1F, 0x8B))
+	if (get_be16(header) == BLARGG_2CHAR(0x1F, 0x8B))
 		return "VGZ";
 	return "";
 }
@@ -256,7 +255,7 @@ BLARGG_EXPORT gme_err_t gme_load_file( Music_Emu* me, const char* path ) { retur
 
 BLARGG_EXPORT gme_err_t gme_load_data( Music_Emu* me, void const* data, long size )
 {
-	GME_MEM_READER in( data, size );
+	Mem_File_Reader in( data, size );
 	return me->load( in );
 }
 

@@ -3,10 +3,23 @@
 
 #include "Wave_Writer.h" /* wave_ functions for writing sound file */
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdio.h>
 
 void handle_error( const char* str );
+
+char * dump_file(const char*file_path, size_t *size)
+{
+	FILE *in = fopen(file_path, "rb");
+	char *buffer = NULL;
+	if (!in)
+		return NULL;
+	fseek(in, 0, SEEK_END);
+	(*size) = (size_t)ftell(in);
+	fseek(in, 0, SEEK_SET);
+	buffer = (char*)malloc(*size);
+	fread(buffer, 1, *size, in);
+	return buffer;
+}
 
 int main(int argc, char *argv[])
 {
@@ -16,12 +29,23 @@ int main(int argc, char *argv[])
 	const char *filename = argv[1];
 	const char *outname  = argv[2];
 
-	long sample_rate = 44100; /* number of samples per second */
-	int track = 0;
+	int sample_rate = 44100; /* number of samples per second */
+	/* index of track to play (0 = first) */
+	int track = argc >= 3 ? atoi(argv[2]) : 0;
+
+	size_t file_size = 0;
+	char *file_data = dump_file(filename, &file_size);
+	if (!file_data)
+	{
+		printf( "Error: Can't dump %s!\n", filename );
+		exit( EXIT_FAILURE );
+	}
 
 	/* Open music file in new emulator */
 	Music_Emu* emu;
-	handle_error( gme_open_file( filename, &emu, sample_rate ) );
+	handle_error( gme_open_data(file_data, (long)file_size, &emu, sample_rate) );
+	/* File dump is no more needed */
+	free(file_data);
 
 	/* Start track */
 	handle_error( gme_start_track( emu, track ) );
@@ -59,3 +83,4 @@ void handle_error( const char* str )
 		exit( EXIT_FAILURE );
 	}
 }
+

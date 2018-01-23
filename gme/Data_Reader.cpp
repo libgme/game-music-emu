@@ -22,8 +22,89 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
-#include "GZipHelper.h"
+#include <stdlib.h>
+#include <errno.h>
+
+static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
+
+#define Z_BUFSIZE 4096
+
+#define ALLOC(size) malloc(size)
+#define TRYFREE(p) {if (p) free(p);}
+
+#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
+#define HEAD_CRC     0x02 /* bit 1 set: header CRC present */
+#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
+#define ORIG_NAME    0x08 /* bit 3 set: original file name present */
+#define COMMENT      0x10 /* bit 4 set: file comment present */
+#define RESERVED     0xE0 /* bits 5..7: reserved */
+
+
+#if MAX_MEM_LEVEL >= 8
+#  define DEF_MEM_LEVEL 8
+#else
+#  define DEF_MEM_LEVEL  MAX_MEM_LEVEL
 #endif
+
+#if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
+#  define OS_CODE  0x00
+#endif
+
+#ifdef AMIGA
+#  define OS_CODE  1
+#endif
+
+#if defined(VAXC) || defined(VMS)
+#  define OS_CODE  2
+#endif
+
+#ifdef __370__
+#  if __TARGET_LIB__ < 0x20000000
+#	define OS_CODE 4
+#  elif __TARGET_LIB__ < 0x40000000
+#	define OS_CODE 11
+#  else
+#	define OS_CODE 8
+#  endif
+#endif
+
+#if defined(ATARI) || defined(atarist)
+#  define OS_CODE  5
+#endif
+
+#ifdef OS2
+#  define OS_CODE  6
+#endif
+
+#if defined(MACOS) || defined(TARGET_OS_MAC)
+#  define OS_CODE  7
+#endif
+
+#ifdef __acorn
+#  define OS_CODE 13
+#endif
+
+#if defined(WIN32) && !defined(__CYGWIN__)
+#  define OS_CODE  10
+#endif
+
+#ifdef _BEOS_
+#  define OS_CODE  16
+#endif
+
+#ifdef __TOS_OS400__
+#  define OS_CODE 18
+#endif
+
+#ifdef __APPLE__
+#  define OS_CODE 19
+#endif
+
+#ifndef OS_CODE
+#  define OS_CODE  3	 /* assume Unix */
+#endif
+
+#endif /* HAVE_ZLIB_H */
 
 const char Data_Reader::eof_error [] = "Unexpected end of file";
 
@@ -147,80 +228,272 @@ blargg_err_t Remaining_Reader::read( void* out, long count )
 // Mem_File_Reader
 
 Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
-	begin( (const char*) p ),
-	size_( max( 0l, s ) )
+	#ifdef HAVE_ZLIB_H
+	m_z_err(Z_OK), /* error code for last stream operation */
+	m_inbuf(0), /* output buffer */
+	m_z_eof(0),
+	m_transparent(0),
+	m_gzip( (LPGZIP) p ),
+	m_gzip_len( (size_t)max( 0l, s ) ),
+	m_gzip_pos(0),
+	m_begin(0),
+	m_size(0),
+	#else //HAVE_ZLIB_H
+	m_begin( (const char*) p ),
+	m_size( max( 0l, s ) ),
+	#endif //HAVE_ZLIB_H
+	m_pos(0)
 {
-	pos = 0;
+	#ifdef HAVE_ZLIB_H
+	if(m_gzip == 0)
+		return;
+
+	if ( m_gzip_len >= 2 && memcmp(m_gzip, gz_magic, 2) != 0 )
+	{
+		/* Don't try to decompress non-GZ files, just assign input pointer */
+		m_begin = (const char*)p;
+		m_size = s;
+		return;
+	}
+
+	m_zstream.zalloc = (alloc_func)0;
+	m_zstream.zfree = (free_func)0;
+	m_zstream.opaque = (voidpf)0;
+	m_zstream.next_in = m_inbuf = Z_NULL;
+	m_zstream.next_out = Z_NULL;
+	m_zstream.avail_in = m_zstream.avail_out = 0;
+
+	m_inbuf = (Byte*)ALLOC(Z_BUFSIZE);
+	m_zstream.next_in = m_inbuf;
+	int err = inflateInit2(&(m_zstream), -MAX_WBITS);
+	if ( err != Z_OK || m_inbuf == Z_NULL )
+	{
+		gz_destroy();
+		return;
+	}
+
+	m_zstream.avail_out = Z_BUFSIZE;
+	gz_check_head();
+	char outbuf[Z_BUFSIZE];
+	long nRead;
+	while ( true )
+	{
+		nRead = gz_read(outbuf, Z_BUFSIZE);
+		if(nRead <= 0)
+			break;
+		write(outbuf, (size_t)nRead);
+	}
+	gz_destroy();
+
+	m_begin = (const char* const)m_raw_data.data();
+	m_size = (long)m_raw_data.size();
+
+	#endif //HAVE_ZLIB_H
 }
 
-long Mem_File_Reader::size() const { return size_; }
+long Mem_File_Reader::size() const { return m_size; }
 
 long Mem_File_Reader::read_avail( void* p, long s )
 {
 	long r = remain();
-	s = max( 0l, s );
 	if ( s > r )
 		s = r;
-	memcpy( p, begin + pos, s );
-	pos += s;
+	memcpy( p, m_begin + m_pos, (size_t)s );
+	m_pos += s;
 	return s;
 }
 
-long Mem_File_Reader::tell() const { return pos; }
+long Mem_File_Reader::tell() const { return m_pos; }
 
 blargg_err_t Mem_File_Reader::seek( long n )
 {
 	RETURN_VALIDITY_CHECK( n >= 0 );
-	if ( n > size_ )
+	if ( n > m_size )
 		return eof_error;
-	pos = n;
+	m_pos = n;
 	return 0;
 }
-
 
 #ifdef HAVE_ZLIB_H
 
-GZipMem_File_Reader::GZipMem_File_Reader( const void* p, long s ) :
-	begin_compressed( (const char*) p ),
-	size_compressed_( s ),
-	begin(NULL),
-	pos(0)
+void Mem_File_Reader::gz_check_head()
 {
-	CGZIP2A a((LPGZIP)begin_compressed, size_compressed_);
-	size_=a.Length;
-	begin=(char*)malloc(a.Length);
-	memcpy( begin, a.psz, size_);
-}
+	int method; /* method byte */
+	int flags;  /* flags byte */
+	uInt len;
+	int c;
 
-GZipMem_File_Reader::~GZipMem_File_Reader()
-{
-	if(begin)
+	/* Check the gzip magic header */
+	for ( len = 0; len < 2; len++ )
 	{
-		free(begin);
+		c = gz_get_byte();
+		if ( (unsigned char)c != gz_magic[len] )
+		{
+			if ( len != 0 )
+			{
+				m_zstream.avail_in++;
+				m_zstream.next_in--;
+			}
+			if ( c != EOF )
+			{
+				m_zstream.avail_in++;
+				m_zstream.next_in--;
+				m_transparent = 1;
+			}
+			m_z_err = (m_zstream.avail_in != 0) ? Z_OK : Z_STREAM_END;
+			return;
+		}
 	}
+
+	method = gz_get_byte();
+	flags = gz_get_byte();
+	if ( method != Z_DEFLATED || (flags & RESERVED) != 0 )
+	{
+		m_z_err = Z_DATA_ERROR;
+		return;
+	}
+
+	/* Discard time, xflags and OS code: */
+	for (len = 0; len < 6; len++)
+		(void)gz_get_byte();
+
+	if ( (flags & EXTRA_FIELD) != 0 ) /* skip the extra field */
+	{
+		len  =  (uInt)gz_get_byte();
+		len += ((uInt)gz_get_byte())<<8;
+		/* len is garbage if EOF but the loop below will quit anyway */
+		while (len-- != 0 && gz_get_byte() != EOF){}
+	}
+	if ( (flags & ORIG_NAME) != 0 ) /* skip the original file name */
+	{
+		while((c = gz_get_byte()) != 0 && c != EOF){}
+	}
+
+	if ( (flags & COMMENT) != 0 ) /* skip the .gz file comment */
+	{
+		while ((c = gz_get_byte()) != 0 && c != EOF){}
+	}
+
+	if ( (flags & HEAD_CRC) != 0 ) /* skip the header crc */
+	{
+		for (len = 0; len < 2; len++)
+			(void)gz_get_byte();
+	}
+
+	m_z_err = m_z_eof ? Z_DATA_ERROR : Z_OK;
 }
 
-long GZipMem_File_Reader::size() const { return size_; }
-
-long GZipMem_File_Reader::read_avail( void* p, long s )
+int Mem_File_Reader::gz_get_byte()
 {
-	long r = remain();
-	if ( s > r )
-		s = r;
-	memcpy( p, begin + pos, s );
-	pos += s;
-	return s;
+	if (m_z_eof) return EOF;
+	if (m_zstream.avail_in == 0)
+	{
+		errno = 0;
+		m_zstream.avail_in = gz_read_raw(m_inbuf, Z_BUFSIZE);
+		if ( m_zstream.avail_in == 0 )
+		{
+			m_z_eof = 1;
+			return EOF;
+		}
+		m_zstream.next_in = m_inbuf;
+	}
+	m_zstream.avail_in--;
+	return *(m_zstream.next_in)++;
 }
 
-long GZipMem_File_Reader::tell() const { return pos; }
-
-blargg_err_t GZipMem_File_Reader::seek( long n )
+uInt Mem_File_Reader::gz_read_raw(LPGZIP buf, size_t size)
 {
-	if ( n > size_ )
-		return eof_error;
-	pos = n;
-	return 0;
+	size_t nRead = size;
+	if ( m_gzip_pos + size >= m_gzip_len )
+		nRead = m_gzip_len - m_gzip_pos;
+	if ( nRead <= 0 )
+		return 0;
+	memcpy(buf, m_gzip + m_gzip_pos, nRead);
+	m_gzip_pos += nRead;
+	return (uInt)nRead;
 }
+
+long Mem_File_Reader::gz_read(char *buf, size_t len)
+{
+	//Bytef *start = (Bytef*)buf; /* starting point for crc computation */
+	Byte  *next_out; /* == stream.next_out but not forced far (for MSDOS) */
+
+	if (m_z_err == Z_DATA_ERROR || m_z_err == Z_ERRNO) return -1;
+	if (m_z_err == Z_STREAM_END) return 0;  /* EOF */
+
+	next_out = (Byte*)buf;
+	m_zstream.next_out = (Bytef*)buf;
+	m_zstream.avail_out = (uInt)len;
+	while ( m_zstream.avail_out != 0 )
+	{
+		if ( m_transparent )
+		{
+			/* Copy first the lookahead bytes: */
+			uInt n = m_zstream.avail_in;
+			if (n > m_zstream.avail_out) n = m_zstream.avail_out;
+			if (n > 0)
+			{
+				memcpy(m_zstream.next_out,m_zstream.next_in, n);
+				next_out += n;
+				m_zstream.next_out = next_out;
+				m_zstream.next_in   += n;
+				m_zstream.avail_out -= n;
+				m_zstream.avail_in  -= n;
+			}
+			if ( m_zstream.avail_out > 0 )
+			{
+				m_zstream.avail_out -= gz_read_raw(next_out, m_zstream.avail_out);
+			}
+			len -= m_zstream.avail_out;
+			m_zstream.total_in  += (uLong)len;
+			m_zstream.total_out += (uLong)len;
+			if(len == 0)
+				m_z_eof = 1;
+			return (int)len;
+		}
+
+		if ( m_zstream.avail_in == 0 && !m_z_eof )
+		{
+			errno = 0;
+			m_zstream.avail_in = gz_read_raw(m_inbuf, Z_BUFSIZE);
+			if ( m_zstream.avail_in == 0 )
+			{
+				m_z_eof = 1;
+			}
+			m_zstream.next_in = m_inbuf;
+		}
+
+		m_z_err = inflate(&(m_zstream), Z_NO_FLUSH);
+		if(m_z_err != Z_OK || m_z_eof)
+			break;
+	}
+
+	return (int)(len - m_zstream.avail_out);
+}
+
+size_t Mem_File_Reader::write(char *buf, size_t count)
+{
+	if ( buf == 0 )
+		return 0;
+	size_t prev_end = m_raw_data.size();
+	m_raw_data.resize(m_raw_data.size() + count);
+	memcpy(m_raw_data.data() + prev_end, buf, count);
+	if (m_raw_data.capacity() >= m_raw_data.size())
+		m_raw_data.reserve(1024);
+	return count;
+}
+
+int Mem_File_Reader::gz_destroy()
+{
+	int err = Z_OK;
+	if ( m_zstream.state != NULL )
+		err = inflateEnd(&(m_zstream));
+	if ( m_z_err < 0 )
+		err = m_z_err;
+	TRYFREE(m_inbuf);
+	return err;
+}
+
 #endif //HAVE_ZLIB_H
 
 
