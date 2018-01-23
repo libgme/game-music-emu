@@ -527,67 +527,7 @@ blargg_err_t Callback_Reader::read( void* out, long count )
 
 // Std_File_Reader
 
-Std_File_Reader::Std_File_Reader() : file_( 0 ) { }
-
-Std_File_Reader::~Std_File_Reader() { close(); }
-
-blargg_err_t Std_File_Reader::open( const char* path )
-{
-	file_ = fopen( path, "rb" );
-	if ( !file_ )
-		return "Couldn't open file";
-	return 0;
-}
-
-long Std_File_Reader::size() const
-{
-	long pos = tell();
-	fseek( (FILE*) file_, 0, SEEK_END );
-	long result = tell();
-	fseek( (FILE*) file_, pos, SEEK_SET );
-	return result;
-}
-
-long Std_File_Reader::read_avail( void* p, long s )
-{
-	return fread( p, 1, max( 0l, s ), (FILE*) file_ );
-}
-
-blargg_err_t Std_File_Reader::read( void* p, long s )
-{
-	RETURN_VALIDITY_CHECK( s > 0 );
-	if ( s == (long) fread( p, 1, s, (FILE*) file_ ) )
-		return 0;
-	if ( feof( (FILE*) file_ ) )
-		return eof_error;
-	return "Couldn't read from file";
-}
-
-long Std_File_Reader::tell() const { return ftell( (FILE*) file_ ); }
-
-blargg_err_t Std_File_Reader::seek( long n )
-{
-	if ( !fseek( (FILE*) file_, n, SEEK_SET ) )
-		return 0;
-	if ( n > size() )
-		return eof_error;
-	return "Error seeking in file";
-}
-
-void Std_File_Reader::close()
-{
-	if ( file_ )
-	{
-		fclose( (FILE*) file_ );
-		file_ = 0;
-	}
-}
-
-// Gzip_File_Reader
-
 #ifdef HAVE_ZLIB_H
-
-#include "zlib.h"
 
 static const char* get_gzip_eof( const char* path, long* eof )
 {
@@ -611,46 +551,133 @@ static const char* get_gzip_eof( const char* path, long* eof )
 	fclose( file );
 	return err;
 }
+#endif
 
-Gzip_File_Reader::Gzip_File_Reader() : file_( 0 ) { }
 
-Gzip_File_Reader::~Gzip_File_Reader() { close(); }
+Std_File_Reader::Std_File_Reader() :
+	file_( 0 )
+#ifdef HAVE_ZLIB_H
+	, gzfile_(0)
+	, size_(0)
+#endif
+{ }
 
-blargg_err_t Gzip_File_Reader::open( const char* path )
+Std_File_Reader::~Std_File_Reader() { close(); }
+
+blargg_err_t Std_File_Reader::open( const char* path )
 {
-	close();
-
-	RETURN_ERR( get_gzip_eof( path, &size_ ) );
-
-	file_ = gzopen( path, "rb" );
+	file_ = fopen( path, "rb" );
 	if ( !file_ )
 		return "Couldn't open file";
+
+#ifdef HAVE_ZLIB_H
+	char in_magic[2];
+	/* Detect GZip */
+	if ( fread(in_magic, 1, 2, (FILE*)file_) != 2 )
+	{
+		close();
+		return "File is too small";
+	}
+	fseek( (FILE*) file_, 0, SEEK_SET );
+
+	if ( memcmp( in_magic, gz_magic, 2 ) == 0 )
+	{
+		close();
+
+		RETURN_ERR( get_gzip_eof( path, &size_ ) );
+
+		gzfile_ = gzopen( path, "rb" );
+		if ( !gzfile_ )
+			return "Couldn't open GZ file";
+	}
+#endif
 
 	return 0;
 }
 
-long Gzip_File_Reader::size() const { return size_; }
-
-long Gzip_File_Reader::read_avail( void* p, long s ) { return gzread( file_, p, s ); }
-
-long Gzip_File_Reader::tell() const { return gztell( file_ ); }
-
-blargg_err_t Gzip_File_Reader::seek( long n )
+long Std_File_Reader::size() const
 {
-	if ( gzseek( file_, n, SEEK_SET ) >= 0 )
+#ifdef HAVE_ZLIB_H
+	if ( gzfile_ )
+		return size_;
+#endif
+	long pos = tell();
+	fseek( (FILE*) file_, 0, SEEK_END );
+	long result = tell();
+	fseek( (FILE*) file_, pos, SEEK_SET );
+	return result;
+}
+
+long Std_File_Reader::read_avail( void* p, long s )
+{
+#ifdef HAVE_ZLIB_H
+	if ( gzfile_ )
+		return gzread( gzfile_, p, (unsigned int)s );
+#endif
+	return fread( p, 1, max( 0l, s ), (FILE*) file_ );
+}
+
+blargg_err_t Std_File_Reader::read( void* p, long s )
+{
+	RETURN_VALIDITY_CHECK( s > 0 );
+#ifdef HAVE_ZLIB_H
+	if ( gzfile_ )
+	{
+		if ( s == (long) gzread( gzfile_, p, (unsigned int)s ) )
+			return 0;
+		if ( gzeof( gzfile_ ) )
+			return eof_error;
+		return "Couldn't read from GZ file";
+	}
+#endif
+	if ( s == (long) fread( p, 1, (size_t)s, (FILE*) file_ ) )
 		return 0;
-	if ( n > size_ )
+	if ( feof( (FILE*) file_ ) )
+		return eof_error;
+	return "Couldn't read from file";
+}
+
+long Std_File_Reader::tell() const
+{
+#ifdef HAVE_ZLIB_H
+	if ( gzfile_ )
+		return gztell( gzfile_ );
+#endif
+	return ftell( (FILE*) file_ );
+}
+
+blargg_err_t Std_File_Reader::seek( long n )
+{
+#ifdef HAVE_ZLIB_H
+	if ( gzfile_ )
+	{
+		if ( gzseek( gzfile_, n, SEEK_SET ) >= 0 )
+			return 0;
+		if ( n > size_ )
+			return eof_error;
+		return "Error seeking in GZ file";
+	}
+#endif
+	if ( !fseek( (FILE*) file_, n, SEEK_SET ) )
+		return 0;
+	if ( n > size() )
 		return eof_error;
 	return "Error seeking in file";
 }
 
-void Gzip_File_Reader::close()
+void Std_File_Reader::close()
 {
+#ifdef HAVE_ZLIB_H
+	if ( gzfile_ )
+	{
+		gzclose( gzfile_ );
+		gzfile_ = 0;
+	}
+#endif
 	if ( file_ )
 	{
-		gzclose( file_ );
+		fclose( (FILE*) file_ );
 		file_ = 0;
 	}
 }
 
-#endif

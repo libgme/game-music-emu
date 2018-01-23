@@ -71,14 +71,19 @@ public:
 	blargg_err_t seek( long );
 private:
 	void* file_;
+#ifdef HAVE_ZLIB_H
+	gzFile gzfile_;
+	long size_;
+#endif//HAVE_ZLIB_H
 };
+
 
 #ifdef HAVE_ZLIB_H
 typedef  unsigned char GZIP;
 typedef  GZIP* LPGZIP;
 #endif
 
-// Treats range of memory as a compressed file
+// Memory file reader
 class Mem_File_Reader : public File_Reader {
 public:
 	Mem_File_Reader( const void*, long size );
@@ -89,7 +94,7 @@ public:
 	long tell() const;
 	blargg_err_t seek( long );
 private:
-	#ifdef HAVE_ZLIB_H
+#ifdef HAVE_ZLIB_H
 	void gz_check_head();
 	int  gz_get_byte();
 	uInt gz_read_raw( LPGZIP buf, size_t size );
@@ -106,7 +111,7 @@ private:
 	size_t m_gzip_len;
 	size_t m_gzip_pos;
 	std::vector<char> m_raw_data;
-	#endif//HAVE_ZLIB_H
+#endif//HAVE_ZLIB_H
 
 	const char* m_begin;
 	long m_size;
@@ -157,25 +162,5 @@ private:
 	void* const data;
 	long remain_;
 };
-
-#ifdef HAVE_ZLIB_H
-// Gzip compressed file reader
-class Gzip_File_Reader : public File_Reader {
-public:
-	blargg_err_t open( const char* path );
-	void close();
-	
-public:
-	Gzip_File_Reader();
-	~Gzip_File_Reader();
-	long size() const;
-	long read_avail( void*, long );
-	long tell() const;
-	blargg_err_t seek( long );
-private:
-	gzFile file_;
-	long size_;
-};
-#endif
 
 #endif
