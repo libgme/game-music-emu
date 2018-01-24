@@ -223,7 +223,7 @@ Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 	m_begin = (const char* const)m_raw_data.data();
 	m_size = (long)m_raw_data.size();
 
-	#endif  /* HAVE_ZLIB_H */
+	#endif /* HAVE_ZLIB_H */
 }
 
 long Mem_File_Reader::size() const { return m_size; }

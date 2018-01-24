@@ -9,6 +9,8 @@
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
 #include <vector>
+typedef  unsigned char GZIP;
+typedef  GZIP* LPGZIP;
 #endif
 
 // Supports reading and finding out how many bytes are remaining
@@ -77,13 +79,7 @@ private:
 #endif /* HAVE_ZLIB_H */
 };
 
-
-#ifdef HAVE_ZLIB_H
-typedef  unsigned char GZIP;
-typedef  GZIP* LPGZIP;
-#endif
-
-// Memory file reader
+// Treats range of memory as a file
 class Mem_File_Reader : public File_Reader {
 public:
 	Mem_File_Reader( const void*, long size );
@@ -103,8 +99,8 @@ private:
 	int  gz_destroy();
 
 	z_stream m_zstream;
-	int	  m_z_err;   /* error code for last stream operation */
-	Byte *m_inbuf; /* output buffer */
+	int	  m_z_err; /* error code for last GZ stream operation */
+	Byte *m_inbuf; /* GZ output buffer */
 	int	  m_z_eof;
 	int	  m_transparent;
 	LPGZIP m_gzip;
