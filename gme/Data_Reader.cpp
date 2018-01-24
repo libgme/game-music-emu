@@ -131,7 +131,7 @@ long Remaining_Reader::read_first( void* out, long count )
 			first = count;
 		void const* old = header;
 		header += first;
-		memcpy( out, old, first );
+		memcpy( out, old, (size_t) first );
 	}
 	return first;
 }
@@ -350,7 +350,6 @@ uInt Mem_File_Reader::gz_read_raw(LPGZIP buf, size_t size)
 
 long Mem_File_Reader::gz_read(char *buf, size_t len)
 {
-	//Bytef *start = (Bytef*)buf; /* starting point for crc computation */
 	Byte  *next_out; /* == stream.next_out but not forced far (for MSDOS) */
 
 	if (m_z_err == Z_DATA_ERROR || m_z_err == Z_ERRNO) return -1;
@@ -376,9 +375,7 @@ long Mem_File_Reader::gz_read(char *buf, size_t len)
 				m_zstream.avail_in  -= n;
 			}
 			if ( m_zstream.avail_out > 0 )
-			{
 				m_zstream.avail_out -= gz_read_raw(next_out, m_zstream.avail_out);
-			}
 			len -= m_zstream.avail_out;
 			m_zstream.total_in  += (uLong)len;
 			m_zstream.total_out += (uLong)len;
@@ -392,9 +389,7 @@ long Mem_File_Reader::gz_read(char *buf, size_t len)
 			errno = 0;
 			m_zstream.avail_in = gz_read_raw(m_inbuf, Z_BUFSIZE);
 			if ( m_zstream.avail_in == 0 )
-			{
 				m_z_eof = 1;
-			}
 			m_zstream.next_in = m_inbuf;
 		}
 
@@ -457,7 +452,7 @@ blargg_err_t Callback_Reader::read( void* out, long count )
 	RETURN_VALIDITY_CHECK( count >= 0 );
 	if ( count > remain_ )
 		return eof_error;
-	return callback( data, out, count );
+	return callback( data, out, (int) count );
 }
 
 // Std_File_Reader
@@ -549,7 +544,7 @@ long Std_File_Reader::read_avail( void* p, long s )
 	if ( gzfile_ )
 		return gzread( gzfile_, p, (unsigned int)s );
 #endif
-	return fread( p, 1, max( 0l, s ), (FILE*) file_ );
+	return (long)fread( p, 1, (size_t) max( 0l, s ), (FILE*) file_ );
 }
 
 blargg_err_t Std_File_Reader::read( void* p, long s )
