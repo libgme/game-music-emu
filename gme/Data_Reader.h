@@ -9,8 +9,6 @@
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
 #include <vector>
-typedef  unsigned char GZIP;
-typedef  GZIP* LPGZIP;
 #endif
 
 // Supports reading and finding out how many bytes are remaining

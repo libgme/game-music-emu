@@ -24,21 +24,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #include <zlib.h>
 #include <stdlib.h>
 #include <errno.h>
-
 static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
-
-#define Z_BUFSIZE 4096
-
-#define ALLOC(size) malloc(size)
-#define TRYFREE(p) {if (p) free(p);}
-
-#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
-#define HEAD_CRC     0x02 /* bit 1 set: header CRC present */
-#define EXTRA_FIELD  0x04 /* bit 2 set: extra field present */
-#define ORIG_NAME    0x08 /* bit 3 set: original file name present */
-#define COMMENT      0x10 /* bit 4 set: file comment present */
-#define RESERVED     0xE0 /* bits 5..7: reserved */
-
 #endif /* HAVE_ZLIB_H */
 
 const char Data_Reader::eof_error [] = "Unexpected end of file";
