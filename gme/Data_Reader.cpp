@@ -250,7 +250,7 @@ bool Mem_File_Reader::gz_decompress()
 	}
 	m_raw_data.resize(strm.total_out);
 
-	return true ;
+	return true;
 }
 
 #endif /* HAVE_ZLIB_H */
