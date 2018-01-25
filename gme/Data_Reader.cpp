@@ -163,66 +163,19 @@ blargg_err_t Remaining_Reader::read( void* out, long count )
 // Mem_File_Reader
 
 Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
-	#ifdef HAVE_ZLIB_H
-	m_z_err(Z_OK), /* error code for last stream operation */
-	m_inbuf(0), /* output buffer */
-	m_z_eof(0),
-	m_transparent(0),
-	m_gzip( (LPGZIP) p ),
-	m_gzip_len( (size_t)max( 0l, s ) ),
-	m_gzip_pos(0),
-	m_begin(0),
-	m_size(0),
-	#else /* HAVE_ZLIB_H */
 	m_begin( (const char*) p ),
 	m_size( max( 0l, s ) ),
-	#endif /* HAVE_ZLIB_H */
 	m_pos(0)
 {
 	#ifdef HAVE_ZLIB_H
-	if(m_gzip == 0)
+	if(m_begin == 0)
 		return;
 
-	if ( m_gzip_len >= 2 && memcmp(m_gzip, gz_magic, 2) != 0 )
+	if ( gz_decompress() )
 	{
-		/* Don't try to decompress non-GZ files, just assign input pointer */
-		m_begin = (const char*)p;
-		m_size = s;
-		return;
+		m_begin = (const char* const)m_raw_data.data();
+		m_size = (long)m_raw_data.size();
 	}
-
-	m_zstream.zalloc = (alloc_func)0;
-	m_zstream.zfree = (free_func)0;
-	m_zstream.opaque = (voidpf)0;
-	m_zstream.next_in = m_inbuf = Z_NULL;
-	m_zstream.next_out = Z_NULL;
-	m_zstream.avail_in = m_zstream.avail_out = 0;
-
-	m_inbuf = (Byte*)ALLOC(Z_BUFSIZE);
-	m_zstream.next_in = m_inbuf;
-	int err = inflateInit2(&(m_zstream), -MAX_WBITS);
-	if ( err != Z_OK || m_inbuf == Z_NULL )
-	{
-		gz_destroy();
-		return;
-	}
-
-	m_zstream.avail_out = Z_BUFSIZE;
-	gz_check_head();
-	char outbuf[Z_BUFSIZE];
-	long nRead;
-	while ( true )
-	{
-		nRead = gz_read(outbuf, Z_BUFSIZE);
-		if(nRead <= 0)
-			break;
-		write(outbuf, (size_t)nRead);
-	}
-	gz_destroy();
-
-	m_begin = (const char* const)m_raw_data.data();
-	m_size = (long)m_raw_data.size();
-
 	#endif /* HAVE_ZLIB_H */
 }
 
@@ -251,177 +204,67 @@ blargg_err_t Mem_File_Reader::seek( long n )
 
 #ifdef HAVE_ZLIB_H
 
-void Mem_File_Reader::gz_check_head()
+bool Mem_File_Reader::gz_decompress()
 {
-	int method; /* method byte */
-	int flags;  /* flags byte */
-	uInt len;
-	int c;
-
-	/* Check the gzip magic header */
-	for ( len = 0; len < 2; len++ )
+	if ( m_size >= 2 && memcmp(m_begin, gz_magic, 2) != 0 )
 	{
-		c = gz_get_byte();
-		if ( (unsigned char)c != gz_magic[len] )
+		/* Don't try to decompress non-GZ files, just assign input pointer */
+		return false;
+	}
+
+	m_raw_data.clear();
+	uInt full_length = (uInt) m_size;
+	uInt half_length = (uInt) m_size / 2;
+
+	uInt uncompLength = (uInt) full_length ;
+	m_raw_data.resize(uncompLength, '\0');
+	char* uncomp = &m_raw_data[0];
+
+	z_stream strm;
+	strm.next_in   = (Bytef *)m_begin;
+	strm.avail_in  = (uInt) m_size;
+	strm.total_out = 0;
+	strm.zalloc    = Z_NULL;
+	strm.zfree     = Z_NULL;
+
+	bool done = false;
+
+	if ( inflateInit2(&strm, (16 + MAX_WBITS)) != Z_OK )
+	{
+		m_raw_data.clear();
+		return false;
+	}
+
+	while ( !done )
+	{
+		/* If our output buffer is too small */
+		if ( strm.total_out >= uncompLength )
 		{
-			if ( len != 0 )
-			{
-				m_zstream.avail_in++;
-				m_zstream.next_in--;
-			}
-			if ( c != EOF )
-			{
-				m_zstream.avail_in++;
-				m_zstream.next_in--;
-				m_transparent = 1;
-			}
-			m_z_err = (m_zstream.avail_in != 0) ? Z_OK : Z_STREAM_END;
-			return;
-		}
-	}
-
-	method = gz_get_byte();
-	flags = gz_get_byte();
-	if ( method != Z_DEFLATED || (flags & RESERVED) != 0 )
-	{
-		m_z_err = Z_DATA_ERROR;
-		return;
-	}
-
-	/* Discard time, xflags and OS code: */
-	for (len = 0; len < 6; len++)
-		(void)gz_get_byte();
-
-	if ( (flags & EXTRA_FIELD) != 0 ) /* skip the extra field */
-	{
-		len  =  (uInt)gz_get_byte();
-		len += ((uInt)gz_get_byte())<<8;
-		/* len is garbage if EOF but the loop below will quit anyway */
-		while (len-- != 0 && gz_get_byte() != EOF){}
-	}
-	if ( (flags & ORIG_NAME) != 0 ) /* skip the original file name */
-	{
-		while((c = gz_get_byte()) != 0 && c != EOF){}
-	}
-
-	if ( (flags & COMMENT) != 0 ) /* skip the .gz file comment */
-	{
-		while ((c = gz_get_byte()) != 0 && c != EOF){}
-	}
-
-	if ( (flags & HEAD_CRC) != 0 ) /* skip the header crc */
-	{
-		for (len = 0; len < 2; len++)
-			(void)gz_get_byte();
-	}
-
-	m_z_err = m_z_eof ? Z_DATA_ERROR : Z_OK;
-}
-
-int Mem_File_Reader::gz_get_byte()
-{
-	if (m_z_eof) return EOF;
-	if (m_zstream.avail_in == 0)
-	{
-		errno = 0;
-		m_zstream.avail_in = gz_read_raw(m_inbuf, Z_BUFSIZE);
-		if ( m_zstream.avail_in == 0 )
-		{
-			m_z_eof = 1;
-			return EOF;
-		}
-		m_zstream.next_in = m_inbuf;
-	}
-	m_zstream.avail_in--;
-	return *(m_zstream.next_in)++;
-}
-
-uInt Mem_File_Reader::gz_read_raw(LPGZIP buf, size_t size)
-{
-	size_t nRead = size;
-	if ( m_gzip_pos + size >= m_gzip_len )
-		nRead = m_gzip_len - m_gzip_pos;
-	if ( nRead <= 0 )
-		return 0;
-	memcpy(buf, m_gzip + m_gzip_pos, nRead);
-	m_gzip_pos += nRead;
-	return (uInt)nRead;
-}
-
-long Mem_File_Reader::gz_read(char *buf, size_t len)
-{
-	Byte  *next_out; /* == stream.next_out but not forced far (for MSDOS) */
-
-	if (m_z_err == Z_DATA_ERROR || m_z_err == Z_ERRNO) return -1;
-	if (m_z_err == Z_STREAM_END) return 0;  /* EOF */
-
-	next_out = (Byte*)buf;
-	m_zstream.next_out = (Bytef*)buf;
-	m_zstream.avail_out = (uInt)len;
-	while ( m_zstream.avail_out != 0 )
-	{
-		if ( m_transparent )
-		{
-			/* Copy first the lookahead bytes: */
-			uInt n = m_zstream.avail_in;
-			if (n > m_zstream.avail_out) n = m_zstream.avail_out;
-			if (n > 0)
-			{
-				memcpy(m_zstream.next_out,m_zstream.next_in, n);
-				next_out += n;
-				m_zstream.next_out = next_out;
-				m_zstream.next_in   += n;
-				m_zstream.avail_out -= n;
-				m_zstream.avail_in  -= n;
-			}
-			if ( m_zstream.avail_out > 0 )
-				m_zstream.avail_out -= gz_read_raw(next_out, m_zstream.avail_out);
-			len -= m_zstream.avail_out;
-			m_zstream.total_in  += (uLong)len;
-			m_zstream.total_out += (uLong)len;
-			if(len == 0)
-				m_z_eof = 1;
-			return (int)len;
+			/* Increase size of output buffer */
+			m_raw_data.resize(uncompLength + half_length, '\0');
+			uncomp = &m_raw_data[0];
+			uncompLength += half_length;
 		}
 
-		if ( m_zstream.avail_in == 0 && !m_z_eof )
-		{
-			errno = 0;
-			m_zstream.avail_in = gz_read_raw(m_inbuf, Z_BUFSIZE);
-			if ( m_zstream.avail_in == 0 )
-				m_z_eof = 1;
-			m_zstream.next_in = m_inbuf;
-		}
+		strm.next_out  = (Bytef *) (uncomp + strm.total_out);
+		strm.avail_out = uncompLength - (uInt) strm.total_out;
 
-		m_z_err = inflate(&(m_zstream), Z_NO_FLUSH);
-		if(m_z_err != Z_OK || m_z_eof)
+		/* Inflate another chunk. */
+		int err = inflate (&strm, Z_SYNC_FLUSH);
+		if ( err == Z_STREAM_END )
+			done = true;
+		else if ( err != Z_OK )
 			break;
 	}
 
-	return (int)(len - m_zstream.avail_out);
-}
+	if ( inflateEnd(&strm) != Z_OK )
+	{
+		m_raw_data.clear();
+		return false;
+	}
+	m_raw_data.resize(strm.total_out);
 
-size_t Mem_File_Reader::write(char *buf, size_t count)
-{
-	if ( buf == 0 )
-		return 0;
-	size_t prev_end = m_raw_data.size();
-	m_raw_data.resize(m_raw_data.size() + count);
-	memcpy(m_raw_data.data() + prev_end, buf, count);
-	if (m_raw_data.capacity() >= m_raw_data.size())
-		m_raw_data.reserve(1024);
-	return count;
-}
-
-int Mem_File_Reader::gz_destroy()
-{
-	int err = Z_OK;
-	if ( m_zstream.state != NULL )
-		err = inflateEnd(&(m_zstream));
-	if ( m_z_err < 0 )
-		err = m_z_err;
-	TRYFREE(m_inbuf);
-	return err;
+	return true ;
 }
 
 #endif /* HAVE_ZLIB_H */

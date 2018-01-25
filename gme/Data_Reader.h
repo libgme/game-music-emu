@@ -91,21 +91,7 @@ public:
 	blargg_err_t seek( long );
 private:
 #ifdef HAVE_ZLIB_H
-	void gz_check_head();
-	int  gz_get_byte();
-	uInt gz_read_raw( LPGZIP buf, size_t size );
-	long gz_read( char* buf,size_t len );
-	size_t write( char* buf, size_t count );
-	int  gz_destroy();
-
-	z_stream m_zstream;
-	int	  m_z_err; /* error code for last GZ stream operation */
-	Byte *m_inbuf; /* GZ output buffer */
-	int	  m_z_eof;
-	int	  m_transparent;
-	LPGZIP m_gzip;
-	size_t m_gzip_len;
-	size_t m_gzip_pos;
+	bool gz_decompress();
 	std::vector<char> m_raw_data;
 #endif /* HAVE_ZLIB_H */
 
