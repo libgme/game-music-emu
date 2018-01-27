@@ -83,6 +83,8 @@ BLARGG_EXPORT const char* gme_identify_header( void const* header )
 		case BLARGG_4CHAR('S','N','E','S'):  return "SPC";
 		case BLARGG_4CHAR('V','g','m',' '):  return "VGM";
 	}
+	if (get_be16(header) == BLARGG_2CHAR(0x1F, 0x8B))
+		return "VGZ";
 	return "";
 }
 
