@@ -13,7 +13,7 @@ demo: $(SRCS) Wave_Writer.h
 	$(CXX) -I$(INCLUDES)  $(CXXFLAGS) -o $@ $(SRCS) -L$(LIBRARIES) -lgme
 
 demo_mem: $(SRCS_MEM) Wave_Writer.h
-	$(CXX) -I$(INCLUDES) $(CXXFLAGS) -o $@ $(SRCS) -L$(LIBRARIES) -lgme
+	$(CXX) -I$(INCLUDES) $(CXXFLAGS) -o $@ $(SRCS_MEM) -L$(LIBRARIES) -lgme
 
 test: demo demo_mem
 	parallel --bar ./test.sh {} ::: $(TEST_FILES)
