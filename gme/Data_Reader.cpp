@@ -159,8 +159,8 @@ Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 
 	if ( gz_decompress() )
 	{
-		m_begin = (const char* const) m_raw_data.data();
-		m_size = (long) m_raw_data.size();
+		m_begin = reinterpret_cast<const char* const>(m_raw_data.data());
+		m_size  = static_cast<long>(m_raw_data.size());
 	}
 #endif /* HAVE_ZLIB_H */
 }
@@ -200,7 +200,7 @@ bool Mem_File_Reader::gz_decompress()
 
 	m_raw_data.clear();
 
-	using vec_size = typename std::vector<unsigned char>::size_type;
+	typedef std::vector<unsigned char>::size_type vec_size;
 
 	vec_size full_length = static_cast<vec_size>( m_size );
 	vec_size half_length = static_cast<vec_size>( m_size / 2 );
@@ -209,7 +209,7 @@ bool Mem_File_Reader::gz_decompress()
 
 	z_stream strm;
 	strm.next_in   = const_cast<Bytef *>( reinterpret_cast<const Bytef *>( m_begin ) );
-	strm.avail_in  = static_cast<vec_size>( m_size );
+	strm.avail_in  = static_cast<uInt>( m_size );
 	strm.total_out = 0;
 	strm.zalloc    = Z_NULL;
 	strm.zfree     = Z_NULL;
@@ -227,14 +227,14 @@ bool Mem_File_Reader::gz_decompress()
 	while ( !done )
 	{
 		/* If our output buffer is too small */
-		if ( strm.total_out >= m_raw_data.capacity() )
+		if ( strm.total_out >= m_raw_data.size() )
 		{
 			/* Increase size of output buffer */
 			m_raw_data.resize( m_raw_data.capacity() + half_length );
 		}
 
 		strm.next_out  = reinterpret_cast<Bytef *>( m_raw_data.data() + strm.total_out );
-		strm.avail_out = m_raw_data.capacity() - strm.total_out;
+		strm.avail_out = static_cast<uInt>(static_cast<uLong>(m_raw_data.size()) - strm.total_out);
 
 		/* Inflate another chunk. */
 		int err = inflate( &strm, Z_SYNC_FLUSH );
@@ -364,12 +364,12 @@ long Std_File_Reader::read_avail( void* p, long s )
 		return gzread( reinterpret_cast<gzFile>(file_),
 			p, static_cast<unsigned>(s) );
 	}
-
 	return 0l;
-#endif
+#else
 	const size_t readLength = static_cast<size_t>( max( 0l, s ) );
 	const auto result = fread( p, 1, readLength, reinterpret_cast<FILE*>(file_) );
 	return static_cast<long>( result );
+#endif /* HAVE_ZLIB_H */
 }
 
 blargg_err_t Std_File_Reader::read( void* p, long s )
