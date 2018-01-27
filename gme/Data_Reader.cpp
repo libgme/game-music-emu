@@ -159,10 +159,16 @@ Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 
 	if ( gz_decompress() )
 	{
-		m_begin = (const char* const) m_raw_data.data();
-		m_size = (long) m_raw_data.size();
+		debug_printf( "Loaded compressed data\n" );
+		m_ownedPtr = true;
 	}
 #endif /* HAVE_ZLIB_H */
+}
+
+Mem_File_Reader::~Mem_File_Reader()
+{
+	if ( m_ownedPtr )
+		free( const_cast<char*>( m_begin ) ); // see gz_compress for the malloc
 }
 
 long Mem_File_Reader::size() const { return m_size; }
@@ -198,14 +204,15 @@ bool Mem_File_Reader::gz_decompress()
 		return false;
 	}
 
-	m_raw_data.clear();
+	using vec_size = size_t;
+	const vec_size full_length = static_cast<vec_size>( m_size );
+	const vec_size half_length = static_cast<vec_size>( m_size / 2 );
 
-	using vec_size = typename std::vector<unsigned char>::size_type;
-
-	vec_size full_length = static_cast<vec_size>( m_size );
-	vec_size half_length = static_cast<vec_size>( m_size / 2 );
-
-	m_raw_data.resize( full_length );
+	// We use malloc/friends here so we can realloc to grow buffer if needed
+	char *raw_data = reinterpret_cast<char *> ( malloc( full_length ) );
+	size_t raw_data_size = full_length;
+	if ( !raw_data )
+		return false;
 
 	z_stream strm;
 	strm.next_in   = const_cast<Bytef *>( reinterpret_cast<const Bytef *>( m_begin ) );
@@ -220,21 +227,25 @@ bool Mem_File_Reader::gz_decompress()
 	// header.
 	if ( inflateInit2(&strm, (16 + MAX_WBITS)) != Z_OK )
 	{
-		m_raw_data.clear();
+		free( raw_data );
 		return false;
 	}
 
 	while ( !done )
 	{
 		/* If our output buffer is too small */
-		if ( strm.total_out >= m_raw_data.capacity() )
+		if ( strm.total_out >= raw_data_size )
 		{
-			/* Increase size of output buffer */
-			m_raw_data.resize( m_raw_data.capacity() + half_length );
+			raw_data_size += half_length;
+			raw_data = reinterpret_cast<char *>(
+                                realloc( raw_data, raw_data_size ) );
+			if ( !raw_data ) {
+				return false;
+			}
 		}
 
-		strm.next_out  = reinterpret_cast<Bytef *>( m_raw_data.data() + strm.total_out );
-		strm.avail_out = m_raw_data.capacity() - strm.total_out;
+		strm.next_out  = reinterpret_cast<Bytef *>( raw_data + strm.total_out );
+		strm.avail_out = raw_data_size - strm.total_out;
 
 		/* Inflate another chunk. */
 		int err = inflate( &strm, Z_SYNC_FLUSH );
@@ -246,12 +257,12 @@ bool Mem_File_Reader::gz_decompress()
 
 	if ( inflateEnd(&strm) != Z_OK )
 	{
-		m_raw_data.clear();
+		free( raw_data );
 		return false;
 	}
 
-	m_raw_data.resize( strm.total_out );
-	m_raw_data.shrink_to_fit();
+	m_begin = raw_data;
+	m_size  = strm.total_out;
 
 	return true;
 }
