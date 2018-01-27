@@ -8,7 +8,6 @@
 
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
-#include <vector>
 #endif
 
 // Supports reading and finding out how many bytes are remaining
@@ -80,6 +79,9 @@ private:
 class Mem_File_Reader : public File_Reader {
 public:
 	Mem_File_Reader( const void*, long size );
+#ifdef HAVE_ZLIB_H
+	~Mem_File_Reader( );
+#endif /* HAVE_ZLIB_H */
 
 public:
 	long size() const;
@@ -89,12 +91,14 @@ public:
 private:
 #ifdef HAVE_ZLIB_H
 	bool gz_decompress();
-	std::vector<char> m_raw_data; // TODO: Fix ABI compat
 #endif /* HAVE_ZLIB_H */
 
 	const char* m_begin;
 	long m_size;
 	long m_pos;
+#ifdef HAVE_ZLIB_H
+	bool m_ownedPtr = false; // set if we must free m_begin
+#endif /* HAVE_ZLIB_H */
 };
 
 
