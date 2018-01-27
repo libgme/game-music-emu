@@ -70,10 +70,9 @@ public:
 	long tell() const;
 	blargg_err_t seek( long );
 private:
-	void* file_;
+	void* file_; // Either FILE* or zlib's gzFile
 #ifdef HAVE_ZLIB_H
-	gzFile gzfile_;
-	long size_;
+	long size_; // TODO: Fix ABI compat
 #endif /* HAVE_ZLIB_H */
 };
 
@@ -90,7 +89,7 @@ public:
 private:
 #ifdef HAVE_ZLIB_H
 	bool gz_decompress();
-	std::vector<char> m_raw_data;
+	std::vector<char> m_raw_data; // TODO: Fix ABI compat
 #endif /* HAVE_ZLIB_H */
 
 	const char* m_begin;

@@ -113,7 +113,7 @@ long Remaining_Reader::read_first( void* out, long count )
 	long first = header_end - header;
 	if ( first )
 	{
-		if ( first > count )
+		if ( first > count || first < 0 )
 			first = count;
 		void const* old = header;
 		header += first;
@@ -151,18 +151,18 @@ blargg_err_t Remaining_Reader::read( void* out, long count )
 Mem_File_Reader::Mem_File_Reader( const void* p, long s ) :
 	m_begin( (const char*) p ),
 	m_size( max( 0l, s ) ),
-	m_pos(0)
+	m_pos( 0l )
 {
-	#ifdef HAVE_ZLIB_H
-	if(m_begin == 0)
+#ifdef HAVE_ZLIB_H
+	if( !m_begin )
 		return;
 
 	if ( gz_decompress() )
 	{
-		m_begin = (const char* const)m_raw_data.data();
-		m_size = (long)m_raw_data.size();
+		m_begin = (const char* const) m_raw_data.data();
+		m_size = (long) m_raw_data.size();
 	}
-	#endif /* HAVE_ZLIB_H */
+#endif /* HAVE_ZLIB_H */
 }
 
 long Mem_File_Reader::size() const { return m_size; }
@@ -170,9 +170,9 @@ long Mem_File_Reader::size() const { return m_size; }
 long Mem_File_Reader::read_avail( void* p, long s )
 {
 	long r = remain();
-	if ( s > r )
+	if ( s > r || s < 0 )
 		s = r;
-	memcpy( p, m_begin + m_pos, (size_t)s );
+	memcpy( p, m_begin + m_pos, static_cast<size_t>(s) );
 	m_pos += s;
 	return s;
 }
@@ -199,22 +199,25 @@ bool Mem_File_Reader::gz_decompress()
 	}
 
 	m_raw_data.clear();
-	uInt full_length = (uInt) m_size;
-	uInt half_length = (uInt) m_size / 2;
 
-	uInt uncompLength = (uInt) full_length ;
-	m_raw_data.resize(uncompLength, '\0');
-	char* uncomp = &m_raw_data[0];
+	using vec_size = typename std::vector<unsigned char>::size_type;
+
+	vec_size full_length = static_cast<vec_size>( m_size );
+	vec_size half_length = static_cast<vec_size>( m_size / 2 );
+
+	m_raw_data.resize( full_length );
 
 	z_stream strm;
-	strm.next_in   = (Bytef *)m_begin;
-	strm.avail_in  = (uInt) m_size;
+	strm.next_in   = const_cast<Bytef *>( reinterpret_cast<const Bytef *>( m_begin ) );
+	strm.avail_in  = static_cast<vec_size>( m_size );
 	strm.total_out = 0;
 	strm.zalloc    = Z_NULL;
 	strm.zfree     = Z_NULL;
 
 	bool done = false;
 
+	// Adding 16 sets bit 4, which enables zlib to auto-detect the
+	// header.
 	if ( inflateInit2(&strm, (16 + MAX_WBITS)) != Z_OK )
 	{
 		m_raw_data.clear();
@@ -224,19 +227,17 @@ bool Mem_File_Reader::gz_decompress()
 	while ( !done )
 	{
 		/* If our output buffer is too small */
-		if ( strm.total_out >= uncompLength )
+		if ( strm.total_out >= m_raw_data.capacity() )
 		{
 			/* Increase size of output buffer */
-			m_raw_data.resize(uncompLength + half_length, '\0');
-			uncomp = &m_raw_data[0];
-			uncompLength += half_length;
+			m_raw_data.resize( m_raw_data.capacity() + half_length );
 		}
 
-		strm.next_out  = (Bytef *) (uncomp + strm.total_out);
-		strm.avail_out = uncompLength - (uInt) strm.total_out;
+		strm.next_out  = reinterpret_cast<Bytef *>( m_raw_data.data() + strm.total_out );
+		strm.avail_out = m_raw_data.capacity() - strm.total_out;
 
 		/* Inflate another chunk. */
-		int err = inflate (&strm, Z_SYNC_FLUSH);
+		int err = inflate( &strm, Z_SYNC_FLUSH );
 		if ( err == Z_STREAM_END )
 			done = true;
 		else if ( err != Z_OK )
@@ -248,7 +249,9 @@ bool Mem_File_Reader::gz_decompress()
 		m_raw_data.clear();
 		return false;
 	}
-	m_raw_data.resize(strm.total_out);
+
+	m_raw_data.resize( strm.total_out );
+	m_raw_data.shrink_to_fit();
 
 	return true;
 }
@@ -295,18 +298,21 @@ static const char* get_gzip_eof( const char* path, long* eof )
 		return "Couldn't open file";
 
 	unsigned char buf [4];
+	bool found_eof = false;
 	if ( fread( buf, 2, 1, file ) > 0 && buf [0] == 0x1F && buf [1] == 0x8B )
 	{
 		fseek( file, -4, SEEK_END );
-		fread( buf, 4, 1, file );
-		*eof = get_le32( buf );
+		if ( fread( buf, 4, 1, file ) > 0 ) {
+			*eof = get_le32( buf );
+			found_eof = true;
+		}
 	}
-	else
+	if ( !found_eof )
 	{
 		fseek( file, 0, SEEK_END );
 		*eof = ftell( file );
 	}
-	const char* err = (ferror( file ) || feof( file )) ? "Couldn't get file size" : 0;
+	const char* err = (ferror( file ) || feof( file )) ? "Couldn't get file size" : nullptr;
 	fclose( file );
 	return err;
 }
@@ -314,10 +320,9 @@ static const char* get_gzip_eof( const char* path, long* eof )
 
 
 Std_File_Reader::Std_File_Reader() :
-	file_( 0 )
+	file_( nullptr )
 #ifdef HAVE_ZLIB_H
-	, gzfile_(0)
-	, size_(0)
+	, size_( 0 )
 #endif
 { }
 
@@ -325,40 +330,25 @@ Std_File_Reader::~Std_File_Reader() { close(); }
 
 blargg_err_t Std_File_Reader::open( const char* path )
 {
-	file_ = fopen( path, "rb" );
-	if ( !file_ )
-		return "Couldn't open file";
-
 #ifdef HAVE_ZLIB_H
-	char in_magic[2];
-	/* Detect GZip */
-	if ( fread(in_magic, 1, 2, (FILE*)file_) != 2 )
-	{
-		close();
-		return "File is too small";
-	}
-	fseek( (FILE*) file_, 0, SEEK_SET );
-
-	if ( memcmp( in_magic, gz_magic, 2 ) == 0 )
-	{
-		close();
-
-		RETURN_ERR( get_gzip_eof( path, &size_ ) );
-
-		gzfile_ = gzopen( path, "rb" );
-		if ( !gzfile_ )
-			return "Couldn't open GZ file";
-	}
+	// zlib transparently handles uncompressed data if magic header
+	// not present but we still need to grab size
+	RETURN_ERR( get_gzip_eof( path, &size_ ) );
+	file_ = gzopen( path, "rb" );
+#else
+	file_ = fopen( path, "rb" );
 #endif
 
-	return 0;
+	if ( !file_ )
+		return "Couldn't open file";
+	return nullptr;
 }
 
 long Std_File_Reader::size() const
 {
 #ifdef HAVE_ZLIB_H
-	if ( gzfile_ )
-		return size_;
+	if ( file_ )
+		return size_; // Set for both compressed and uncompressed modes
 #endif
 	long pos = tell();
 	fseek( (FILE*) file_, 0, SEEK_END );
@@ -370,28 +360,36 @@ long Std_File_Reader::size() const
 long Std_File_Reader::read_avail( void* p, long s )
 {
 #ifdef HAVE_ZLIB_H
-	if ( gzfile_ )
-		return gzread( gzfile_, p, (unsigned int)s );
+	if ( file_ && s > 0 && s <= UINT_MAX ) {
+		return gzread( reinterpret_cast<gzFile>(file_),
+			p, static_cast<unsigned>(s) );
+	}
+
+	return 0l;
 #endif
-	return (long)fread( p, 1, (size_t) max( 0l, s ), (FILE*) file_ );
+	const size_t readLength = static_cast<size_t>( max( 0l, s ) );
+	const auto result = fread( p, 1, readLength, reinterpret_cast<FILE*>(file_) );
+	return static_cast<long>( result );
 }
 
 blargg_err_t Std_File_Reader::read( void* p, long s )
 {
-	RETURN_VALIDITY_CHECK( s > 0 );
+	RETURN_VALIDITY_CHECK( s > 0 && s <= UINT_MAX );
 #ifdef HAVE_ZLIB_H
-	if ( gzfile_ )
+	if ( file_ )
 	{
-		if ( s == (long) gzread( gzfile_, p, (unsigned int)s ) )
-			return 0;
-		if ( gzeof( gzfile_ ) )
+		const auto &gzfile = reinterpret_cast<gzFile>( file_ );
+		if ( s == gzread( gzfile, p, static_cast<unsigned>( s ) ) )
+			return nullptr;
+		if ( gzeof( gzfile ) )
 			return eof_error;
 		return "Couldn't read from GZ file";
 	}
 #endif
-	if ( s == (long) fread( p, 1, (size_t)s, (FILE*) file_ ) )
+	const auto &file = reinterpret_cast<FILE*>( file_ );
+	if ( s == static_cast<long>( fread( p, 1, static_cast<size_t>(s), file ) ) )
 		return 0;
-	if ( feof( (FILE*) file_ ) )
+	if ( feof( file ) )
 		return eof_error;
 	return "Couldn't read from file";
 }
@@ -399,26 +397,26 @@ blargg_err_t Std_File_Reader::read( void* p, long s )
 long Std_File_Reader::tell() const
 {
 #ifdef HAVE_ZLIB_H
-	if ( gzfile_ )
-		return gztell( gzfile_ );
+	if ( file_ )
+		return gztell( reinterpret_cast<gzFile>( file_ ) );
 #endif
-	return ftell( (FILE*) file_ );
+	return ftell( reinterpret_cast<FILE*>( file_ ) );
 }
 
 blargg_err_t Std_File_Reader::seek( long n )
 {
 #ifdef HAVE_ZLIB_H
-	if ( gzfile_ )
+	if ( file_ )
 	{
-		if ( gzseek( gzfile_, n, SEEK_SET ) >= 0 )
-			return 0;
+		if ( gzseek( reinterpret_cast<gzFile>( file_ ), n, SEEK_SET ) >= 0 )
+			return nullptr;
 		if ( n > size_ )
 			return eof_error;
 		return "Error seeking in GZ file";
 	}
 #endif
-	if ( !fseek( (FILE*) file_, n, SEEK_SET ) )
-		return 0;
+	if ( !fseek( reinterpret_cast<FILE*>( file_ ), n, SEEK_SET ) )
+		return nullptr;
 	if ( n > size() )
 		return eof_error;
 	return "Error seeking in file";
@@ -426,17 +424,14 @@ blargg_err_t Std_File_Reader::seek( long n )
 
 void Std_File_Reader::close()
 {
-#ifdef HAVE_ZLIB_H
-	if ( gzfile_ )
-	{
-		gzclose( gzfile_ );
-		gzfile_ = 0;
-	}
-#endif
 	if ( file_ )
 	{
-		fclose( (FILE*) file_ );
-		file_ = 0;
+#ifdef HAVE_ZLIB_H
+		gzclose( reinterpret_cast<gzFile>( file_ ) );
+#else
+		fclose( reinterpret_cast<FILE*>( file_ ) );
+#endif
+		file_ = nullptr;
 	}
 }
 
