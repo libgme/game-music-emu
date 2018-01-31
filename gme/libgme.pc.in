@@ -9,7 +9,7 @@ includedir=${prefix}/include
 
 Name: Game_Music_Emu
 Description: A video game emulation library for music.
-URL: http://code.google.com/p/game-music-emu/
+URL: https://bitbucket.org/mpyne/game-music-emu/wiki/Home
 Version: @GME_VERSION@
 Cflags: -I${includedir}
 Libs: -L${libdir} -lgme
