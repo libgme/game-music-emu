@@ -129,13 +129,6 @@ endif()
 # These headers are part of the generic gme interface.
 set (EXPORTED_HEADERS gme.h)
 
-# Run during cmake phase, so this is available during make
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gme_types.h.in
-    ${CMAKE_CURRENT_BINARY_DIR}/gme_types.h)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libgme.pc.in
-    ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc @ONLY)
-
 # On some platforms we may need to change headers or whatnot based on whether
 # we're building the library or merely using the library. The following is
 # only defined when building the library to allow us to tell which is which.
@@ -153,6 +146,8 @@ if(ZLIB_FOUND)
     target_include_directories(gme PRIVATE ${ZLIB_INCLUDE_DIRS})
     target_link_libraries(gme ${ZLIB_LIBRARIES})
     # Is not to be installed though
+
+    set(PKG_CONFIG_ZLIB -lz) # evaluated in libgme.pc.in
 else()
     message("ZLib library not found, disabling support for compressed formats such as VGZ")
 endif()
@@ -169,6 +164,13 @@ set_target_properties(gme
 install(TARGETS gme LIBRARY DESTINATION lib${LIB_SUFFIX}
                     RUNTIME DESTINATION bin  # DLL platforms
                     ARCHIVE DESTINATION lib) # DLL platforms
+
+# Run during cmake phase, so this is available during make
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gme_types.h.in
+    ${CMAKE_CURRENT_BINARY_DIR}/gme_types.h)
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libgme.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc @ONLY)
 
 install(FILES ${EXPORTED_HEADERS} DESTINATION include/gme)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc DESTINATION lib${LIB_SUFFIX}/pkgconfig)
