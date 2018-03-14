@@ -14,6 +14,13 @@ set(libgme_SRCS Blip_Buffer.cpp
                 Music_Emu.cpp
                 )
 
+# static builds need to find static zlib (and static forms of other needed
+# libraries.  Ensure CMake looks only for static libs if we're doing a static
+# build.  See https://stackoverflow.com/a/44738756
+if(NOT ${BUILD_SHARED_LIBS})
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+endif()
+
 find_package(ZLIB QUIET)
 
 # Ay_Apu is very popular around here
