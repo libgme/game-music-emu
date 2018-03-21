@@ -73,6 +73,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     add_definitions (-DLIBGME_VISIBILITY)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
+    # Try to protect against undefined behavior from signed integer overflow
+    # This has caused miscompilation of code already and there are other
+    # potential uses; see https://bitbucket.org/mpyne/game-music-emu/issues/18/
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fwrapv")
+
     if (NOT DEFINED LIBGME_SWITCH_FALLTHROUGH)
         check_cxx_compiler_flag (-Wimplicit-fallthrough __LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
         set (LIBGME_SWITCH_FALLTHROUGH ${__LIBGME_SWITCH_FALLTHROUGH_WARNINGS}
