@@ -62,44 +62,34 @@ option(BUILD_SHARED_LIBS "Build shared library (set to OFF for static library)" 
 option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ON)
 
 # Check for GCC/Clang "visibility" support.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    OR
     CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    check_cxx_compiler_flag (-fvisibility=hidden __LIBGME_TEST_VISIBILITY)
-    set (ENABLE_VISIBILITY OFF)
-    if (__LIBGME_TEST_VISIBILITY)
-        # gcc <4.1 had poor support for symbol visibility
-        if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
-                CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.1"))
-            set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-            set (ENABLE_VISIBILITY ON)
-            add_definitions (-DLIBGME_VISIBILITY)
-
-            # GCC >= 4.2 also correctly supports making inline members have hidden
-            # visibility by default.
-            if (NOT (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
-                    CMAKE_CXX_COMPILER_VERSION VERSION_LESS "4.2"))
-                set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
-            endif()
-        endif()
-    endif() # test visibility
 
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wextra")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-    check_cxx_compiler_flag (-Wimplicit-fallthrough __LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
-    if (__LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
-         # Avoid warning spam about switch fallthroughs, which are numerous in
-         # the codebase.
-         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-fallthrough=0")
+    # Assume we have visibility support on any compiler that supports C++11
+    add_definitions (-DLIBGME_VISIBILITY)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
+
+    if (NOT DEFINED LIBGME_SWITCH_FALLTHROUGH)
+        check_cxx_compiler_flag (-Wimplicit-fallthrough __LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
+        set (LIBGME_SWITCH_FALLTHROUGH ${__LIBGME_SWITCH_FALLTHROUGH_WARNINGS}
+            CACHE BOOL "Set if the compiler will complain about implicit switch fallthrough"
+            )
     endif()
 
     if (ENABLE_UBSAN)
          set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
     endif()
-
-    # Cache this result
-    set(LIBGME_HAVE_GCC_VISIBILITY ${ENABLE_VISIBILITY} CACHE BOOL "GCC support for hidden visibility")
 endif ()
+
+if(LIBGME_SWITCH_FALLTHROUGH)
+     # Avoid warning spam about switch fallthroughs, which are numerous in
+     # the codebase.
+     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-fallthrough=0")
+endif()
 
 # Shared library defined here
 add_subdirectory(gme)
