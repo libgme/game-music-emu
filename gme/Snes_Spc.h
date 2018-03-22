@@ -182,13 +182,11 @@ private:
 		
 		struct
 		{
-			// padding to neutralize address overflow
-			union {
-				uint8_t padding1 [0x100];
-				uint16_t align; // makes compiler align data for 16-bit access
-			} padding1 [1];
-			uint8_t ram      [0x10000];
-			uint8_t padding2 [0x100];
+			// padding to neutralize address overflow -- but this is
+			// still undefined behavior! TODO: remove and instead properly
+			// guard usage of emulated memory
+			uint8_t padding1 [0x100];
+			alignas(uint16_t) uint8_t ram      [0x10000 + 0x100];
 		} ram;
 	};
 	state_t m;

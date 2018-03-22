@@ -54,8 +54,7 @@ private:
 	// large items
 	struct {
 		byte padding1 [0x100];
-		byte ram [0x10000];
-		byte padding2 [0x100];
+		byte ram [0x10000 + 0x100];
 	} mem;
 	Sap_Apu_Impl apu_impl;
 	
