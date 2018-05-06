@@ -86,7 +86,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     endif()
 
     if (ENABLE_UBSAN)
-         set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+        # GCC needs -static-libubsan
+        if (NOT BUILD_SHARED_LIBS AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -static-libubsan")
+        else()
+            set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
+        endif()
     endif()
 endif ()
 
