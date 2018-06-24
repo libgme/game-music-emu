@@ -1,1319 +1,3108 @@
 // Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 
-// Based on Gens 2.10 ym2612.c
+// Based on Mame YM2612 ym2612.c
 
 #include "Ym2612_Emu.h"
 
-#include <assert.h>
+/*
+**
+** File: fm2612.c -- software implementation of Yamaha YM2612 FM sound generator
+** Split from fm.c to keep 2612 fixes from infecting other OPN chips
+**
+** Copyright Jarek Burczynski (bujar at mame dot net)
+** Copyright Tatsuyuki Satoh , MultiArcadeMachineEmulator development
+**
+** Version 1.5.1 (Genesis Plus GX ym2612.c rev. 368)
+**
+*/
+
+/*
+** History:
+**
+** 2006~2012  Eke-Eke (Genesis Plus GX):
+** Huge thanks to Nemesis, lot of those fixes came from his tests on Sega Genesis hardware
+** More informations at http://gendev.spritesmind.net/forum/viewtopic.php?t=386
+**
+**  TODO:
+**
+**  - core documentation
+**  - BUSY flag support
+**
+**  CHANGELOG:
+**
+** 26-09-2017 Eke-Eke (Genesis Plus GX):
+**  - fixed EG counter loopback behavior (verified on YM3438 die)
+**  - reverted changes to EG rates 2-7 increment values
+**
+** xx-xx-xxxx
+**  - fixed LFO implementation:
+**      .added support for CH3 special mode: fixes various sound effects (birds in Warlock, bug sound in Aladdin...)
+**      .inverted LFO AM waveform: fixes Spider-Man & Venom : Separation Anxiety (intro), California Games (surfing event)
+**      .improved LFO timing accuracy: now updated AFTER sample output, like EG/PG updates, and without any precision loss anymore.
+**  - improved internal timers emulation
+**  - adjusted lowest EG rates increment values
+**  - fixed Attack Rate not being updated in some specific cases (Batman & Robin intro)
+**  - fixed EG behavior when Attack Rate is maximal
+**  - fixed EG behavior when SL=0 (Mega Turrican tracks 03,09...) or/and Key ON occurs at minimal attenuation
+**  - implemented EG output immediate changes on register writes
+**  - fixed YM2612 initial values (after the reset): fixes missing intro in B.O.B
+**  - implemented Detune overflow (Ariel, Comix Zone, Shaq Fu, Spiderman & many other games using GEMS sound engine)
+**  - implemented accurate CSM mode emulation
+**  - implemented accurate SSG-EG emulation (Asterix, Beavis&Butthead, Bubba'n Stix & many other games)
+**  - implemented accurate address/data ports behavior
+**
+** 06-23-2007 Zsolt Vasvari:
+**  - changed the timing not to require the use of floating point calculations
+**
+** 03-08-2003 Jarek Burczynski:
+**  - fixed YM2608 initial values (after the reset)
+**  - fixed flag and irqmask handling (YM2608)
+**  - fixed BUFRDY flag handling (YM2608)
+**
+** 14-06-2003 Jarek Burczynski:
+**  - implemented all of the YM2608 status register flags
+**  - implemented support for external memory read/write via YM2608
+**  - implemented support for deltat memory limit register in YM2608 emulation
+**
+** 22-05-2003 Jarek Burczynski:
+**  - fixed LFO PM calculations (copy&paste bugfix)
+**
+** 08-05-2003 Jarek Burczynski:
+**  - fixed SSG support
+**
+** 22-04-2003 Jarek Burczynski:
+**  - implemented 100% correct LFO generator (verified on real YM2610 and YM2608)
+**
+** 15-04-2003 Jarek Burczynski:
+**  - added support for YM2608's register 0x110 - status mask
+**
+** 01-12-2002 Jarek Burczynski:
+**  - fixed register addressing in YM2608, YM2610, YM2610B chips. (verified on real YM2608)
+**    The addressing patch used for early Neo-Geo games can be removed now.
+**
+** 26-11-2002 Jarek Burczynski, Nicola Salmoria:
+**  - recreated YM2608 ADPCM ROM using data from real YM2608's output which leads to:
+**  - added emulation of YM2608 drums.
+**  - output of YM2608 is two times lower now - same as YM2610 (verified on real YM2608)
+**
+** 16-08-2002 Jarek Burczynski:
+**  - binary exact Envelope Generator (verified on real YM2203);
+**    identical to YM2151
+**  - corrected 'off by one' error in feedback calculations (when feedback is off)
+**  - corrected connection (algorithm) calculation (verified on real YM2203 and YM2610)
+**
+** 18-12-2001 Jarek Burczynski:
+**  - added SSG-EG support (verified on real YM2203)
+**
+** 12-08-2001 Jarek Burczynski:
+**  - corrected sin_tab and tl_tab data (verified on real chip)
+**  - corrected feedback calculations (verified on real chip)
+**  - corrected phase generator calculations (verified on real chip)
+**  - corrected envelope generator calculations (verified on real chip)
+**  - corrected FM volume level (YM2610 and YM2610B).
+**  - changed YMxxxUpdateOne() functions (YM2203, YM2608, YM2610, YM2610B, YM2612) :
+**    this was needed to calculate YM2610 FM channels output correctly.
+**    (Each FM channel is calculated as in other chips, but the output of the channel
+**    gets shifted right by one *before* sending to accumulator. That was impossible to do
+**    with previous implementation).
+**
+** 23-07-2001 Jarek Burczynski, Nicola Salmoria:
+**  - corrected YM2610 ADPCM type A algorithm and tables (verified on real chip)
+**
+** 11-06-2001 Jarek Burczynski:
+**  - corrected end of sample bug in ADPCMA_calc_cha().
+**    Real YM2610 checks for equality between current and end addresses (only 20 LSB bits).
+**
+** 08-12-98 hiro-shi:
+** rename ADPCMA -> ADPCMB, ADPCMB -> ADPCMA
+** move ROM limit check.(CALC_CH? -> 2610Write1/2)
+** test program (ADPCMB_TEST)
+** move ADPCM A/B end check.
+** ADPCMB repeat flag(no check)
+** change ADPCM volume rate (8->16) (32->48).
+**
+** 09-12-98 hiro-shi:
+** change ADPCM volume. (8->16, 48->64)
+** replace ym2610 ch0/3 (YM-2610B)
+** change ADPCM_SHIFT (10->8) missing bank change 0x4000-0xffff.
+** add ADPCM_SHIFT_MASK
+** change ADPCMA_DECODE_MIN/MAX.
+*/
+
+/************************************************************************/
+/*    comment of hiro-shi(Hiromitsu Shioya)                             */
+/*    YM2610(B) = OPN-B                                                 */
+/*    YM2610  : PSG:3ch FM:4ch ADPCM(18.5KHz):6ch DeltaT ADPCM:1ch      */
+/*    YM2610B : PSG:3ch FM:6ch ADPCM(18.5KHz):6ch DeltaT ADPCM:1ch      */
+/************************************************************************/
+
 #include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <stdio.h>
+#include <string.h>	/* for memset */
+#include <stddef.h>	/* for NULL */
 #include <math.h>
+#include <stdint.h>
 
-/* Copyright (C) 2002 Stéphane Dallongeville (gens AT consolemul.com) */
-/* Copyright (C) 2004-2006 Shay Green. This module is free software; you
-can redistribute it and/or modify it under the terms of the GNU Lesser
-General Public License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version. This
-module is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-details. You should have received a copy of the GNU Lesser General Public
-License along with this module; if not, write to the Free Software Foundation,
-Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
+namespace Ym2612_MameImpl
+{
 
-// This is mostly the original source in its C style and all.
-//
-// Somewhat optimized and simplified. Uses a template to generate the many
-// variants of Update_Chan. Rewrote header file. In need of full rewrite by
-// someone more familiar with FM sound and the YM2612. Has some inaccuracies
-// compared to the Sega Genesis sound, particularly being mixed at such a
-// high sample accuracy (the Genesis sounds like it has only 8 bit samples).
-// - Shay
+/* ---- mamedef - begin ---- */
+/* typedefs to use MAME's (U)INTxx types (copied from MAME\src\ods\odscomm.h) */
+/* 8-bit values */
+typedef unsigned char						UINT8;
+typedef signed char 						INT8;
 
-#ifdef BLARGG_ENABLE_OPTIMIZER
-	#include BLARGG_ENABLE_OPTIMIZER
+/* 16-bit values */
+typedef unsigned short						UINT16;
+typedef signed short						INT16;
+
+/* 32-bit values */
+#ifndef _WINDOWS_H
+typedef unsigned int						UINT32;
+typedef signed int							INT32;
 #endif
 
-const int output_bits = 14;
-
-struct slot_t
-{
-	const int *DT;  // parametre detune
-	int MUL;    // parametre "multiple de frequence"
-	int TL;     // Total Level = volume lorsque l'enveloppe est au plus haut
-	int TLL;    // Total Level ajusted
-	int SLL;    // Sustin Level (ajusted) = volume où l'enveloppe termine sa premiere phase de regression
-	int KSR_S;  // Key Scale Rate Shift = facteur de prise en compte du KSL dans la variations de l'enveloppe
-	int KSR;    // Key Scale Rate = cette valeur est calculee par rapport à la frequence actuelle, elle va influer
-				// sur les differents parametres de l'enveloppe comme l'attaque, le decay ...  comme dans la realite !
-	int SEG;    // Type enveloppe SSG
-	int env_xor;
-	int env_max;
-
-	const int *AR;  // Attack Rate (table pointeur) = Taux d'attaque (AR[KSR])
-	const int *DR;  // Decay Rate (table pointeur) = Taux pour la regression (DR[KSR])
-	const int *SR;  // Sustin Rate (table pointeur) = Taux pour le maintien (SR[KSR])
-	const int *RR;  // Release Rate (table pointeur) = Taux pour le rel'chement (RR[KSR])
-	int Fcnt;   // Frequency Count = compteur-frequence pour determiner l'amplitude actuelle (SIN[Finc >> 16])
-	int Finc;   // frequency step = pas d'incrementation du compteur-frequence
-				// plus le pas est grand, plus la frequence est aïgu (ou haute)
-	int Ecurp;  // Envelope current phase = cette variable permet de savoir dans quelle phase
-				// de l'enveloppe on se trouve, par exemple phase d'attaque ou phase de maintenue ...
-				// en fonction de la valeur de cette variable, on va appeler une fonction permettant
-				// de mettre à jour l'enveloppe courante.
-	int Ecnt;   // Envelope counter = le compteur-enveloppe permet de savoir où l'on se trouve dans l'enveloppe
-	int Einc;   // Envelope step courant
-	int Ecmp;   // Envelope counter limite pour la prochaine phase
-	int EincA;  // Envelope step for Attack = pas d'incrementation du compteur durant la phase d'attaque
-				// cette valeur est egal à AR[KSR]
-	int EincD;  // Envelope step for Decay = pas d'incrementation du compteur durant la phase de regression
-				// cette valeur est egal à DR[KSR]
-	int EincS;  // Envelope step for Sustain = pas d'incrementation du compteur durant la phase de maintenue
-				// cette valeur est egal à SR[KSR]
-	int EincR;  // Envelope step for Release = pas d'incrementation du compteur durant la phase de rel'chement
-				// cette valeur est egal à RR[KSR]
-	int *OUTp;  // pointeur of SLOT output = pointeur permettant de connecter la sortie de ce slot à l'entree
-				// d'un autre ou carrement à la sortie de la voie
-	int INd;    // input data of the slot = donnees en entree du slot
-	int ChgEnM; // Change envelop mask.
-	int AMS;    // AMS depth level of this SLOT = degre de modulation de l'amplitude par le LFO
-	int AMSon;  // AMS enable flag = drapeau d'activation de l'AMS
-};
-
-struct channel_t
-{
-	int S0_OUT[4];          // anciennes sorties slot 0 (pour le feed back)
-	int LEFT;               // LEFT enable flag
-	int RIGHT;              // RIGHT enable flag
-	int ALGO;               // Algorythm = determine les connections entre les operateurs
-	int FB;                 // shift count of self feed back = degre de "Feed-Back" du SLOT 1 (il est son unique entree)
-	int FMS;                // Frequency Modulation Sensitivity of channel = degre de modulation de la frequence sur la voie par le LFO
-	int AMS;                // Amplitude Modulation Sensitivity of channel = degre de modulation de l'amplitude sur la voie par le LFO
-	int FNUM[4];            // hauteur frequence de la voie (+ 3 pour le mode special)
-	int FOCT[4];            // octave de la voie (+ 3 pour le mode special)
-	int KC[4];              // Key Code = valeur fonction de la frequence (voir KSR pour les slots, KSR = KC >> KSR_S)
-	slot_t SLOT[4]; // four slot.operators = les 4 slots de la voie
-	int FFlag;              // Frequency step recalculation flag
-};
-
-struct state_t
-{
-	int TimerBase;      // TimerBase calculation
-	int Status;         // YM2612 Status (timer overflow)
-	int TimerA;         // timerA limit = valeur jusqu'à laquelle le timer A doit compter
-	int TimerAL;
-	int TimerAcnt;      // timerA counter = valeur courante du Timer A
-	int TimerB;         // timerB limit = valeur jusqu'à laquelle le timer B doit compter
-	int TimerBL;
-	int TimerBcnt;      // timerB counter = valeur courante du Timer B
-	int Mode;           // Mode actuel des voie 3 et 6 (normal / special)
-	int DAC;            // DAC enabled flag
-	channel_t CHANNEL[Ym2612_Emu::channel_count];   // Les 6 voies du YM2612
-	int REG[2][0x100];  // Sauvegardes des valeurs de tout les registres, c'est facultatif
-						// cela nous rend le debuggage plus facile
-};
-
-#ifndef PI
-#define PI 3.14159265358979323846
-#endif
-
-#define ATTACK    0
-#define DECAY     1
-#define SUBSTAIN  2
-#define RELEASE   3
-
-// SIN_LBITS <= 16
-// LFO_HBITS <= 16
-// (SIN_LBITS + SIN_HBITS) <= 26
-// (ENV_LBITS + ENV_HBITS) <= 28
-// (LFO_LBITS + LFO_HBITS) <= 28
-
-#define SIN_HBITS      12                               // Sinus phase counter int part
-#define SIN_LBITS      (26 - SIN_HBITS)                 // Sinus phase counter float part (best setting)
-
-#if (SIN_LBITS > 16)
-#define SIN_LBITS      16                               // Can't be greater than 16 bits
-#endif
-
-#define ENV_HBITS      12                               // Env phase counter int part
-#define ENV_LBITS      (28 - ENV_HBITS)                 // Env phase counter float part (best setting)
-
-#define LFO_HBITS      10                               // LFO phase counter int part
-#define LFO_LBITS      (28 - LFO_HBITS)                 // LFO phase counter float part (best setting)
-
-#define SIN_LENGHT     (1 << SIN_HBITS)
-#define ENV_LENGHT     (1 << ENV_HBITS)
-#define LFO_LENGHT     (1 << LFO_HBITS)
-
-#define TL_LENGHT      (ENV_LENGHT * 3)                 // Env + TL scaling + LFO
-
-#define SIN_MASK       (SIN_LENGHT - 1)
-#define ENV_MASK       (ENV_LENGHT - 1)
-#define LFO_MASK       (LFO_LENGHT - 1)
-
-#define ENV_STEP       (96.0 / ENV_LENGHT)              // ENV_MAX = 96 dB
-
-#define ENV_ATTACK     ((ENV_LENGHT * 0) << ENV_LBITS)
-#define ENV_DECAY      ((ENV_LENGHT * 1) << ENV_LBITS)
-#define ENV_END        ((ENV_LENGHT * 2) << ENV_LBITS)
-
-#define MAX_OUT_BITS   (SIN_HBITS + SIN_LBITS + 2)      // Modulation = -4 <--> +4
-#define MAX_OUT        ((1 << MAX_OUT_BITS) - 1)
-
-#define PG_CUT_OFF     ((int) (78.0 / ENV_STEP))
-#define ENV_CUT_OFF    ((int) (68.0 / ENV_STEP))
-
-#define AR_RATE        399128
-#define DR_RATE        5514396
-
-//#define AR_RATE        426136
-//#define DR_RATE        (AR_RATE * 12)
-
-#define LFO_FMS_LBITS  9    // FIXED (LFO_FMS_BASE gives somethink as 1)
-#define LFO_FMS_BASE   ((int) (0.05946309436 * 0.0338 * (double) (1 << LFO_FMS_LBITS)))
-
-#define S0             0    // Stupid typo of the YM2612
-#define S1             2
-#define S2             1
-#define S3             3
-
-inline void set_seg( slot_t& s, int seg )
-{
-	s.env_xor = 0;
-	s.env_max = INT_MAX;
-	s.SEG = seg;
-	if ( seg & 4 )
-	{
-		s.env_xor = ENV_MASK;
-		s.env_max = ENV_MASK;
-	}
-}
-
-struct tables_t
-{
-	short SIN_TAB [SIN_LENGHT];                 // SINUS TABLE (offset into TL TABLE)
-	int LFOcnt;         // LFO counter = compteur-frequence pour le LFO
-	int LFOinc;         // LFO step counter = pas d'incrementation du compteur-frequence du LFO
-						// plus le pas est grand, plus la frequence est grande
-	unsigned int AR_TAB [128];                  // Attack rate table
-	unsigned int DR_TAB [96];                   // Decay rate table
-	unsigned int DT_TAB [8] [32];               // Detune table
-	unsigned int SL_TAB [16];                   // Substain level table
-	unsigned int NULL_RATE [32];                // Table for NULL rate
-	int LFO_INC_TAB [8];                        // LFO step table
-	
-	short ENV_TAB [2 * ENV_LENGHT + 8];         // ENV CURVE TABLE (attack & decay)
-	
-	short LFO_ENV_TAB [LFO_LENGHT];             // LFO AMS TABLE (adjusted for 11.8 dB)
-	short LFO_FREQ_TAB [LFO_LENGHT];            // LFO FMS TABLE
-	int TL_TAB [TL_LENGHT * 2];                 // TOTAL LEVEL TABLE (positif and minus)
-	unsigned int DECAY_TO_ATTACK [ENV_LENGHT];  // Conversion from decay to attack phase
-	unsigned int FINC_TAB [2048];               // Frequency step table
-};
-
-static const unsigned char DT_DEF_TAB [4 * 32] =
-{
-// FD = 0
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-
-// FD = 1
-  0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
-  2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8, 8, 8, 8,
-
-// FD = 2
-  1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
-  5, 6, 6, 7, 8, 8, 9, 10, 11, 12, 13, 14, 16, 16, 16, 16,
-
-// FD = 3
-  2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7,
-  8 , 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 20, 22, 22, 22, 22
-};
-
-static const unsigned char FKEY_TAB [16] =
-{ 
-	0, 0, 0, 0,
-	0, 0, 0, 1,
-	2, 3, 3, 3,
-	3, 3, 3, 3
-};
-
-static const unsigned char LFO_AMS_TAB [4] =
-{
-	31, 4, 1, 0
-};
-
-static const unsigned char LFO_FMS_TAB [8] =
-{
-	LFO_FMS_BASE * 0, LFO_FMS_BASE * 1,
-	LFO_FMS_BASE * 2, LFO_FMS_BASE * 3,
-	LFO_FMS_BASE * 4, LFO_FMS_BASE * 6,
-	LFO_FMS_BASE * 12, LFO_FMS_BASE * 24
-};
-
-inline void YM2612_Special_Update() { }
-
-struct Ym2612_Impl
-{
-	enum { channel_count = Ym2612_Emu::channel_count };
-	
-	state_t YM2612;
-	int mute_mask;
-	tables_t g;
-	
-	void KEY_ON( channel_t&, int );
-	void KEY_OFF( channel_t&, int );
-	int SLOT_SET( int, int );
-	int CHANNEL_SET( int, int );
-	int YM_SET( int, int );
-	
-	void set_rate( double sample_rate, double clock_factor );
-	void reset();
-	void write0( int addr, int data );
-	void write1( int addr, int data );
-	void run_timer( int );
-	void run( int pair_count, Ym2612_Emu::sample_t* );
-};
-
-void Ym2612_Impl::KEY_ON( channel_t& ch, int nsl)
-{
-	slot_t *SL = &(ch.SLOT [nsl]);  // on recupere le bon pointeur de slot
-	
-	if (SL->Ecurp == RELEASE)       // la touche est-elle rel'chee ?
-	{
-		SL->Fcnt = 0;
-
-		// Fix Ecco 2 splash sound
-		
-		SL->Ecnt = (g.DECAY_TO_ATTACK [g.ENV_TAB [SL->Ecnt >> ENV_LBITS]] + ENV_ATTACK) & SL->ChgEnM;
-		SL->ChgEnM = ~0;
-
-//      SL->Ecnt = g.DECAY_TO_ATTACK [g.ENV_TAB [SL->Ecnt >> ENV_LBITS]] + ENV_ATTACK;
-//      SL->Ecnt = 0;
-
-		SL->Einc = SL->EincA;
-		SL->Ecmp = ENV_DECAY;
-		SL->Ecurp = ATTACK;
-	}
-}
-
-
-void Ym2612_Impl::KEY_OFF(channel_t& ch, int nsl)
-{
-	slot_t *SL = &(ch.SLOT [nsl]);  // on recupere le bon pointeur de slot
-	
-	if (SL->Ecurp != RELEASE)       // la touche est-elle appuyee ?
-	{
-		if (SL->Ecnt < ENV_DECAY)   // attack phase ?
-		{
-			SL->Ecnt = (g.ENV_TAB [SL->Ecnt >> ENV_LBITS] << ENV_LBITS) + ENV_DECAY;
-		}
-
-		SL->Einc = SL->EincR;
-		SL->Ecmp = ENV_END;
-		SL->Ecurp = RELEASE;
-	}
-}
-
-
-int Ym2612_Impl::SLOT_SET( int Adr, int data )
-{
-	int nch = Adr & 3;
-	if ( nch == 3 )
-		return 1;
-	
-	channel_t& ch = YM2612.CHANNEL [nch + (Adr & 0x100 ? 3 : 0)];
-	slot_t& sl = ch.SLOT [(Adr >> 2) & 3];
-
-	switch ( Adr & 0xF0 )
-	{
-		case 0x30:
-			if ( (sl.MUL = (data & 0x0F)) != 0 ) sl.MUL <<= 1;
-			else sl.MUL = 1;
-
-			sl.DT = (int*) g.DT_TAB [(data >> 4) & 7];
-
-			ch.SLOT [0].Finc = -1;
-
-			break;
-
-		case 0x40:
-			sl.TL = data & 0x7F;
-
-			// SOR2 do a lot of TL adjustement and this fix R.Shinobi jump sound...
-			YM2612_Special_Update();
-
-#if ((ENV_HBITS - 7) < 0)
-			sl.TLL = sl.TL >> (7 - ENV_HBITS);
+/* 64-bit values */
+#ifndef _WINDOWS_H
+#ifdef _MSC_VER
+typedef signed __int64						INT64;
+typedef unsigned __int64					UINT64;
 #else
-			sl.TLL = sl.TL << (ENV_HBITS - 7);
+__extension__ typedef unsigned long long	UINT64;
+__extension__ typedef signed long long		INT64;
+#endif
 #endif
 
-			break;
+/* offsets and addresses are 32-bit (for now...) */
+typedef UINT32	offs_t;
 
-		case 0x50:
-			sl.KSR_S = 3 - (data >> 6);
+/* stream_sample_t is used to represent a single sample in a sound stream */
+typedef INT16 stream_sample_t;
 
-			ch.SLOT [0].Finc = -1;
+#if defined(VGM_BIG_ENDIAN)
+#define BYTE_XOR_BE(x)	 (x)
+#elif defined(VGM_LITTLE_ENDIAN)
+#define BYTE_XOR_BE(x)	((x) ^ 0x01)
+#else
+/* don't define BYTE_XOR_BE so that it throws an error when compiling */
+#endif
 
-			if (data &= 0x1F) sl.AR = (int*) &g.AR_TAB [data << 1];
-			else sl.AR = (int*) &g.NULL_RATE [0];
+#if defined(_MSC_VER)
+//#define INLINE	static __forceinline
+#define INLINE	static __inline
+#elif defined(__GNUC__)
+#define INLINE	static __inline__
+#else
+#define INLINE	static inline
+#endif
 
-			sl.EincA = sl.AR [sl.KSR];
-			if (sl.Ecurp == ATTACK) sl.Einc = sl.EincA;
-			break;
+#ifndef M_PI
+#define M_PI	3.14159265358979323846
+#endif
 
-		case 0x60:
-			if ( (sl.AMSon = (data & 0x80)) != 0 ) sl.AMS = ch.AMS;
-			else sl.AMS = 31;
+#ifdef _DEBUG
+#define logerror	printf
+#else
+#define logerror
+#endif
 
-			if (data &= 0x1F) sl.DR = (int*) &g.DR_TAB [data << 1];
-			else sl.DR = (int*) &g.NULL_RATE [0];
+typedef void (*SRATE_CALLBACK)(void*, UINT32);
+/* ---- mamedef - end ---- */
 
-			sl.EincD = sl.DR [sl.KSR];
-			if (sl.Ecurp == DECAY) sl.Einc = sl.EincD;
-			break;
+/* --- select emulation chips --- */
+/*
+#define BUILD_YM2203  (HAS_YM2203)		// build YM2203(OPN)   emulator
+#define BUILD_YM2608  (HAS_YM2608)		// build YM2608(OPNA)  emulator
+#define BUILD_YM2610  (HAS_YM2610)		// build YM2610(OPNB)  emulator
+#define BUILD_YM2610B (HAS_YM2610B)		// build YM2610B(OPNB?)emulator
+#define BUILD_YM2612  (HAS_YM2612)		// build YM2612(OPN2)  emulator
+#define BUILD_YM3438  (HAS_YM3438)		// build YM3438(OPN) emulator
+*/
+#define BUILD_YM2203  0
+#define BUILD_YM2608  0
+#define BUILD_YM2610  0
+#define BUILD_YM2610B 0
+#define BUILD_YM2612  1
+#define BUILD_YM3438  0
 
-		case 0x70:
-			if (data &= 0x1F) sl.SR = (int*) &g.DR_TAB [data << 1];
-			else sl.SR = (int*) &g.NULL_RATE [0];
+#define FM_BUSY_FLAG_SUPPORT 0
 
-			sl.EincS = sl.SR [sl.KSR];
-			if ((sl.Ecurp == SUBSTAIN) && (sl.Ecnt < ENV_END)) sl.Einc = sl.EincS;
-			break;
+/* select bit size of output : 8 or 16 */
+#define FM_SAMPLE_BITS 16
 
-		case 0x80:
-			sl.SLL = g.SL_TAB [data >> 4];
+/* select timer system internal or external */
+#define FM_INTERNAL_TIMER 1
 
-			sl.RR = (int*) &g.DR_TAB [((data & 0xF) << 2) + 2];
+/* --- speedup optimize --- */
+/* busy flag enulation , The definition of FM_GET_TIME_NOW() is necessary. */
+/* #define FM_BUSY_FLAG_SUPPORT 1 */
 
-			sl.EincR = sl.RR [sl.KSR];
-			if ((sl.Ecurp == RELEASE) && (sl.Ecnt < ENV_END)) sl.Einc = sl.EincR;
-			break;
-
-		case 0x90:
-			// SSG-EG envelope shapes :
-			/*
-			   E  At Al H
-			  
-			   1  0  0  0  \\\\
-			   1  0  0  1  \___
-			   1  0  1  0  \/\/
-			   1  0  1  1  \
-			   1  1  0  0  ////
-			   1  1  0  1  /
-			   1  1  1  0  /\/\
-			   1  1  1  1  /___
-			  
-			   E  = SSG-EG enable
-			   At = Start negate
-			   Al = Altern
-			   H  = Hold */
-
-			set_seg( sl, (data & 8) ? (data & 0x0F) : 0 );
-			break;
-	}
-
-	return 0;
-}
-
-
-int Ym2612_Impl::CHANNEL_SET( int Adr, int data )
+/* --- external SSG(YM2149/AY-3-8910)emulator interface port */
+/* used by YM2203,YM2608,and YM2610 */
+typedef struct _ssg_callbacks ssg_callbacks;
+struct _ssg_callbacks
 {
-	int num = Adr & 3;
-	if ( num == 3 )
-		return 1;
-	
-	channel_t& ch = YM2612.CHANNEL [num + (Adr & 0x100 ? 3 : 0)];
-	
-	switch ( Adr & 0xFC )
-	{
-		case 0xA0:
-			YM2612_Special_Update();
+	void (*set_clock)(void *param, int clock);
+	void (*write)(void *param, int address, int data);
+	int (*read)(void *param);
+	void (*reset)(void *param);
+};
 
-			ch.FNUM [0] = (ch.FNUM [0] & 0x700) + data;
-			ch.KC [0] = (ch.FOCT [0] << 2) | FKEY_TAB [ch.FNUM [0] >> 7];
+/* --- external callback funstions for realtime update --- */
 
-			ch.SLOT [0].Finc = -1;
-			break;
+#if FM_BUSY_FLAG_SUPPORT
+#define TIME_TYPE					attotime
+#define UNDEFINED_TIME				attotime_zero
+#define FM_GET_TIME_NOW(machine)			timer_get_time(machine)
+#define ADD_TIMES(t1, t2)   		attotime_add((t1), (t2))
+#define COMPARE_TIMES(t1, t2)		attotime_compare((t1), (t2))
+#define MULTIPLY_TIME_BY_INT(t,i)	attotime_mul(t, i)
+#endif
 
-		case 0xA4:
-			YM2612_Special_Update();
+/* compiler dependence */
+#if 0
+#ifndef OSD_CPU_H
+#define OSD_CPU_H
+typedef unsigned char	UINT8;   /* unsigned  8bit */
+typedef unsigned short	UINT16;  /* unsigned 16bit */
+typedef unsigned int	UINT32;  /* unsigned 32bit */
+typedef signed char		INT8;    /* signed  8bit   */
+typedef signed short	INT16;   /* signed 16bit   */
+typedef signed int		INT32;   /* signed 32bit   */
+#endif /* OSD_CPU_H */
+#endif
 
-			ch.FNUM [0] = (ch.FNUM [0] & 0x0FF) + ((data & 0x07) << 8);
-			ch.FOCT [0] = (data & 0x38) >> 3;
-			ch.KC [0] = (ch.FOCT [0] << 2) | FKEY_TAB [ch.FNUM [0] >> 7];
+typedef stream_sample_t FMSAMPLE;
+/*
+#if (FM_SAMPLE_BITS==16)
+typedef INT16 FMSAMPLE;
+#endif
+#if (FM_SAMPLE_BITS==8)
+typedef unsigned char  FMSAMPLE;
+#endif
+*/
 
-			ch.SLOT [0].Finc = -1;
-			break;
+typedef void (*FM_TIMERHANDLER)(void *param,int c,int cnt,int clock);
+typedef void (*FM_IRQHANDLER)(void *param,int irq);
+/* FM_TIMERHANDLER : Stop or Start timer         */
+/* int n          = chip number                  */
+/* int c          = Channel 0=TimerA,1=TimerB    */
+/* int count      = timer count (0=stop)         */
+/* doube stepTime = step time of one count (sec.)*/
 
-		case 0xA8:
-			if ( Adr < 0x100 )
-			{
-				num++;
+/* FM_IRQHHANDLER : IRQ level changing sense     */
+/* int n       = chip number                     */
+/* int irq     = IRQ level 0=OFF,1=ON            */
 
-				YM2612_Special_Update();
+/**
+ * @brief Initialize chip and return the instance
+ * @param param Unused, keep NULL
+ * @param baseclock YM2612 clock
+ * @param rate Output sample rate
+ * @param TimerHandler Keep NULL
+ * @param IRQHandler Keep NULL
+ * @return Chip instance or NULL on any error
+ */
+static void * ym2612_init(void *param, int baseclock, int rate,
+               FM_TIMERHANDLER TimerHandler,FM_IRQHANDLER IRQHandler);
+/**
+ * @brief Free chip instance
+ * @param chip Chip instance
+ */
+static void ym2612_shutdown(void *chip);
+/**
+ * @brief Reset state of the chip
+ * @param chip Chip instance
+ */
+static void ym2612_reset_chip(void *chip);
+/**
+ * @brief Generate stereo output of specified length
+ * @param chip Chip instance
+ * @param buffer Output sound buffer
+ * @param frames Output buffer size in frames (one frame - two array entries of the buffer)
+ * @param mix 0 - override buffer data, 1 - mix output data with a content of the buffer
+ */
+static void ym2612_generate(void *chip, FMSAMPLE *buffer, int frames, int mix);
+#define ym2612_update_one(chip, buffer, length) ym2612_generate(chip, buffer, length, 0)
 
-				YM2612.CHANNEL [2].FNUM [num] = (YM2612.CHANNEL [2].FNUM [num] & 0x700) + data;
-				YM2612.CHANNEL [2].KC [num] = (YM2612.CHANNEL [2].FOCT [num] << 2) |
-						FKEY_TAB [YM2612.CHANNEL [2].FNUM [num] >> 7];
+/**
+ * @brief Single-Sample generation prepare
+ * @param chip Chip instance
+ */
+static void ym2612_pre_generate(void *chip);
+/**
+ * @brief Generate single stereo PCM frame. Will be used native sample rate of 53267 Hz
+ * @param chip Chip instance
+ * @param buffer One stereo PCM frame
+ */
+static void ym2612_generate_one_native(void *chip, FMSAMPLE buffer[2]);
 
-				YM2612.CHANNEL [2].SLOT [0].Finc = -1;
-			}
-			break;
+/* void ym2612_post_generate(void *chip, int length); */
 
-		case 0xAC:
-			if ( Adr < 0x100 )
-			{
-				num++;
+static int ym2612_write(void *chip, int a,unsigned char v);
+#if 0
+static unsigned char ym2612_read(void *chip,int a);
+static int ym2612_timer_over(void *chip, int c );
+#endif
 
-				YM2612_Special_Update();
+#ifdef __STATE_H__
+static void ym2612_postload(void *chip);
+#endif
 
-				YM2612.CHANNEL [2].FNUM [num] = (YM2612.CHANNEL [2].FNUM [num] & 0x0FF) + ((data & 0x07) << 8);
-				YM2612.CHANNEL [2].FOCT [num] = (data & 0x38) >> 3;
-				YM2612.CHANNEL [2].KC [num] = (YM2612.CHANNEL [2].FOCT [num] << 2) |
-						FKEY_TAB [YM2612.CHANNEL [2].FNUM [num] >> 7];
+static void ym2612_set_mutemask(void *chip, UINT32 MuteMask);
+#if 0
+static void ym2612_setoptions(UINT8 Flags);
+#endif
 
-				YM2612.CHANNEL [2].SLOT [0].Finc = -1;
-			}
-			break;
 
-		case 0xB0:
-			if ( ch.ALGO != (data & 7) )
-			{
-				// Fix VectorMan 2 heli sound (level 1)
-				YM2612_Special_Update();
+static stream_sample_t *DUMMYBUF = NULL;
 
-				ch.ALGO = data & 7;
-				
-				ch.SLOT [0].ChgEnM = 0;
-				ch.SLOT [1].ChgEnM = 0;
-				ch.SLOT [2].ChgEnM = 0;
-				ch.SLOT [3].ChgEnM = 0;
-			}
+/* shared function building option */
+#define BUILD_OPN (BUILD_YM2203||BUILD_YM2608||BUILD_YM2610||BUILD_YM2610B||BUILD_YM2612||BUILD_YM3438)
+#define BUILD_OPN_PRESCALER (BUILD_YM2203||BUILD_YM2608)
 
-			ch.FB = 9 - ((data >> 3) & 7);                              // Real thing ?
+#define RSM_ENABLE 0
+#define RSM_FRAC 10
 
-//          if (ch.FB = ((data >> 3) & 7)) ch.FB = 9 - ch.FB;       // Thunder force 4 (music stage 8), Gynoug, Aladdin bug sound...
-//          else ch.FB = 31;
-			break;
+/* globals */
+#define TYPE_SSG    0x01    /* SSG support          */
+#define TYPE_LFOPAN 0x02    /* OPN type LFO and PAN */
+#define TYPE_6CH    0x04    /* FM 6CH / 3CH         */
+#define TYPE_DAC    0x08    /* YM2612's DAC device  */
+#define TYPE_ADPCM  0x10    /* two ADPCM units      */
+#define TYPE_2610   0x20    /* bogus flag to differentiate 2608 from 2610 */
 
-		case 0xB4: {
-			YM2612_Special_Update();
-			
-			ch.LEFT = 0 - ((data >> 7) & 1);
-			ch.RIGHT = 0 - ((data >> 6) & 1);
-			
-			ch.AMS = LFO_AMS_TAB [(data >> 4) & 3];
-			ch.FMS = LFO_FMS_TAB [data & 7];
-			
-			for ( int i = 0; i < 4; i++ )
-			{
-				slot_t& sl = ch.SLOT [i];
-				sl.AMS = (sl.AMSon ? ch.AMS : 31);
-			}
-			break;
+
+#define TYPE_YM2203 (TYPE_SSG)
+#define TYPE_YM2608 (TYPE_SSG |TYPE_LFOPAN |TYPE_6CH |TYPE_ADPCM)
+#define TYPE_YM2610 (TYPE_SSG |TYPE_LFOPAN |TYPE_6CH |TYPE_ADPCM |TYPE_2610)
+#define TYPE_YM2612 (TYPE_DAC |TYPE_LFOPAN |TYPE_6CH)
+
+
+/* globals */
+#define FREQ_SH			16  /* 16.16 fixed point (frequency calculations) */
+#define EG_SH			16  /* 16.16 fixed point (envelope generator timing) */
+#define LFO_SH			24  /*  8.24 fixed point (LFO calculations)       */
+#define TIMER_SH		16  /* 16.16 fixed point (timers calculations)    */
+
+#define FREQ_MASK		((1<<FREQ_SH)-1)
+
+#define MAXOUT    (+32767)
+#define MINOUT    (-32768)
+
+/* envelope generator */
+#define ENV_BITS		10
+#define ENV_LEN			(1<<ENV_BITS)
+#define ENV_STEP		(128.0/ENV_LEN)
+
+#define MAX_ATT_INDEX	(ENV_LEN-1) /* 1023 */
+#define MIN_ATT_INDEX	(0)			/* 0 */
+
+#define EG_ATT			4
+#define EG_DEC			3
+#define EG_SUS			2
+#define EG_REL			1
+#define EG_OFF			0
+
+/* operator unit */
+#define SIN_BITS		10
+#define SIN_LEN			(1<<SIN_BITS)
+#define SIN_MASK		(SIN_LEN-1)
+
+#define TL_RES_LEN		(256) /* 8 bits addressing (real chip) */
+
+/*  TL_TAB_LEN is calculated as:
+*   13 - sinus amplitude bits     (Y axis)
+*   2  - sinus sign bit           (Y axis)
+*   TL_RES_LEN - sinus resolution (X axis)
+*/
+#define TL_TAB_LEN (13*2*TL_RES_LEN)
+static signed int tl_tab[TL_TAB_LEN];
+
+#define ENV_QUIET		(TL_TAB_LEN>>3)
+
+/* sin waveform table in 'decibel' scale */
+static unsigned int sin_tab[SIN_LEN];
+
+/* sustain level table (3dB per step) */
+/* bit0, bit1, bit2, bit3, bit4, bit5, bit6 */
+/* 1,    2,    4,    8,    16,   32,   64   (value)*/
+/* 0.75, 1.5,  3,    6,    12,   24,   48   (dB)*/
+
+/* 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,93 (dB)*/
+/* attenuation value (10 bits) = (SL << 2) << 3 */
+#define SC(db) (UINT32) ( db * (4.0/ENV_STEP) )
+static const UINT32 sl_table[16]={
+ SC( 0),SC( 1),SC( 2),SC(3 ),SC(4 ),SC(5 ),SC(6 ),SC( 7),
+ SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(31)
+};
+#undef SC
+
+
+#define RATE_STEPS (8)
+static const UINT8 eg_inc[19*RATE_STEPS]={
+
+/*cycle:0 1  2 3  4 5  6 7*/
+
+/* 0 */ 0,1, 0,1, 0,1, 0,1, /* rates 00..11 0 (increment by 0 or 1) */
+/* 1 */ 0,1, 0,1, 1,1, 0,1, /* rates 00..11 1 */
+/* 2 */ 0,1, 1,1, 0,1, 1,1, /* rates 00..11 2 */
+/* 3 */ 0,1, 1,1, 1,1, 1,1, /* rates 00..11 3 */
+
+/* 4 */ 1,1, 1,1, 1,1, 1,1, /* rate 12 0 (increment by 1) */
+/* 5 */ 1,1, 1,2, 1,1, 1,2, /* rate 12 1 */
+/* 6 */ 1,2, 1,2, 1,2, 1,2, /* rate 12 2 */
+/* 7 */ 1,2, 2,2, 1,2, 2,2, /* rate 12 3 */
+
+/* 8 */ 2,2, 2,2, 2,2, 2,2, /* rate 13 0 (increment by 2) */
+/* 9 */ 2,2, 2,4, 2,2, 2,4, /* rate 13 1 */
+/*10 */ 2,4, 2,4, 2,4, 2,4, /* rate 13 2 */
+/*11 */ 2,4, 4,4, 2,4, 4,4, /* rate 13 3 */
+
+/*12 */ 4,4, 4,4, 4,4, 4,4, /* rate 14 0 (increment by 4) */
+/*13 */ 4,4, 4,8, 4,4, 4,8, /* rate 14 1 */
+/*14 */ 4,8, 4,8, 4,8, 4,8, /* rate 14 2 */
+/*15 */ 4,8, 8,8, 4,8, 8,8, /* rate 14 3 */
+
+/*16 */ 8,8, 8,8, 8,8, 8,8, /* rates 15 0, 15 1, 15 2, 15 3 (increment by 8) */
+/*17 */ 16,16,16,16,16,16,16,16, /* rates 15 2, 15 3 for attack */
+/*18 */ 0,0, 0,0, 0,0, 0,0, /* infinity rates for attack and decay(s) */
+};
+
+
+#define O(a) (a*RATE_STEPS)
+
+/*note that there is no O(17) in this table - it's directly in the code */
+static const UINT8 eg_rate_select2612[32+64+32]={  /* Envelope Generator rates (32 + 64 rates + 32 RKS) */
+/* 32 infinite time rates (same as Rate 0) */
+O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
+O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
+O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
+O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
+
+/* rates 00-11 */
+/*
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+*/
+O(18),O(18),O( 2),O( 3),    /* from Nemesis's tests on real YM2612 hardware */
+O( 0),O( 1),O( 2),O( 2),    /* Nemesis's tests */
+
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+O( 0),O( 1),O( 2),O( 3),
+
+/* rate 12 */
+O( 4),O( 5),O( 6),O( 7),
+
+/* rate 13 */
+O( 8),O( 9),O(10),O(11),
+
+/* rate 14 */
+O(12),O(13),O(14),O(15),
+
+/* rate 15 */
+O(16),O(16),O(16),O(16),
+
+/* 32 dummy rates (same as 15 3) */
+O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16),
+O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16),
+O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16),
+O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16)
+
+};
+#undef O
+
+/*rate  0,    1,    2,   3,   4,   5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15*/
+/*shift 11,   10,   9,   8,   7,   6,  5,  4,  3,  2, 1,  0,  0,  0,  0,  0 */
+/*mask  2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3, 1,  0,  0,  0,  0,  0 */
+
+#define O(a) (a*1)
+static const UINT8 eg_rate_shift[32+64+32]={  /* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
+/* 32 infinite time rates */
+/* O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
+O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
+O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
+O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0), */
+
+/* fixed (should be the same as rate 0, even if it makes no difference since increment value is 0 for these rates) */
+O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
+O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
+O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
+O(11),O(11),O(11),O(11),O(11),O(11),O(11),O(11),
+
+/* rates 00-11 */
+O(11),O(11),O(11),O(11),
+O(10),O(10),O(10),O(10),
+O( 9),O( 9),O( 9),O( 9),
+O( 8),O( 8),O( 8),O( 8),
+O( 7),O( 7),O( 7),O( 7),
+O( 6),O( 6),O( 6),O( 6),
+O( 5),O( 5),O( 5),O( 5),
+O( 4),O( 4),O( 4),O( 4),
+O( 3),O( 3),O( 3),O( 3),
+O( 2),O( 2),O( 2),O( 2),
+O( 1),O( 1),O( 1),O( 1),
+O( 0),O( 0),O( 0),O( 0),
+
+/* rate 12 */
+O( 0),O( 0),O( 0),O( 0),
+
+/* rate 13 */
+O( 0),O( 0),O( 0),O( 0),
+
+/* rate 14 */
+O( 0),O( 0),O( 0),O( 0),
+
+/* rate 15 */
+O( 0),O( 0),O( 0),O( 0),
+
+/* 32 dummy rates (same as 15 3) */
+O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
+O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
+O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
+O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0)
+
+};
+#undef O
+
+static const UINT8 dt_tab[4 * 32]={
+/* this is YM2151 and YM2612 phase increment data (in 10.10 fixed point format)*/
+/* FD=0 */
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+/* FD=1 */
+	0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+	2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8, 8, 8, 8,
+/* FD=2 */
+	1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
+	5, 6, 6, 7, 8, 8, 9,10,11,12,13,14,16,16,16,16,
+/* FD=3 */
+	2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7,
+	8 , 8, 9,10,11,12,13,14,16,17,19,20,22,22,22,22
+};
+
+
+/* OPN key frequency number -> key code follow table */
+/* fnum higher 4bit -> keycode lower 2bit */
+static const UINT8 opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
+
+
+/* 8 LFO speed parameters */
+/* each value represents number of samples that one LFO level will last for */
+static const UINT32 lfo_samples_per_step[8] = {108, 77, 71, 67, 62, 44, 8, 5};
+
+
+
+/*There are 4 different LFO AM depths available, they are:
+  0 dB, 1.4 dB, 5.9 dB, 11.8 dB
+  Here is how it is generated (in EG steps):
+
+  11.8 dB = 0, 2, 4, 6, 8, 10,12,14,16...126,126,124,122,120,118,....4,2,0
+   5.9 dB = 0, 1, 2, 3, 4, 5, 6, 7, 8....63, 63, 62, 61, 60, 59,.....2,1,0
+   1.4 dB = 0, 0, 0, 0, 1, 1, 1, 1, 2,...15, 15, 15, 15, 14, 14,.....0,0,0
+
+  (1.4 dB is losing precision as you can see)
+
+  It's implemented as generator from 0..126 with step 2 then a shift
+  right N times, where N is:
+    8 for 0 dB
+    3 for 1.4 dB
+    1 for 5.9 dB
+    0 for 11.8 dB
+*/
+static const UINT8 lfo_ams_depth_shift[4] = {8, 3, 1, 0};
+
+
+
+/*There are 8 different LFO PM depths available, they are:
+  0, 3.4, 6.7, 10, 14, 20, 40, 80 (cents)
+
+  Modulation level at each depth depends on F-NUMBER bits: 4,5,6,7,8,9,10
+  (bits 8,9,10 = FNUM MSB from OCT/FNUM register)
+
+  Here we store only first quarter (positive one) of full waveform.
+  Full table (lfo_pm_table) containing all 128 waveforms is build
+  at run (init) time.
+
+  One value in table below represents 4 (four) basic LFO steps
+  (1 PM step = 4 AM steps).
+
+  For example:
+   at LFO SPEED=0 (which is 108 samples per basic LFO step)
+   one value from "lfo_pm_output" table lasts for 432 consecutive
+   samples (4*108=432) and one full LFO waveform cycle lasts for 13824
+   samples (32*432=13824; 32 because we store only a quarter of whole
+            waveform in the table below)
+*/
+static const UINT8 lfo_pm_output[7*8][8]={ /* 7 bits meaningful (of F-NUMBER), 8 LFO output levels per one depth (out of 32), 8 LFO depths */
+/* FNUM BIT 4: 000 0001xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 3 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 4 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 5 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 6 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 7 */ {0,   0,   0,   0,   1,   1,   1,   1},
+
+/* FNUM BIT 5: 000 0010xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 3 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 4 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 5 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 6 */ {0,   0,   0,   0,   1,   1,   1,   1},
+/* DEPTH 7 */ {0,   0,   1,   1,   2,   2,   2,   3},
+
+/* FNUM BIT 6: 000 0100xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 3 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 4 */ {0,   0,   0,   0,   0,   0,   0,   1},
+/* DEPTH 5 */ {0,   0,   0,   0,   1,   1,   1,   1},
+/* DEPTH 6 */ {0,   0,   1,   1,   2,   2,   2,   3},
+/* DEPTH 7 */ {0,   0,   2,   3,   4,   4,   5,   6},
+
+/* FNUM BIT 7: 000 1000xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 2 */ {0,   0,   0,   0,   0,   0,   1,   1},
+/* DEPTH 3 */ {0,   0,   0,   0,   1,   1,   1,   1},
+/* DEPTH 4 */ {0,   0,   0,   1,   1,   1,   1,   2},
+/* DEPTH 5 */ {0,   0,   1,   1,   2,   2,   2,   3},
+/* DEPTH 6 */ {0,   0,   2,   3,   4,   4,   5,   6},
+/* DEPTH 7 */ {0,   0,   4,   6,   8,   8, 0xa, 0xc},
+
+/* FNUM BIT 8: 001 0000xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   1,   1,   1,   1},
+/* DEPTH 2 */ {0,   0,   0,   1,   1,   1,   2,   2},
+/* DEPTH 3 */ {0,   0,   1,   1,   2,   2,   3,   3},
+/* DEPTH 4 */ {0,   0,   1,   2,   2,   2,   3,   4},
+/* DEPTH 5 */ {0,   0,   2,   3,   4,   4,   5,   6},
+/* DEPTH 6 */ {0,   0,   4,   6,   8,   8, 0xa, 0xc},
+/* DEPTH 7 */ {0,   0,   8, 0xc,0x10,0x10,0x14,0x18},
+
+/* FNUM BIT 9: 010 0000xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   2,   2,   2,   2},
+/* DEPTH 2 */ {0,   0,   0,   2,   2,   2,   4,   4},
+/* DEPTH 3 */ {0,   0,   2,   2,   4,   4,   6,   6},
+/* DEPTH 4 */ {0,   0,   2,   4,   4,   4,   6,   8},
+/* DEPTH 5 */ {0,   0,   4,   6,   8,   8, 0xa, 0xc},
+/* DEPTH 6 */ {0,   0,   8, 0xc,0x10,0x10,0x14,0x18},
+/* DEPTH 7 */ {0,   0,0x10,0x18,0x20,0x20,0x28,0x30},
+
+/* FNUM BIT10: 100 0000xxxx */
+/* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
+/* DEPTH 1 */ {0,   0,   0,   0,   4,   4,   4,   4},
+/* DEPTH 2 */ {0,   0,   0,   4,   4,   4,   8,   8},
+/* DEPTH 3 */ {0,   0,   4,   4,   8,   8, 0xc, 0xc},
+/* DEPTH 4 */ {0,   0,   4,   8,   8,   8, 0xc,0x10},
+/* DEPTH 5 */ {0,   0,   8, 0xc,0x10,0x10,0x14,0x18},
+/* DEPTH 6 */ {0,   0,0x10,0x18,0x20,0x20,0x28,0x30},
+/* DEPTH 7 */ {0,   0,0x20,0x30,0x40,0x40,0x50,0x60},
+
+};
+
+/* all 128 LFO PM waveforms */
+static INT32 lfo_pm_table[128*8*32]; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
+
+/* register number to channel number , slot offset */
+#define OPN_CHAN(N) (N&3)
+#define OPN_SLOT(N) ((N>>2)&3)
+
+/* slot number */
+#define SLOT1 0
+#define SLOT2 2
+#define SLOT3 1
+#define SLOT4 3
+
+/* bit0 = Right enable , bit1 = Left enable */
+#define OUTD_RIGHT  1
+#define OUTD_LEFT   2
+#define OUTD_CENTER 3
+
+
+/* save output as raw 16-bit sample */
+/* #define SAVE_SAMPLE */
+
+#ifdef SAVE_SAMPLE
+static FILE *sample[1];
+	#if 1	/*save to MONO file */
+		#define SAVE_ALL_CHANNELS \
+		{	signed int pom = lt; \
+			fputc((unsigned short)pom&0xff,sample[0]); \
+			fputc(((unsigned short)pom>>8)&0xff,sample[0]); \
 		}
-	}
-	
-	return 0;
-}
-
-
-int Ym2612_Impl::YM_SET(int Adr, int data)
-{
-	switch ( Adr )
-	{
-		case 0x22:
-			if (data & 8) // LFO enable
-			{
-				// Cool Spot music 1, LFO modified severals time which
-				// distord the sound, have to check that on a real genesis...
-
-				g.LFOinc = g.LFO_INC_TAB [data & 7];
-			}
-			else
-			{
-				g.LFOinc = g.LFOcnt = 0;
-			}
-			break;
-
-		case 0x24:
-			YM2612.TimerA = (YM2612.TimerA & 0x003) | (((int) data) << 2);
-
-			if (YM2612.TimerAL != (1024 - YM2612.TimerA) << 12)
-			{
-				YM2612.TimerAcnt = YM2612.TimerAL = (1024 - YM2612.TimerA) << 12;
-			}
-			break;
-
-		case 0x25:
-			YM2612.TimerA = (YM2612.TimerA & 0x3FC) | (data & 3);
-
-			if (YM2612.TimerAL != (1024 - YM2612.TimerA) << 12)
-			{
-				YM2612.TimerAcnt = YM2612.TimerAL = (1024 - YM2612.TimerA) << 12;
-			}
-			break;
-
-		case 0x26:
-			YM2612.TimerB = data;
-
-			if (YM2612.TimerBL != (256 - YM2612.TimerB) << (4 + 12))
-			{
-				YM2612.TimerBcnt = YM2612.TimerBL = (256 - YM2612.TimerB) << (4 + 12);
-			}
-			break;
-
-		case 0x27:
-			// Parametre divers
-			// b7 = CSM MODE
-			// b6 = 3 slot mode
-			// b5 = reset b
-			// b4 = reset a
-			// b3 = timer enable b
-			// b2 = timer enable a
-			// b1 = load b
-			// b0 = load a
-
-			if ((data ^ YM2612.Mode) & 0x40)
-			{
-				// We changed the channel 2 mode, so recalculate phase step
-				// This fix the punch sound in Street of Rage 2
-
-				YM2612_Special_Update();
-
-				YM2612.CHANNEL [2].SLOT [0].Finc = -1;      // recalculate phase step
-			}
-
-//          if ((data & 2) && (YM2612.Status & 2)) YM2612.TimerBcnt = YM2612.TimerBL;
-//          if ((data & 1) && (YM2612.Status & 1)) YM2612.TimerAcnt = YM2612.TimerAL;
-
-//          YM2612.Status &= (~data >> 4);                  // Reset du Status au cas ou c'est demande
-			YM2612.Status &= (~data >> 4) & (data >> 2);    // Reset Status
-
-			YM2612.Mode = data;
-			break;
-
-		case 0x28: {
-			int nch = data & 3;
-			if ( nch == 3 )
-				return 1;
-			if ( data & 4 )
-				nch += 3;
-			channel_t& ch = YM2612.CHANNEL [nch];
-
-			YM2612_Special_Update();
-
-			if (data & 0x10) KEY_ON(ch, S0);    // On appuie sur la touche pour le slot 1
-			else KEY_OFF(ch, S0);               // On rel'che la touche pour le slot 1
-			if (data & 0x20) KEY_ON(ch, S1);    // On appuie sur la touche pour le slot 3
-			else KEY_OFF(ch, S1);               // On rel'che la touche pour le slot 3
-			if (data & 0x40) KEY_ON(ch, S2);    // On appuie sur la touche pour le slot 2
-			else KEY_OFF(ch, S2);               // On rel'che la touche pour le slot 2
-			if (data & 0x80) KEY_ON(ch, S3);    // On appuie sur la touche pour le slot 4
-			else KEY_OFF(ch, S3);               // On rel'che la touche pour le slot 4
-			break;
+	#else	/*save to STEREO file */
+		#define SAVE_ALL_CHANNELS \
+		{	signed int pom = lt; \
+			fputc((unsigned short)pom&0xff,sample[0]); \
+			fputc(((unsigned short)pom>>8)&0xff,sample[0]); \
+			pom = rt; \
+			fputc((unsigned short)pom&0xff,sample[0]); \
+			fputc(((unsigned short)pom>>8)&0xff,sample[0]); \
 		}
-		
-		case 0x2B:
-			if (YM2612.DAC ^ (data & 0x80)) YM2612_Special_Update();
+	#endif
+#endif
 
-			YM2612.DAC = data & 0x80;   // activation/desactivation du DAC
-			break;
-	}
-	
-	return 0;
+
+/* struct describing a single operator (SLOT) */
+typedef struct
+{
+	INT32	*DT;		/* detune          :dt_tab[DT] */
+	UINT8	KSR;		/* key scale rate  :3-KSR */
+	UINT32	ar;			/* attack rate  */
+	UINT32	d1r;		/* decay rate   */
+	UINT32	d2r;		/* sustain rate */
+	UINT32	rr;			/* release rate */
+	UINT8	ksr;		/* key scale rate  :kcode>>(3-KSR) */
+	UINT32	mul;		/* multiple        :ML_TABLE[ML] */
+
+	/* Phase Generator */
+	UINT32	phase;		/* phase counter */
+	INT32	Incr;		/* phase step */
+
+	/* Envelope Generator */
+	UINT8	state;		/* phase type */
+	UINT32	tl;			/* total level: TL << 3 */
+	INT32	volume;		/* envelope counter */
+	UINT32	sl;			/* sustain level:sl_table[SL] */
+	UINT32	vol_out;	/* current output from EG circuit (without AM from LFO) */
+
+	UINT8	eg_sh_ar;	/*  (attack state) */
+	UINT8	eg_sel_ar;	/*  (attack state) */
+	UINT8	eg_sh_d1r;	/*  (decay state) */
+	UINT8	eg_sel_d1r;	/*  (decay state) */
+	UINT8	eg_sh_d2r;	/*  (sustain state) */
+	UINT8	eg_sel_d2r;	/*  (sustain state) */
+	UINT8	eg_sh_rr;	/*  (release state) */
+	UINT8	eg_sel_rr;	/*  (release state) */
+
+	UINT8	ssg;		/* SSG-EG waveform */
+	UINT8	ssgn;		/* SSG-EG negated output */
+
+	UINT8	key;		/* 0=last key was KEY OFF, 1=KEY ON */
+
+	/* LFO */
+	UINT32	AMmask;		/* AM enable flag */
+
+} FM_SLOT;
+
+typedef struct
+{
+	FM_SLOT	SLOT[4];	/* four SLOTs (operators) */
+
+	UINT8	ALGO;		/* algorithm */
+	UINT8	FB;			/* feedback shift */
+	INT32	op1_out[2];	/* op1 output for feedback */
+
+	INT32	*connect1;	/* SLOT1 output pointer */
+	INT32	*connect3;	/* SLOT3 output pointer */
+	INT32	*connect2;	/* SLOT2 output pointer */
+	INT32	*connect4;	/* SLOT4 output pointer */
+
+	INT32	*mem_connect;/* where to put the delayed sample (MEM) */
+	INT32	mem_value;	/* delayed sample (MEM) value */
+
+	INT32	pms;		/* channel PMS */
+	UINT8	ams;		/* channel AMS */
+
+	UINT32	fc;			/* fnum,blk:adjusted to sample rate */
+	UINT8	kcode;		/* key code:                        */
+	UINT32	block_fnum;	/* current blk/fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
+	UINT8	Muted;
+} FM_CH;
+
+
+typedef struct
+{
+	/* running_device *device; */
+	void *		param;				/* this chip parameter  */
+	double		freqbase;			/* frequency base       */
+	int			timer_prescaler;	/* timer prescaler      */
+	UINT8		irq;				/* interrupt level      */
+	UINT8		irqmask;			/* irq mask             */
+#if FM_BUSY_FLAG_SUPPORT
+	TIME_TYPE	busy_expiry_time;	/* expiry time of the busy status */
+#endif
+	UINT32		clock;				/* master clock  (Hz)   */
+	UINT32		rate;				/* internal sampling rate (Hz) */
+#if RSM_ENABLE
+	INT32		rateratio;			/* resampling ratio */
+	INT32		framecnt;			/* resampling frames count*/
+	FMSAMPLE	cur_sample[2];		/* previous sample */
+	FMSAMPLE	prev_sample[2];		/* previous sample */
+#endif
+	UINT8		address;			/* address register     */
+	UINT8		status;				/* status flag          */
+	UINT32		mode;				/* mode  CSM / 3SLOT    */
+	UINT8		fn_h;				/* freq latch           */
+	UINT8		prescaler_sel;		/* prescaler selector   */
+	INT32		TA;					/* timer a              */
+	INT32		TAC;				/* timer a counter      */
+	UINT8		TB;					/* timer b              */
+	INT32		TBC;				/* timer b counter      */
+	/* local time tables */
+	INT32		dt_tab[8][32];		/* DeTune table         */
+	/* Extention Timer and IRQ handler */
+	FM_TIMERHANDLER	timer_handler;
+	FM_IRQHANDLER	IRQ_Handler;
+	const ssg_callbacks *SSG;
+} FM_ST;
+
+
+
+/***********************************************************/
+/* OPN unit                                                */
+/***********************************************************/
+
+/* OPN 3slot struct */
+typedef struct
+{
+	UINT32  fc[3];			/* fnum3,blk3: calculated */
+	UINT8	fn_h;			/* freq3 latch */
+	UINT8	kcode[3];		/* key code */
+	UINT32	block_fnum[3];	/* current fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
+	UINT8   key_csm;        /* CSM mode Key-ON flag */
+} FM_3SLOT;
+
+/* OPN/A/B common state */
+typedef struct
+{
+	UINT8	type;			/* chip type */
+	FM_ST	ST;				/* general state */
+	FM_3SLOT SL3;			/* 3 slot mode state */
+	FM_CH	*P_CH;			/* pointer of CH */
+	unsigned int pan[6*2];	/* fm channels output masks (0xffffffff = enable) */
+
+	UINT32	eg_cnt;			/* global envelope generator counter */
+	UINT32	eg_timer;		/* global envelope generator counter works at frequency = chipclock/144/3 */
+	UINT32	eg_timer_add;	/* step of eg_timer */
+	UINT32	eg_timer_overflow;/* envelope generator timer overlfows every 3 samples (on real chip) */
+
+
+	/* there are 2048 FNUMs that can be generated using FNUM/BLK registers
+		but LFO works with one more bit of a precision so we really need 4096 elements */
+	UINT32  fn_table[4096]; /* fnumber->increment counter */
+	UINT32 fn_max;    /* maximal phase increment (used for phase overflow) */
+
+	/* LFO */
+	UINT8   lfo_cnt;            /* current LFO phase (out of 128) */
+	UINT32  lfo_timer;          /* current LFO phase runs at LFO frequency */
+	UINT32  lfo_timer_add;      /* step of lfo_timer */
+	UINT32  lfo_timer_overflow; /* LFO timer overflows every N samples (depends on LFO frequency) */
+	UINT32  LFO_AM;             /* current LFO AM step */
+	UINT32  LFO_PM;             /* current LFO PM step */
+
+	INT32	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
+	INT32	mem;			/* one sample delay memory */
+	INT32	out_fm[6];		/* outputs of working channels */
+
+} FM_OPN;
+
+/* here's the virtual YM2612 */
+typedef struct
+{
+	UINT8		REGS[512];			/* registers            */
+	FM_OPN		OPN;				/* OPN state            */
+	FM_CH		CH[6];				/* channel state        */
+	UINT8		addr_A1;			/* address line A1      */
+
+	/* dac output (YM2612) */
+	/* int			dacen; */
+	UINT8		dacen;
+	UINT8		dac_test;
+	INT32		dacout;
+	UINT8		MuteDAC;
+
+	UINT8		WaveOutMode;
+	INT32		WaveL;
+	INT32		WaveR;
+} YM2612;
+
+/* log output level */
+#define LOG_ERR  3      /* ERROR       */
+#define LOG_WAR  2      /* WARNING     */
+#define LOG_INF  1      /* INFORMATION */
+#define LOG_LEVEL LOG_INF
+
+#ifndef __RAINE__
+#define LOG(n,x) do { if( (n)>=LOG_LEVEL ) logerror x; } while (0)
+#endif
+
+/* limitter */
+#define Limit(val, max,min) { \
+	if ( val > max )      val = max; \
+	else if ( val < min ) val = min; \
 }
 
-void Ym2612_Impl::set_rate( double sample_rate, double clock_rate )
+#if 0
+#define USE_VGM_INIT_SWITCH
+static UINT8 IsVGMInit = 0;
+#endif
+static UINT8 PseudoSt = 0x00;
+/*#include <stdio.h>
+static FILE* hFile;
+static UINT32 FileSample;*/
+
+/* status set and IRQ handling */
+INLINE void FM_STATUS_SET(FM_ST *ST,int flag)
 {
-	assert( sample_rate );
-	assert( clock_rate > sample_rate );
-	
-	int i;
-
-	// 144 = 12 * (prescale * 2) = 12 * 6 * 2
-	// prescale set to 6 by default
-	
-	double Frequence = clock_rate / sample_rate / 144.0;
-	if ( fabs( Frequence - 1.0 ) < 0.0000001 )
-		Frequence = 1.0;
-	YM2612.TimerBase = int (Frequence * 4096.0);
-
-	// Tableau TL :
-	// [0     -  4095] = +output  [4095  - ...] = +output overflow (fill with 0)
-	// [12288 - 16383] = -output  [16384 - ...] = -output overflow (fill with 0)
-
-	for(i = 0; i < TL_LENGHT; i++)
+	/* set status flag */
+	ST->status |= flag;
+	if ( !(ST->irq) && (ST->status & ST->irqmask) )
 	{
-		if (i >= PG_CUT_OFF)    // YM2612 cut off sound after 78 dB (14 bits output ?)
+		ST->irq = 1;
+		/* callback user interrupt handler (IRQ is OFF to ON) */
+		if(ST->IRQ_Handler) (ST->IRQ_Handler)(ST->param,1);
+	}
+}
+
+/* status reset and IRQ handling */
+INLINE void FM_STATUS_RESET(FM_ST *ST,int flag)
+{
+	/* reset status flag */
+	ST->status &=~flag;
+	if ( (ST->irq) && !(ST->status & ST->irqmask) )
+	{
+		ST->irq = 0;
+		/* callback user interrupt handler (IRQ is ON to OFF) */
+		if(ST->IRQ_Handler) (ST->IRQ_Handler)(ST->param,0);
+	}
+}
+
+/* IRQ mask set */
+INLINE void FM_IRQMASK_SET(FM_ST *ST,int flag)
+{
+	ST->irqmask = flag;
+	/* IRQ handling check */
+	FM_STATUS_SET(ST,0);
+	FM_STATUS_RESET(ST,0);
+}
+
+INLINE void FM_KEYON(FM_OPN *OPN, FM_CH *CH , int s )
+{
+	FM_SLOT *SLOT = &CH->SLOT[s];
+
+	/* Note by Valley Bell:
+	   I assume that the CSM mode shouldn't affect channels
+	   other than FM3, so I added a check for it here.*/
+	if( !SLOT->key && (!OPN->SL3.key_csm || CH == &OPN->P_CH[3]))
+	{
+		/* restart Phase Generator */
+		SLOT->phase = 0;
+
+		/* reset SSG-EG inversion flag */
+		SLOT->ssgn = 0;
+
+		if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
 		{
-			g.TL_TAB [TL_LENGHT + i] = g.TL_TAB [i] = 0;
+			SLOT->state = (SLOT->volume <= MIN_ATT_INDEX) ? ((SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
 		}
 		else
 		{
-			double x = MAX_OUT;                         // Max output
-			x /= pow( 10.0, (ENV_STEP * i) / 20.0 );    // Decibel -> Voltage
+			/* force attenuation level to 0 */
+			SLOT->volume = MIN_ATT_INDEX;
 
-			g.TL_TAB [i] = (int) x;
-			g.TL_TAB [TL_LENGHT + i] = -g.TL_TAB [i];
+			/* directly switch to Decay (or Sustain) */
+			SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
 		}
-	}
-	
-	// Tableau SIN :
-	// g.SIN_TAB [x] [y] = sin(x) * y; 
-	// x = phase and y = volume
 
-	g.SIN_TAB [0] = g.SIN_TAB [SIN_LENGHT / 2] = PG_CUT_OFF;
-
-	for(i = 1; i <= SIN_LENGHT / 4; i++)
-	{
-		double x = sin(2.0 * PI * (double) (i) / (double) (SIN_LENGHT));    // Sinus
-		x = 20 * log10(1 / x);                                      // convert to dB
-
-		int j = (int) (x / ENV_STEP);                       // Get TL range
-
-		if (j > PG_CUT_OFF) j = (int) PG_CUT_OFF;
-
-		g.SIN_TAB [i] = g.SIN_TAB [(SIN_LENGHT / 2) - i] = j;
-		g.SIN_TAB [(SIN_LENGHT / 2) + i] = g.SIN_TAB [SIN_LENGHT - i] = TL_LENGHT + j;
+		/* recalculate EG output */
+		if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))
+			SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+		else
+			SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
 	}
 
-	// Tableau LFO (LFO wav) :
-
-	for(i = 0; i < LFO_LENGHT; i++)
-	{
-		double x = sin(2.0 * PI * (double) (i) / (double) (LFO_LENGHT));    // Sinus
-		x += 1.0;
-		x /= 2.0;                   // positive only
-		x *= 11.8 / ENV_STEP;       // ajusted to MAX enveloppe modulation
-
-		g.LFO_ENV_TAB [i] = (int) x;
-
-		x = sin(2.0 * PI * (double) (i) / (double) (LFO_LENGHT));   // Sinus
-		x *= (double) ((1 << (LFO_HBITS - 1)) - 1);
-
-		g.LFO_FREQ_TAB [i] = (int) x;
-
-	}
-
-	// Tableau Enveloppe :
-	// g.ENV_TAB [0] -> g.ENV_TAB [ENV_LENGHT - 1]              = attack curve
-	// g.ENV_TAB [ENV_LENGHT] -> g.ENV_TAB [2 * ENV_LENGHT - 1] = decay curve
-
-	for(i = 0; i < ENV_LENGHT; i++)
-	{
-		// Attack curve (x^8 - music level 2 Vectorman 2)
-		double x = pow(((double) ((ENV_LENGHT - 1) - i) / (double) (ENV_LENGHT)), 8);
-		x *= ENV_LENGHT;
-
-		g.ENV_TAB [i] = (int) x;
-
-		// Decay curve (just linear)
-		x = pow(((double) (i) / (double) (ENV_LENGHT)), 1);
-		x *= ENV_LENGHT;
-
-		g.ENV_TAB [ENV_LENGHT + i] = (int) x;
-	}
-	for ( i = 0; i < 8; i++ )
-		g.ENV_TAB [i + ENV_LENGHT * 2] = 0;
-	
-	g.ENV_TAB [ENV_END >> ENV_LBITS] = ENV_LENGHT - 1;      // for the stopped state
-	
-	// Tableau pour la conversion Attack -> Decay and Decay -> Attack
-	
-	int j = ENV_LENGHT - 1;
-	for ( i = 0; i < ENV_LENGHT; i++ )
-	{
-		while ( j && g.ENV_TAB [j] < i )
-			j--;
-
-		g.DECAY_TO_ATTACK [i] = j << ENV_LBITS;
-	}
-
-	// Tableau pour le Substain Level
-	
-	for(i = 0; i < 15; i++)
-	{
-		double x = i * 3;           // 3 and not 6 (Mickey Mania first music for test)
-		x /= ENV_STEP;
-
-		g.SL_TAB [i] = ((int) x << ENV_LBITS) + ENV_DECAY;
-	}
-
-	g.SL_TAB [15] = ((ENV_LENGHT - 1) << ENV_LBITS) + ENV_DECAY; // special case : volume off
-
-	// Tableau Frequency Step
-
-	for(i = 0; i < 2048; i++)
-	{
-		double x = (double) (i) * Frequence;
-
-#if ((SIN_LBITS + SIN_HBITS - (21 - 7)) < 0)
-		x /= (double) (1 << ((21 - 7) - SIN_LBITS - SIN_HBITS));
-#else
-		x *= (double) (1 << (SIN_LBITS + SIN_HBITS - (21 - 7)));
-#endif
-
-		x /= 2.0;   // because MUL = value * 2
-
-		g.FINC_TAB [i] = (unsigned int) x;
-	}
-
-	// Tableaux Attack & Decay Rate
-
-	for(i = 0; i < 4; i++)
-	{
-		g.AR_TAB [i] = 0;
-		g.DR_TAB [i] = 0;
-	}
-	
-	for(i = 0; i < 60; i++)
-	{
-		double x = Frequence;
-
-		x *= 1.0 + ((i & 3) * 0.25);                    // bits 0-1 : x1.00, x1.25, x1.50, x1.75
-		x *= (double) (1 << ((i >> 2)));                // bits 2-5 : shift bits (x2^0 - x2^15)
-		x *= (double) (ENV_LENGHT << ENV_LBITS);        // on ajuste pour le tableau g.ENV_TAB
-
-		g.AR_TAB [i + 4] = (unsigned int) (x / AR_RATE);
-		g.DR_TAB [i + 4] = (unsigned int) (x / DR_RATE);
-	}
-
-	for(i = 64; i < 96; i++)
-	{
-		g.AR_TAB [i] = g.AR_TAB [63];
-		g.DR_TAB [i] = g.DR_TAB [63];
-
-		g.NULL_RATE [i - 64] = 0;
-	}
-	
-	for ( i = 96; i < 128; i++ )
-		g.AR_TAB [i] = 0;
-	
-	// Tableau Detune
-
-	for(i = 0; i < 4; i++)
-	{
-		for (int j = 0; j < 32; j++)
-		{
-#if ((SIN_LBITS + SIN_HBITS - 21) < 0)
-			double y = (double) DT_DEF_TAB [(i << 5) + j] * Frequence / (double) (1 << (21 - SIN_LBITS - SIN_HBITS));
-#else
-			double y = (double) DT_DEF_TAB [(i << 5) + j] * Frequence * (double) (1 << (SIN_LBITS + SIN_HBITS - 21));
-#endif
-
-			g.DT_TAB [i + 0] [j] = (int)  y;
-			g.DT_TAB [i + 4] [j] = (int) -y;
-		}
-	}
-	
-	// Tableau LFO
-	g.LFO_INC_TAB [0] = (unsigned int) (3.98 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [1] = (unsigned int) (5.56 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [2] = (unsigned int) (6.02 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [3] = (unsigned int) (6.37 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [4] = (unsigned int) (6.88 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [5] = (unsigned int) (9.63 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [6] = (unsigned int) (48.1 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	g.LFO_INC_TAB [7] = (unsigned int) (72.2 * (double) (1 << (LFO_HBITS + LFO_LBITS)) / sample_rate);
-	
-	reset();
+	SLOT->key = 1;
 }
 
-const char* Ym2612_Emu::set_rate( double sample_rate, double clock_rate )
+INLINE void FM_KEYOFF(FM_OPN *OPN, FM_CH *CH , int s )
 {
-	if ( !impl )
+	FM_SLOT *SLOT = &CH->SLOT[s];
+
+	if (SLOT->key && (!OPN->SL3.key_csm || CH == &OPN->P_CH[3]))
 	{
-		impl = (Ym2612_Impl*) malloc( sizeof *impl );
-		if ( !impl )
-			return "Out of memory";
-		impl->mute_mask = 0;
+#ifdef USE_VGM_INIT_SWITCH
+		if (IsVGMInit)	/* workaround for VGMs trimmed with VGMTool */
+		{
+			SLOT->state = EG_OFF;
+			SLOT->volume = MAX_ATT_INDEX;
+			SLOT->vol_out= MAX_ATT_INDEX;
+		}
+		else
+#endif
+		if (SLOT->state>EG_REL)
+		{
+			SLOT->state = EG_REL; /* phase -> Release */
+
+			/* SSG-EG specific update */
+			if (SLOT->ssg&0x08)
+			{
+				/* convert EG attenuation level */
+				if (SLOT->ssgn ^ (SLOT->ssg&0x04))
+						SLOT->volume = (0x200 - SLOT->volume);
+
+				/* force EG attenuation level */
+				if (SLOT->volume >= 0x200)
+				{
+					SLOT->volume = MAX_ATT_INDEX;
+					SLOT->state  = EG_OFF;
+				}
+
+				/* recalculate EG output */
+				SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+			}
+		}
 	}
-	memset( &impl->YM2612, 0, sizeof impl->YM2612 );
-	
-	impl->set_rate( sample_rate, clock_rate );
-	
+
+	SLOT->key = 0;
+}
+
+INLINE void FM_KEYON_CSM(FM_OPN *OPN, FM_CH *CH , int s )
+{
+	FM_SLOT *SLOT = &CH->SLOT[s];
+
+	if( !SLOT->key && !OPN->SL3.key_csm)
+	{
+		/* restart Phase Generator */
+		SLOT->phase = 0;
+
+		/* reset SSG-EG inversion flag */
+		SLOT->ssgn = 0;
+
+		if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
+		{
+			SLOT->state = (SLOT->volume <= MIN_ATT_INDEX) ? ((SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
+		}
+		else
+		{
+			/* force attenuation level to 0 */
+			SLOT->volume = MIN_ATT_INDEX;
+
+			/* directly switch to Decay (or Sustain) */
+			SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
+		}
+
+		/* recalculate EG output */
+		if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))
+			SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+		else
+			SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+	}
+}
+
+INLINE void FM_KEYOFF_CSM(FM_CH *CH , int s )
+{
+	FM_SLOT *SLOT = &CH->SLOT[s];
+	if (!SLOT->key)
+	{
+#ifdef USE_VGM_INIT_SWITCH
+		if (IsVGMInit)
+		{
+			SLOT->state = EG_OFF;
+			SLOT->volume = MAX_ATT_INDEX;
+			SLOT->vol_out= MAX_ATT_INDEX;
+		}
+		else
+#endif
+		if (SLOT->state>EG_REL)
+		{
+			SLOT->state = EG_REL; /* phase -> Release */
+
+			/* SSG-EG specific update */
+			if (SLOT->ssg&0x08)
+			{
+				/* convert EG attenuation level */
+				if (SLOT->ssgn ^ (SLOT->ssg&0x04))
+					SLOT->volume = (0x200 - SLOT->volume);
+
+				/* force EG attenuation level */
+				if (SLOT->volume >= 0x200)
+				{
+					SLOT->volume = MAX_ATT_INDEX;
+					SLOT->state  = EG_OFF;
+				}
+
+				/* recalculate EG output */
+				SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+			}
+		}
+	}
+}
+
+/* OPN Mode Register Write */
+INLINE void set_timers( FM_OPN *OPN, FM_ST *ST, void *n, int v )
+{
+	/* b7 = CSM MODE */
+	/* b6 = 3 slot mode */
+	/* b5 = reset b */
+	/* b4 = reset a */
+	/* b3 = timer enable b */
+	/* b2 = timer enable a */
+	/* b1 = load b */
+	/* b0 = load a */
+
+	if ((OPN->ST.mode ^ v) & 0xC0)
+	{
+		/* phase increment need to be recalculated */
+		OPN->P_CH[2].SLOT[SLOT1].Incr=-1;
+
+		/* CSM mode disabled and CSM key ON active*/
+		if (((v & 0xC0) != 0x80) && OPN->SL3.key_csm)
+		{
+			/* CSM Mode Key OFF (verified by Nemesis on real hardware) */
+			FM_KEYOFF_CSM(&OPN->P_CH[2],SLOT1);
+			FM_KEYOFF_CSM(&OPN->P_CH[2],SLOT2);
+			FM_KEYOFF_CSM(&OPN->P_CH[2],SLOT3);
+			FM_KEYOFF_CSM(&OPN->P_CH[2],SLOT4);
+			OPN->SL3.key_csm = 0;
+		}
+	}
+
+	/* reset Timer b flag */
+	if( v & 0x20 )
+		FM_STATUS_RESET(ST,0x02);
+	/* reset Timer a flag */
+	if( v & 0x10 )
+		FM_STATUS_RESET(ST,0x01);
+	/* load b */
+	if ((v&2) && !(ST->mode&2))
+	{
+		ST->TBC = ( 256-ST->TB)<<4;
+		/* External timer handler */
+		if (ST->timer_handler) (ST->timer_handler)(n,1,ST->TBC * ST->timer_prescaler,(int)ST->clock);
+	}
+	/* load a */
+	if ((v&1) && !(ST->mode&1))
+	{
+		ST->TAC = (1024-ST->TA);
+		/* External timer handler */
+		if (ST->timer_handler) (ST->timer_handler)(n,0,ST->TAC * ST->timer_prescaler,(int)ST->clock);
+		ST->TAC *= 4096;
+	}
+
+	ST->mode = (UINT32)v;
+}
+
+
+/* Timer A Overflow */
+INLINE void TimerAOver(FM_ST *ST)
+{
+	/* set status (if enabled) */
+	if(ST->mode & 0x04) FM_STATUS_SET(ST,0x01);
+	/* clear or reload the counter */
+	ST->TAC = (1024-ST->TA);
+	if (ST->timer_handler) (ST->timer_handler)(ST->param,0,ST->TAC * ST->timer_prescaler,(int)ST->clock);
+	ST->TAC *= 4096;
+}
+/* Timer B Overflow */
+INLINE void TimerBOver(FM_ST *ST)
+{
+	/* set status (if enabled) */
+	if(ST->mode & 0x08) FM_STATUS_SET(ST,0x02);
+	/* clear or reload the counter */
+	ST->TBC = ( 256-ST->TB)<<4;
+	if (ST->timer_handler) (ST->timer_handler)(ST->param,1,ST->TBC * ST->timer_prescaler,(int)ST->clock);
+}
+
+
+#if FM_INTERNAL_TIMER
+/* ----- internal timer mode , update timer */
+/* Valley Bell: defines fixed */
+
+/* ---------- calculate timer A ---------- */
+	#define INTERNAL_TIMER_A(ST,CSM_CH)					\
+	{													\
+		if( (ST)->TAC &&  ((ST)->timer_handler==0) )		\
+			if( ((ST)->TAC -= (int)((ST)->freqbase*4096)) <= 0 )	\
+			{											\
+				TimerAOver( ST );						\
+				/* CSM mode total level latch and auto key on */	\
+				if( (ST)->mode & 0x80 )					\
+					CSMKeyControll( OPN, CSM_CH );			\
+			}											\
+	}
+/* ---------- calculate timer B ---------- */
+	#define INTERNAL_TIMER_B(ST,step)						\
+	{														\
+		if( (ST)->TBC && ((ST)->timer_handler==0) )				\
+			if( ((ST)->TBC -= (int)((ST)->freqbase*4096*step)) <= 0 )	\
+				TimerBOver( ST );							\
+	}
+#else /* FM_INTERNAL_TIMER */
+/* external timer mode */
+#define INTERNAL_TIMER_A(ST,CSM_CH)
+#define INTERNAL_TIMER_B(ST,step)
+#endif /* FM_INTERNAL_TIMER */
+
+
+
+#if FM_BUSY_FLAG_SUPPORT
+#define FM_BUSY_CLEAR(ST) ((ST)->busy_expiry_time = UNDEFINED_TIME)
+INLINE UINT8 FM_STATUS_FLAG(FM_ST *ST)
+{
+	if( COMPARE_TIMES(ST->busy_expiry_time, UNDEFINED_TIME) != 0 )
+	{
+		if (COMPARE_TIMES(ST->busy_expiry_time, FM_GET_TIME_NOW(ST->device->machine)) > 0)
+			return ST->status | 0x80;	/* with busy */
+		/* expire */
+		FM_BUSY_CLEAR(ST);
+	}
+	return ST->status;
+}
+INLINE void FM_BUSY_SET(FM_ST *ST,int busyclock )
+{
+	TIME_TYPE expiry_period = MULTIPLY_TIME_BY_INT(ATTOTIME_IN_HZ(ST->clock), busyclock * ST->timer_prescaler);
+	ST->busy_expiry_time = ADD_TIMES(FM_GET_TIME_NOW(ST->device->machine), expiry_period);
+}
+#else
+#define FM_STATUS_FLAG(ST) ((ST)->status)
+#define FM_BUSY_SET(ST,bclock) {}
+#define FM_BUSY_CLEAR(ST) {}
+#endif
+
+
+/* set algorithm connection */
+INLINE void setup_connection( FM_OPN *OPN, FM_CH *CH, int ch )
+{
+	INT32 *carrier = &OPN->out_fm[ch];
+
+	INT32 **om1 = &CH->connect1;
+	INT32 **om2 = &CH->connect3;
+	INT32 **oc1 = &CH->connect2;
+
+	INT32 **memc = &CH->mem_connect;
+
+	switch( CH->ALGO )
+	{
+	case 0:
+		/* M1---C1---MEM---M2---C2---OUT */
+		*om1 = &OPN->c1;
+		*oc1 = &OPN->mem;
+		*om2 = &OPN->c2;
+		*memc= &OPN->m2;
+		break;
+	case 1:
+		/* M1------+-MEM---M2---C2---OUT */
+		/*      C1-+                     */
+		*om1 = &OPN->mem;
+		*oc1 = &OPN->mem;
+		*om2 = &OPN->c2;
+		*memc= &OPN->m2;
+		break;
+	case 2:
+		/* M1-----------------+-C2---OUT */
+		/*      C1---MEM---M2-+          */
+		*om1 = &OPN->c2;
+		*oc1 = &OPN->mem;
+		*om2 = &OPN->c2;
+		*memc= &OPN->m2;
+		break;
+	case 3:
+		/* M1---C1---MEM------+-C2---OUT */
+		/*                 M2-+          */
+		*om1 = &OPN->c1;
+		*oc1 = &OPN->mem;
+		*om2 = &OPN->c2;
+		*memc= &OPN->c2;
+		break;
+	case 4:
+		/* M1---C1-+-OUT */
+		/* M2---C2-+     */
+		/* MEM: not used */
+		*om1 = &OPN->c1;
+		*oc1 = carrier;
+		*om2 = &OPN->c2;
+		*memc= &OPN->mem;	/* store it anywhere where it will not be used */
+		break;
+	case 5:
+		/*    +----C1----+     */
+		/* M1-+-MEM---M2-+-OUT */
+		/*    +----C2----+     */
+		*om1 = 0;	/* special mark */
+		*oc1 = carrier;
+		*om2 = carrier;
+		*memc= &OPN->m2;
+		break;
+	case 6:
+		/* M1---C1-+     */
+		/*      M2-+-OUT */
+		/*      C2-+     */
+		/* MEM: not used */
+		*om1 = &OPN->c1;
+		*oc1 = carrier;
+		*om2 = carrier;
+		*memc= &OPN->mem;	/* store it anywhere where it will not be used */
+		break;
+	case 7:
+		/* M1-+     */
+		/* C1-+-OUT */
+		/* M2-+     */
+		/* C2-+     */
+		/* MEM: not used*/
+		*om1 = carrier;
+		*oc1 = carrier;
+		*om2 = carrier;
+		*memc= &OPN->mem;	/* store it anywhere where it will not be used */
+		break;
+	}
+
+	CH->connect4 = carrier;
+}
+
+/* set detune & multiple */
+INLINE void set_det_mul(FM_ST *ST,FM_CH *CH,FM_SLOT *SLOT,int v)
+{
+	SLOT->mul = (v&0x0f)? (v&0x0f)*2 : 1;
+	SLOT->DT  = ST->dt_tab[(v>>4)&7];
+	CH->SLOT[SLOT1].Incr=-1;
+}
+
+/* set total level */
+INLINE void set_tl(FM_CH *CH,FM_SLOT *SLOT , int v)
+{
+	SLOT->tl = (v&0x7f)<<(ENV_BITS-7); /* 7bit TL */
+	(void)CH;
+
+	/* recalculate EG output */
+	if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)) && (SLOT->state > EG_REL))
+		SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+	else
+		SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+}
+
+/* set attack rate & key scale  */
+INLINE void set_ar_ksr(UINT8 type, FM_CH *CH,FM_SLOT *SLOT,int v)
+{
+	UINT8 old_KSR = SLOT->KSR;
+	(void)type;
+
+	SLOT->ar = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
+
+	SLOT->KSR = 3-(v>>6);
+	if (SLOT->KSR != old_KSR)
+	{
+		CH->SLOT[SLOT1].Incr=-1;
+	}
+
+	/* Even if it seems unnecessary, in some odd case, KSR and KC are both modified   */
+	/* and could result in SLOT->kc remaining unchanged.                              */
+	/* In such case, AR values would not be recalculated despite SLOT->ar has changed */
+	/* This fixes the introduction music of Batman & Robin    (Eke-Eke)               */
+	if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
+	{
+		SLOT->eg_sh_ar  = eg_rate_shift [SLOT->ar  + SLOT->ksr ];
+		SLOT->eg_sel_ar = eg_rate_select2612[SLOT->ar  + SLOT->ksr ];
+	}
+	else
+	{
+		SLOT->eg_sh_ar  = 0;
+		SLOT->eg_sel_ar = 18*RATE_STEPS;	/* verified by Nemesis on real hardware */
+	}
+}
+
+/* set decay rate */
+INLINE void set_dr(UINT8 type, FM_SLOT *SLOT,int v)
+{
+	(void)type;
+	SLOT->d1r = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
+
+	SLOT->eg_sh_d1r = eg_rate_shift [SLOT->d1r + SLOT->ksr];
+	SLOT->eg_sel_d1r= eg_rate_select2612[SLOT->d1r + SLOT->ksr];
+}
+
+/* set sustain rate */
+INLINE void set_sr(UINT8 type, FM_SLOT *SLOT,int v)
+{
+	(void)type;
+	SLOT->d2r = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
+
+	SLOT->eg_sh_d2r = eg_rate_shift [SLOT->d2r + SLOT->ksr];
+	SLOT->eg_sel_d2r= eg_rate_select2612[SLOT->d2r + SLOT->ksr];
+}
+
+/* set release rate */
+INLINE void set_sl_rr(UINT8 type, FM_SLOT *SLOT,int v)
+{
+	(void)type;
+	SLOT->sl = sl_table[ v>>4 ];
+
+	/* check EG state changes */
+	if ((SLOT->state == EG_DEC) && (SLOT->volume >= (INT32)(SLOT->sl)))
+		SLOT->state = EG_SUS;
+
+	SLOT->rr  = 34 + ((v&0x0f)<<2);
+
+	SLOT->eg_sh_rr  = eg_rate_shift [SLOT->rr  + SLOT->ksr];
+	SLOT->eg_sel_rr = eg_rate_select2612[SLOT->rr  + SLOT->ksr];
+}
+
+/* advance LFO to next sample */
+INLINE void advance_lfo(FM_OPN *OPN)
+{
+	if (OPN->lfo_timer_overflow)   /* LFO enabled ? */
+	{
+		/* increment LFO timer */
+		OPN->lfo_timer +=  OPN->lfo_timer_add;
+
+		/* when LFO is enabled, one level will last for 108, 77, 71, 67, 62, 44, 8 or 5 samples */
+		while (OPN->lfo_timer >= OPN->lfo_timer_overflow)
+		{
+			OPN->lfo_timer -= OPN->lfo_timer_overflow;
+
+			/* There are 128 LFO steps */
+			OPN->lfo_cnt = ( OPN->lfo_cnt + 1 ) & 127;
+
+			/* Valley Bell: Replaced old code (non-inverted triangle) with
+			   the one from Genesis Plus GX 1.71. */
+			/* triangle (inverted) */
+			/* AM: from 126 to 0 step -2, 0 to 126 step +2 */
+			if (OPN->lfo_cnt<64)
+				OPN->LFO_AM = (UINT32)(OPN->lfo_cnt ^ 63) << 1;
+			else
+				OPN->LFO_AM = (UINT32)(OPN->lfo_cnt & 63) << 1;
+
+			/* PM works with 4 times slower clock */
+			OPN->LFO_PM = OPN->lfo_cnt >> 2;
+		}
+	}
+}
+
+INLINE void advance_eg_channel(FM_OPN *OPN, FM_SLOT *SLOT)
+{
+	/* unsigned int out; */
+	unsigned int i = 4; /* four operators per channel */
+
+	do
+	{
+		switch(SLOT->state)
+		{
+			case EG_ATT:    /* attack phase */
+			if (!(OPN->eg_cnt & ((1<<SLOT->eg_sh_ar)-1)))
+			{
+				/* update attenuation level */
+				SLOT->volume += (~SLOT->volume * (eg_inc[SLOT->eg_sel_ar + ((OPN->eg_cnt>>SLOT->eg_sh_ar)&7)]))>>4;
+
+				/* check phase transition*/
+				if (SLOT->volume <= MIN_ATT_INDEX)
+				{
+					SLOT->volume = MIN_ATT_INDEX;
+					SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC; /* special case where SL=0 */
+				}
+
+				/* recalculate EG output */
+				if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))  /* SSG-EG Output Inversion */
+				SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+				else
+					SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+			}
+			break;
+
+			case EG_DEC:  /* decay phase */
+			if (!(OPN->eg_cnt & ((1<<SLOT->eg_sh_d1r)-1)))
+			{
+				/* SSG EG type */
+				if (SLOT->ssg&0x08)
+				{
+					/* update attenuation level */
+					if (SLOT->volume < 0x200)
+				{
+					SLOT->volume += 4 * eg_inc[SLOT->eg_sel_d1r + ((OPN->eg_cnt>>SLOT->eg_sh_d1r)&7)];
+
+					/* recalculate EG output */
+					if (SLOT->ssgn ^ (SLOT->ssg&0x04))   /* SSG-EG Output Inversion */
+						SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+					else
+						SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+				}
+
+				}
+				else
+				{
+				/* update attenuation level */
+				SLOT->volume += eg_inc[SLOT->eg_sel_d1r + ((OPN->eg_cnt>>SLOT->eg_sh_d1r)&7)];
+
+				/* recalculate EG output */
+				SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+				}
+
+				/* check phase transition*/
+				if (SLOT->volume >= (INT32)(SLOT->sl))
+					SLOT->state = EG_SUS;
+			}
+			break;
+
+			case EG_SUS:  /* sustain phase */
+			if (!(OPN->eg_cnt & ((1<<SLOT->eg_sh_d2r)-1)))
+			{
+				/* SSG EG type */
+				if (SLOT->ssg&0x08)
+				{
+				/* update attenuation level */
+				if (SLOT->volume < 0x200)
+				{
+					SLOT->volume += 4 * eg_inc[SLOT->eg_sel_d2r + ((OPN->eg_cnt>>SLOT->eg_sh_d2r)&7)];
+
+					/* recalculate EG output */
+					if (SLOT->ssgn ^ (SLOT->ssg&0x04))   /* SSG-EG Output Inversion */
+						SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+					else
+						SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+				}
+				}
+				else
+				{
+					/* update attenuation level */
+					SLOT->volume += eg_inc[SLOT->eg_sel_d2r + ((OPN->eg_cnt>>SLOT->eg_sh_d2r)&7)];
+
+					/* check phase transition*/
+					if ( SLOT->volume >= MAX_ATT_INDEX )
+						SLOT->volume = MAX_ATT_INDEX;
+					/* do not change SLOT->state (verified on real chip) */
+
+					/* recalculate EG output */
+					SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+				}
+			}
+			break;
+
+			case EG_REL:  /* release phase */
+			if (!(OPN->eg_cnt & ((1<<SLOT->eg_sh_rr)-1)))
+			{
+				/* SSG EG type */
+				if (SLOT->ssg&0x08)
+				{
+					/* update attenuation level */
+					if (SLOT->volume < 0x200)
+						SLOT->volume += 4 * eg_inc[SLOT->eg_sel_rr + ((OPN->eg_cnt>>SLOT->eg_sh_rr)&7)];
+				/* check phase transition */
+				if (SLOT->volume >= 0x200)
+				{
+					SLOT->volume = MAX_ATT_INDEX;
+					SLOT->state = EG_OFF;
+				}
+				}
+				else
+				{
+					/* update attenuation level */
+					SLOT->volume += eg_inc[SLOT->eg_sel_rr + ((OPN->eg_cnt>>SLOT->eg_sh_rr)&7)];
+
+					/* check phase transition*/
+					if (SLOT->volume >= MAX_ATT_INDEX)
+					{
+						SLOT->volume = MAX_ATT_INDEX;
+						SLOT->state = EG_OFF;
+					}
+				}
+
+				/* recalculate EG output */
+				SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+
+			}
+			break;
+		}
+
+		/* Valley Bell: These few lines are missing in Genesis Plus GX' ym2612 core file.
+			Disabling them fixes the SSG-EG.
+			Additional Note: Asterix and the Great Rescue: Level 1 sounds "better" with these lines,
+			but less accurate. */
+		#if 0
+		out = ((UINT32)SLOT->volume);
+
+		/* negate output (changes come from alternate bit, init comes from attack bit) */
+		if ((SLOT->ssg&0x08) && (SLOT->ssgn&2) && (SLOT->state > EG_REL))
+			out ^= MAX_ATT_INDEX;
+
+		/* we need to store the result here because we are going to change ssgn
+			in next instruction */
+		SLOT->vol_out = out + SLOT->tl;
+		#endif
+
+		SLOT++;
+		i--;
+	} while (i);
+
+}
+
+/* SSG-EG update process */
+/* The behavior is based upon Nemesis tests on real hardware */
+/* This is actually executed before each samples */
+INLINE void update_ssg_eg_channel(FM_SLOT *SLOT)
+{
+	unsigned int i = 4; /* four operators per channel */
+
+	do
+	{
+		/* detect SSG-EG transition */
+		/* this is not required during release phase as the attenuation has been forced to MAX and output invert flag is not used */
+		/* if an Attack Phase is programmed, inversion can occur on each sample */
+		if ((SLOT->ssg & 0x08) && (SLOT->volume >= 0x200) && (SLOT->state > EG_REL))
+		{
+			if (SLOT->ssg & 0x01)  /* bit 0 = hold SSG-EG */
+			{
+				/* set inversion flag */
+				if (SLOT->ssg & 0x02)
+					SLOT->ssgn = 4;
+
+				/* force attenuation level during decay phases */
+				if ((SLOT->state != EG_ATT) && !(SLOT->ssgn ^ (SLOT->ssg & 0x04)))
+					SLOT->volume  = MAX_ATT_INDEX;
+			}
+			else  /* loop SSG-EG */
+			{
+				/* toggle output inversion flag or reset Phase Generator */
+					if (SLOT->ssg & 0x02)
+						SLOT->ssgn ^= 4;
+					else
+						SLOT->phase = 0;
+
+				/* same as Key ON */
+				if (SLOT->state != EG_ATT)
+				{
+					if ((SLOT->ar + SLOT->ksr) < 94 /*32+62*/)
+					{
+						SLOT->state = (SLOT->volume <= MIN_ATT_INDEX) ? ((SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC) : EG_ATT;
+					}
+					else
+					{
+						/* Attack Rate is maximal: directly switch to Decay or Substain */
+						SLOT->volume = MIN_ATT_INDEX;
+						SLOT->state = (SLOT->sl == MIN_ATT_INDEX) ? EG_SUS : EG_DEC;
+					}
+				}
+			}
+
+			/* recalculate EG output */
+			if (SLOT->ssgn ^ (SLOT->ssg&0x04))
+				SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+			else
+				SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+		}
+
+		/* next slot */
+		SLOT++;
+		i--;
+	} while (i);
+}
+
+
+INLINE void update_phase_lfo_slot(FM_OPN *OPN, FM_SLOT *SLOT, INT32 pms, UINT32 block_fnum)
+{
+	UINT32 fnum_lfo   = ((block_fnum & 0x7f0) >> 4) * 32 * 8;
+	INT32  lfo_fn_table_index_offset = lfo_pm_table[ fnum_lfo + pms + OPN->LFO_PM ];
+
+	block_fnum = block_fnum*2 + lfo_fn_table_index_offset;
+
+	if (lfo_fn_table_index_offset)    /* LFO phase modulation active */
+	{
+		UINT8 blk = (block_fnum&0x7000) >> 12;
+		UINT32 fn  = block_fnum & 0xfff;
+
+		/* recalculate keyscale code */
+		/*int kc = (blk<<2) | opn_fktable[fn >> 7];*/
+		/* This really stupid bug caused a read outside of the
+			array [size 0x10] and returned invalid values.
+			This caused an annoying vibrato for some notes.
+			(Note: seems to be a copy-and-paste from OPNWriteReg -> case 0xA0)
+			Why are MAME cores always SOO buggy ?! */
+		/* Oh, and before I forget: it's correct in fm.c */
+		int kc = (blk<<2) | opn_fktable[fn >> 8];
+		/* Thanks to Blargg - his patch that helped me to find this bug */
+
+		/* recalculate (frequency) phase increment counter */
+		int fc = (OPN->fn_table[fn]>>(7-blk)) + SLOT->DT[kc];
+
+		/* (frequency) phase overflow (credits to Nemesis) */
+		if (fc < 0) fc += OPN->fn_max;
+
+		/* update phase */
+		SLOT->phase += (fc * SLOT->mul) >> 1;
+	}
+	else    /* LFO phase modulation  = zero */
+	{
+		SLOT->phase += SLOT->Incr;
+	}
+}
+
+INLINE void update_phase_lfo_channel(FM_OPN *OPN, FM_CH *CH)
+{
+	UINT32 block_fnum = CH->block_fnum;
+
+	UINT32 fnum_lfo  = ((block_fnum & 0x7f0) >> 4) * 32 * 8;
+	INT32  lfo_fn_table_index_offset = lfo_pm_table[ fnum_lfo + CH->pms + OPN->LFO_PM ];
+
+	block_fnum = block_fnum*2 + lfo_fn_table_index_offset;
+
+	if (lfo_fn_table_index_offset)    /* LFO phase modulation active */
+	{
+		UINT8 blk = (block_fnum&0x7000) >> 12;
+		UINT32 fn  = block_fnum & 0xfff;
+
+		/* recalculate keyscale code */
+		/*int kc = (blk<<2) | opn_fktable[fn >> 7];*/
+		/* the same stupid bug as above */
+		int kc = (blk<<2) | opn_fktable[fn >> 8];
+
+		/* recalculate (frequency) phase increment counter */
+		int fc = (OPN->fn_table[fn]>>(7-blk));
+
+		/* (frequency) phase overflow (credits to Nemesis) */
+		int finc = fc + CH->SLOT[SLOT1].DT[kc];
+		if (finc < 0) finc += OPN->fn_max;
+		CH->SLOT[SLOT1].phase += (finc*CH->SLOT[SLOT1].mul) >> 1;
+
+		finc = fc + CH->SLOT[SLOT2].DT[kc];
+		if (finc < 0) finc += OPN->fn_max;
+		CH->SLOT[SLOT2].phase += (finc*CH->SLOT[SLOT2].mul) >> 1;
+
+		finc = fc + CH->SLOT[SLOT3].DT[kc];
+		if (finc < 0) finc += OPN->fn_max;
+		CH->SLOT[SLOT3].phase += (finc*CH->SLOT[SLOT3].mul) >> 1;
+
+		finc = fc + CH->SLOT[SLOT4].DT[kc];
+		if (finc < 0) finc += OPN->fn_max;
+		CH->SLOT[SLOT4].phase += (finc*CH->SLOT[SLOT4].mul) >> 1;
+	}
+	else    /* LFO phase modulation  = zero */
+	{
+		CH->SLOT[SLOT1].phase += CH->SLOT[SLOT1].Incr;
+		CH->SLOT[SLOT2].phase += CH->SLOT[SLOT2].Incr;
+		CH->SLOT[SLOT3].phase += CH->SLOT[SLOT3].Incr;
+		CH->SLOT[SLOT4].phase += CH->SLOT[SLOT4].Incr;
+	}
+}
+
+/* update phase increment and envelope generator */
+INLINE void refresh_fc_eg_slot(FM_OPN *OPN, FM_SLOT *SLOT , int fc , int kc )
+{
+	int ksr = kc >> SLOT->KSR;
+
+	fc += SLOT->DT[kc];
+
+	/* detects frequency overflow (credits to Nemesis) */
+	if (fc < 0) fc += OPN->fn_max;
+
+	/* (frequency) phase increment counter */
+	SLOT->Incr = (fc * SLOT->mul) >> 1;
+
+	if( SLOT->ksr != ksr )
+	{
+		SLOT->ksr = ksr;
+
+		/* calculate envelope generator rates */
+		if ((SLOT->ar + SLOT->ksr) < 32+62)
+		{
+			SLOT->eg_sh_ar  = eg_rate_shift [SLOT->ar  + SLOT->ksr ];
+			SLOT->eg_sel_ar = eg_rate_select2612[SLOT->ar  + SLOT->ksr ];
+		}
+		else
+		{
+			SLOT->eg_sh_ar  = 0;
+			SLOT->eg_sel_ar = 18*RATE_STEPS; /* verified by Nemesis on real hardware (Attack phase is blocked) */
+		}
+
+		SLOT->eg_sh_d1r = eg_rate_shift [SLOT->d1r + SLOT->ksr];
+		SLOT->eg_sh_d2r = eg_rate_shift [SLOT->d2r + SLOT->ksr];
+		SLOT->eg_sh_rr  = eg_rate_shift [SLOT->rr  + SLOT->ksr];
+
+		SLOT->eg_sel_d1r= eg_rate_select2612[SLOT->d1r + SLOT->ksr];
+		SLOT->eg_sel_d2r= eg_rate_select2612[SLOT->d2r + SLOT->ksr];
+		SLOT->eg_sel_rr = eg_rate_select2612[SLOT->rr  + SLOT->ksr];
+	}
+}
+
+/* update phase increment counters */
+INLINE void refresh_fc_eg_chan(FM_OPN *OPN, FM_CH *CH )
+{
+	if( CH->SLOT[SLOT1].Incr==-1)
+	{
+		int fc = CH->fc;
+		int kc = CH->kcode;
+		refresh_fc_eg_slot(OPN, &CH->SLOT[SLOT1] , fc , kc );
+		refresh_fc_eg_slot(OPN, &CH->SLOT[SLOT2] , fc , kc );
+		refresh_fc_eg_slot(OPN, &CH->SLOT[SLOT3] , fc , kc );
+		refresh_fc_eg_slot(OPN, &CH->SLOT[SLOT4] , fc , kc );
+	}
+}
+
+#define volume_calc(OP) ((OP)->vol_out + (AM & (OP)->AMmask))
+
+INLINE signed int op_calc(UINT32 phase, unsigned int env, signed int pm)
+{
+  UINT32 p;
+
+  p = (env<<3) + sin_tab[ ( ((signed int)((phase & ~FREQ_MASK) + (pm<<15))) >> FREQ_SH ) & SIN_MASK ];
+
+  if (p >= TL_TAB_LEN)
+    return 0;
+  return tl_tab[p];
+}
+
+INLINE signed int op_calc1(UINT32 phase, unsigned int env, signed int pm)
+{
+  UINT32 p = (env<<3) + sin_tab[ ( ((signed int)((phase & ~FREQ_MASK) + pm      )) >> FREQ_SH ) & SIN_MASK ];
+  if (p >= TL_TAB_LEN)
+    return 0;
+  return tl_tab[p];
+}
+
+INLINE void chan_calc(YM2612 *F2612, FM_OPN *OPN, FM_CH *CH)
+{
+  UINT32 AM = OPN->LFO_AM >> CH->ams;
+  unsigned int eg_out;
+
+  if (CH->Muted)
+    return;
+
+  OPN->m2 = OPN->c1 = OPN->c2 = OPN->mem = 0;
+
+  *CH->mem_connect = CH->mem_value;  /* restore delayed sample (MEM) value to m2 or c2 */
+
+  eg_out = volume_calc(&CH->SLOT[SLOT1]);
+  {
+    INT32 out = CH->op1_out[0] + CH->op1_out[1];
+    CH->op1_out[0] = CH->op1_out[1];
+
+    if( !CH->connect1 )
+    {
+      /* algorithm 5  */
+      OPN->mem = OPN->c1 = OPN->c2 = CH->op1_out[0];
+    }
+    else
+    {
+      /* other algorithms */
+      *CH->connect1 += CH->op1_out[0];
+    }
+
+
+    CH->op1_out[1] = 0;
+    if( eg_out < ENV_QUIET )  /* SLOT 1 */
+    {
+      if (!CH->FB)
+        out=0;
+
+      CH->op1_out[1] = op_calc1(CH->SLOT[SLOT1].phase, eg_out, (out<<CH->FB) );
+    }
+  }
+
+  eg_out = volume_calc(&CH->SLOT[SLOT3]);
+  if( eg_out < ENV_QUIET )    /* SLOT 3 */
+    *CH->connect3 += op_calc(CH->SLOT[SLOT3].phase, eg_out, OPN->m2);
+
+  eg_out = volume_calc(&CH->SLOT[SLOT2]);
+  if( eg_out < ENV_QUIET )    /* SLOT 2 */
+    *CH->connect2 += op_calc(CH->SLOT[SLOT2].phase, eg_out, OPN->c1);
+
+  eg_out = volume_calc(&CH->SLOT[SLOT4]);
+  if( eg_out < ENV_QUIET )    /* SLOT 4 */
+    *CH->connect4 += op_calc(CH->SLOT[SLOT4].phase, eg_out, OPN->c2);
+
+
+  /* store current MEM */
+  CH->mem_value = OPN->mem;
+
+  /* update phase counters AFTER output calculations */
+  if(CH->pms)
+  {
+    /* add support for 3 slot mode */
+    if ((OPN->ST.mode & 0xC0) && (CH == &F2612->CH[2]))
+    {
+      update_phase_lfo_slot(OPN, &CH->SLOT[SLOT1], CH->pms, OPN->SL3.block_fnum[1]);
+      update_phase_lfo_slot(OPN, &CH->SLOT[SLOT2], CH->pms, OPN->SL3.block_fnum[2]);
+      update_phase_lfo_slot(OPN, &CH->SLOT[SLOT3], CH->pms, OPN->SL3.block_fnum[0]);
+      update_phase_lfo_slot(OPN, &CH->SLOT[SLOT4], CH->pms, CH->block_fnum);
+    }
+    else update_phase_lfo_channel(OPN, CH);
+  }
+  else  /* no LFO phase modulation */
+  {
+    CH->SLOT[SLOT1].phase += CH->SLOT[SLOT1].Incr;
+    CH->SLOT[SLOT2].phase += CH->SLOT[SLOT2].Incr;
+    CH->SLOT[SLOT3].phase += CH->SLOT[SLOT3].Incr;
+    CH->SLOT[SLOT4].phase += CH->SLOT[SLOT4].Incr;
+  }
+}
+
+static void FMCloseTable( void )
+{
+#ifdef SAVE_SAMPLE
+	fclose(sample[0]);
+#endif
+	return;
+}
+
+
+/* CSM Key Controll */
+INLINE void CSMKeyControll(FM_OPN *OPN, FM_CH *CH)
+{
+	/* all key ON (verified by Nemesis on real hardware) */
+	FM_KEYON_CSM(OPN,CH,SLOT1);
+	FM_KEYON_CSM(OPN,CH,SLOT2);
+	FM_KEYON_CSM(OPN,CH,SLOT3);
+	FM_KEYON_CSM(OPN,CH,SLOT4);
+	OPN->SL3.key_csm = 1;
+}
+
+#ifdef __STATE_H__
+/* FM channel save , internal state only */
+static void FMsave_state_channel(running_device *device,FM_CH *CH,int num_ch)
+{
+	int slot , ch;
+
+	for(ch=0;ch<num_ch;ch++,CH++)
+	{
+		/* channel */
+		state_save_register_device_item_array(device, ch, CH->op1_out);
+		state_save_register_device_item(device, ch, CH->fc);
+		/* slots */
+		for(slot=0;slot<4;slot++)
+		{
+			FM_SLOT *SLOT = &CH->SLOT[slot];
+			state_save_register_device_item(device, ch * 4 + slot, SLOT->phase);
+			state_save_register_device_item(device, ch * 4 + slot, SLOT->state);
+			state_save_register_device_item(device, ch * 4 + slot, SLOT->volume);
+		}
+	}
+}
+
+static void FMsave_state_st(running_device *device,FM_ST *ST)
+{
+#if FM_BUSY_FLAG_SUPPORT
+	state_save_register_device_item(device, 0, ST->busy_expiry_time.seconds );
+	state_save_register_device_item(device, 0, ST->busy_expiry_time.attoseconds );
+#endif
+	state_save_register_device_item(device, 0, ST->address );
+	state_save_register_device_item(device, 0, ST->irq     );
+	state_save_register_device_item(device, 0, ST->irqmask );
+	state_save_register_device_item(device, 0, ST->status  );
+	state_save_register_device_item(device, 0, ST->mode    );
+	state_save_register_device_item(device, 0, ST->prescaler_sel );
+	state_save_register_device_item(device, 0, ST->fn_h );
+	state_save_register_device_item(device, 0, ST->TA   );
+	state_save_register_device_item(device, 0, ST->TAC  );
+	state_save_register_device_item(device, 0, ST->TB  );
+	state_save_register_device_item(device, 0, ST->TBC  );
+}
+#endif /* _STATE_H */
+
+#if BUILD_OPN
+/* write a OPN mode register 0x20-0x2f */
+static void OPNWriteMode(FM_OPN *OPN, int r, int v)
+{
+	UINT8 c;
+	FM_CH *CH;
+
+	switch(r)
+	{
+	case 0x21:	/* Test */
+		break;
+	case 0x22:	/* LFO FREQ (YM2608/YM2610/YM2610B/YM2612) */
+		if (v&8) /* LFO enabled ? */
+		{
+			#if 0
+			if (!OPN->lfo_timer_overflow)
+			{
+				/* restart LFO */
+				OPN->lfo_cnt   = 0;
+				OPN->lfo_timer = 0;
+				OPN->LFO_AM    = 0;
+				OPN->LFO_PM    = 0;
+			}
+			#endif
+
+			OPN->lfo_timer_overflow = lfo_samples_per_step[v&7] << LFO_SH;
+		}
+		else
+		{
+			/* Valley Bell: Ported from Genesis Plus GX 1.71
+				hold LFO waveform in reset state */
+			OPN->lfo_timer_overflow = 0;
+			OPN->lfo_timer = 0;
+			OPN->lfo_cnt = 0;
+
+
+			OPN->LFO_PM = 0;
+			OPN->LFO_AM = 126;
+			/* OPN->lfo_timer_overflow = 0; */
+		}
+		break;
+	case 0x24:	/* timer A High 8*/
+		OPN->ST.TA = (OPN->ST.TA & 0x03)|(((int)v)<<2);
+		break;
+	case 0x25:	/* timer A Low 2*/
+		OPN->ST.TA = (OPN->ST.TA & 0x3fc)|(v&3);
+		break;
+	case 0x26:	/* timer B */
+		OPN->ST.TB = (UINT8)v;
+		break;
+	case 0x27:	/* mode, timer control */
+		set_timers( OPN, &(OPN->ST),OPN->ST.param,v );
+		break;
+	case 0x28:	/* key on / off */
+		c = v & 0x03;
+		if( c == 3 ) break;
+		if( (v&0x04) && (OPN->type & TYPE_6CH) ) c+=3;
+		CH = OPN->P_CH;
+		CH = &CH[c];
+		if(v&0x10) FM_KEYON(OPN,CH,SLOT1); else FM_KEYOFF(OPN,CH,SLOT1);
+		if(v&0x20) FM_KEYON(OPN,CH,SLOT2); else FM_KEYOFF(OPN,CH,SLOT2);
+		if(v&0x40) FM_KEYON(OPN,CH,SLOT3); else FM_KEYOFF(OPN,CH,SLOT3);
+		if(v&0x80) FM_KEYON(OPN,CH,SLOT4); else FM_KEYOFF(OPN,CH,SLOT4);
+		break;
+	}
+}
+
+/* write a OPN register (0x30-0xff) */
+static void OPNWriteReg(FM_OPN *OPN, int r, int v)
+{
+	FM_CH *CH;
+	FM_SLOT *SLOT;
+
+	UINT8 c = OPN_CHAN(r);
+
+	if (c == 3) return; /* 0xX3,0xX7,0xXB,0xXF */
+
+	if (r >= 0x100) c+=3;
+
+	CH = OPN->P_CH;
+	CH = &CH[c];
+
+	SLOT = &(CH->SLOT[OPN_SLOT(r)]);
+
+	switch( r & 0xf0 ) {
+	case 0x30:	/* DET , MUL */
+		set_det_mul(&OPN->ST,CH,SLOT,v);
+		break;
+
+	case 0x40:	/* TL */
+		set_tl(CH,SLOT,v);
+		break;
+
+	case 0x50:	/* KS, AR */
+		set_ar_ksr(OPN->type,CH,SLOT,v);
+		break;
+
+	case 0x60:	/* bit7 = AM ENABLE, DR */
+		set_dr(OPN->type, SLOT,v);
+
+		if(OPN->type & TYPE_LFOPAN) /* YM2608/2610/2610B/2612 */
+		{
+			SLOT->AMmask = (v&0x80) ? ~0 : 0;
+		}
+		break;
+
+	case 0x70:	/*     SR */
+		set_sr(OPN->type,SLOT,v);
+		break;
+
+	case 0x80:	/* SL, RR */
+		set_sl_rr(OPN->type,SLOT,v);
+		break;
+
+	case 0x90:	/* SSG-EG */
+		SLOT->ssg  =  v&0x0f;
+
+		  /* recalculate EG output */
+		if (SLOT->state > EG_REL)
+		{
+			if ((SLOT->ssg&0x08) && (SLOT->ssgn ^ (SLOT->ssg&0x04)))
+				SLOT->vol_out = ((UINT32)(0x200 - SLOT->volume) & MAX_ATT_INDEX) + SLOT->tl;
+			else
+				SLOT->vol_out = (UINT32)SLOT->volume + SLOT->tl;
+		}
+
+		/* SSG-EG envelope shapes :
+
+        E AtAlH
+        1 0 0 0  \\\\
+
+        1 0 0 1  \___
+
+        1 0 1 0  \/\/
+                  ___
+        1 0 1 1  \
+
+        1 1 0 0  ////
+                  ___
+        1 1 0 1  /
+
+        1 1 1 0  /\/\
+
+        1 1 1 1  /___
+
+
+        E = SSG-EG enable
+
+
+        The shapes are generated using Attack, Decay and Sustain phases.
+
+        Each single character in the diagrams above represents this whole
+        sequence:
+
+        - when KEY-ON = 1, normal Attack phase is generated (*without* any
+          difference when compared to normal mode),
+
+        - later, when envelope level reaches minimum level (max volume),
+          the EG switches to Decay phase (which works with bigger steps
+          when compared to normal mode - see below),
+
+        - later when envelope level passes the SL level,
+          the EG swithes to Sustain phase (which works with bigger steps
+          when compared to normal mode - see below),
+
+        - finally when envelope level reaches maximum level (min volume),
+          the EG switches to Attack phase again (depends on actual waveform).
+
+        Important is that when switch to Attack phase occurs, the phase counter
+        of that operator will be zeroed-out (as in normal KEY-ON) but not always.
+        (I havent found the rule for that - perhaps only when the output level is low)
+
+        The difference (when compared to normal Envelope Generator mode) is
+        that the resolution in Decay and Sustain phases is 4 times lower;
+        this results in only 256 steps instead of normal 1024.
+        In other words:
+        when SSG-EG is disabled, the step inside of the EG is one,
+        when SSG-EG is enabled, the step is four (in Decay and Sustain phases).
+
+        Times between the level changes are the same in both modes.
+
+
+        Important:
+        Decay 1 Level (so called SL) is compared to actual SSG-EG output, so
+        it is the same in both SSG and no-SSG modes, with this exception:
+
+        when the SSG-EG is enabled and is generating raising levels
+        (when the EG output is inverted) the SL will be found at wrong level !!!
+        For example, when SL=02:
+            0 -6 = -6dB in non-inverted EG output
+            96-6 = -90dB in inverted EG output
+        Which means that EG compares its level to SL as usual, and that the
+        output is simply inverted afterall.
+
+
+        The Yamaha's manuals say that AR should be set to 0x1f (max speed).
+        That is not necessary, but then EG will be generating Attack phase.
+
+        */
+
+
+		break;
+
+	case 0xa0:
+		switch( OPN_SLOT(r) )
+		{
+		case 0:		/* 0xa0-0xa2 : FNUM1 */
+#ifdef USE_VGM_INIT_SWITCH
+			if (IsVGMInit)
+				OPN->ST.fn_h = CH->block_fnum >> 8;
+#endif
+			{
+				UINT32 fn = (((UINT32)( (OPN->ST.fn_h)&7))<<8) + v;
+				UINT8 blk = OPN->ST.fn_h>>3;
+				/* keyscale code */
+				CH->kcode = (blk<<2) | opn_fktable[fn >> 7];
+				/* phase increment counter */
+				CH->fc = OPN->fn_table[fn*2]>>(7-blk);
+
+				/* store fnum in clear form for LFO PM calculations */
+				CH->block_fnum = (blk<<11) | fn;
+
+				CH->SLOT[SLOT1].Incr=-1;
+			}
+			break;
+		case 1:		/* 0xa4-0xa6 : FNUM2,BLK */
+			OPN->ST.fn_h = v&0x3f;
+#ifdef USE_VGM_INIT_SWITCH
+			if (IsVGMInit)	// workaround for stupid Kega Fusion init block
+				CH->block_fnum = (OPN->ST.fn_h << 8) | (CH->block_fnum & 0xFF);
+#endif
+			break;
+		case 2:		/* 0xa8-0xaa : 3CH FNUM1 */
+#ifdef USE_VGM_INIT_SWITCH
+			if (IsVGMInit)
+				OPN->SL3.fn_h = OPN->SL3.block_fnum[c] >> 8;
+#endif
+			if(r < 0x100)
+			{
+				UINT32 fn = (((UINT32)(OPN->SL3.fn_h&7))<<8) + v;
+				UINT8 blk = OPN->SL3.fn_h>>3;
+				/* keyscale code */
+				OPN->SL3.kcode[c]= (blk<<2) | opn_fktable[fn >> 7];
+				/* phase increment counter */
+				OPN->SL3.fc[c] = OPN->fn_table[fn*2]>>(7-blk);
+				OPN->SL3.block_fnum[c] = (blk<<11) | fn;
+				(OPN->P_CH)[2].SLOT[SLOT1].Incr=-1;
+			}
+			break;
+		case 3:		/* 0xac-0xae : 3CH FNUM2,BLK */
+			if(r < 0x100)
+			{
+				OPN->SL3.fn_h = v&0x3f;
+#ifdef USE_VGM_INIT_SWITCH
+				if (IsVGMInit)
+					OPN->SL3.block_fnum[c] = (OPN->SL3.fn_h << 8) | (OPN->SL3.block_fnum[c] & 0xFF);
+#endif
+			}
+			break;
+		}
+		break;
+
+	case 0xb0:
+		switch( OPN_SLOT(r) )
+		{
+		case 0:		/* 0xb0-0xb2 : FB,ALGO */
+			{
+				unsigned char feedback = ((v>>3)&7);
+				CH->ALGO = v&7;
+				CH->FB   = feedback ? feedback + 6 : 0;
+				setup_connection( OPN, CH, c );
+			}
+			break;
+		case 1:		/* 0xb4-0xb6 : L , R , AMS , PMS (YM2612/YM2610B/YM2610/YM2608) */
+			if( OPN->type & TYPE_LFOPAN)
+			{
+				/* b0-2 PMS */
+				CH->pms = (v & 7) * 32; /* CH->pms = PM depth * 32 (index in lfo_pm_table) */
+
+				/* b4-5 AMS */
+				CH->ams = lfo_ams_depth_shift[(v>>4) & 0x03];
+
+				/* PAN :  b7 = L, b6 = R */
+				OPN->pan[ c*2   ] = (v & 0x80) ? ~0 : 0;
+				OPN->pan[ c*2+1 ] = (v & 0x40) ? ~0 : 0;
+
+			}
+			break;
+		}
+		break;
+	}
+}
+
+/* initialize time tables */
+static void init_timetables(FM_OPN *OPN, double freqbase)
+{
+	int i,d;
+	double rate;
+
+	/* DeTune table */
+	for (d = 0;d <= 3;d++)
+	{
+		for (i = 0;i <= 31;i++)
+		{
+			rate = ((double)dt_tab[d*32 + i]) * freqbase * (1<<(FREQ_SH-10)); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+			OPN->ST.dt_tab[d][i]   = (INT32) rate;
+			OPN->ST.dt_tab[d+4][i] = -OPN->ST.dt_tab[d][i];
+		}
+	}
+
+	/* there are 2048 FNUMs that can be generated using FNUM/BLK registers
+	but LFO works with one more bit of a precision so we really need 4096 elements */
+	/* calculate fnumber -> increment counter table */
+	for(i = 0; i < 4096; i++)
+	{
+		/* freq table for octave 7 */
+		/* OPN phase increment counter = 20bit */
+		/* the correct formula is : F-Number = (144 * fnote * 2^20 / M) / 2^(B-1) */
+		/* where sample clock is  M/144 */
+		/* this means the increment value for one clock sample is FNUM * 2^(B-1) = FNUM * 64 for octave 7 */
+		/* we also need to handle the ratio between the chip frequency and the emulated frequency (can be 1.0)  */
+		OPN->fn_table[i] = (UINT32)( (double)i * 32 * freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+	}
+
+	/* maximal frequency is required for Phase overflow calculation, register size is 17 bits (Nemesis) */
+	OPN->fn_max = (UINT32)( (double)0x20000 * freqbase * (1<<(FREQ_SH-10)) );
+}
+
+/* prescaler set (and make time tables) */
+static void OPNSetPres(FM_OPN *OPN, int pres, int timer_prescaler, int SSGpres)
+{
+	/* frequency base */
+	OPN->ST.freqbase = (OPN->ST.rate) ? ((double)OPN->ST.clock / OPN->ST.rate) / pres : 0;
+
+	/* EG is updated every 3 samples */
+	OPN->eg_timer_add  = (UINT32)((1<<EG_SH) * OPN->ST.freqbase);
+	OPN->eg_timer_overflow = ( 3 ) * (1<<EG_SH);
+
+	/* LFO timer increment (every samples) */
+	OPN->lfo_timer_add  = (UINT32)((1<<LFO_SH) * OPN->ST.freqbase);
+
+	/* Timer base time */
+	OPN->ST.timer_prescaler = timer_prescaler;
+
+	/* SSG part  prescaler set */
+	if( SSGpres ) (*OPN->ST.SSG->set_clock)( OPN->ST.param, OPN->ST.clock * 2 / SSGpres );
+
+	/* make time tables */
+	init_timetables(OPN, OPN->ST.freqbase);
+}
+
+static void reset_channels( FM_ST *ST , FM_CH *CH , int num )
+{
+    int c,s;
+    (void)ST;
+
+	for( c = 0 ; c < num ; c++ )
+	{
+		/* memset(&CH[c], 0x00, sizeof(FM_CH)); */
+		CH[c].mem_value = 0;
+		CH[c].op1_out[0] = 0;
+		CH[c].op1_out[1] = 0;
+		CH[c].fc = 0;
+		for(s = 0 ; s < 4 ; s++ )
+		{
+			/* memset(&CH[c].SLOT[s], 0x00, sizeof(FM_SLOT)); */
+			CH[c].SLOT[s].Incr = -1;
+			CH[c].SLOT[s].key = 0;
+			CH[c].SLOT[s].phase = 0;
+			CH[c].SLOT[s].ssg = 0;
+			CH[c].SLOT[s].ssgn = 0;
+			CH[c].SLOT[s].state= EG_OFF;
+			CH[c].SLOT[s].volume = MAX_ATT_INDEX;
+			CH[c].SLOT[s].vol_out= MAX_ATT_INDEX;
+		}
+	}
+}
+
+/* initialize generic tables */
+static void init_tables(void)
+{
+	signed int i,x;
+	signed int n;
+	double o,m;
+
+	/* build Linear Power Table */
+	for (x=0; x<TL_RES_LEN; x++)
+	{
+		m = (1<<16) / pow(2, (x+1) * (ENV_STEP/4.0) / 8.0);
+		m = floor(m);
+
+		/* we never reach (1<<16) here due to the (x+1) */
+		/* result fits within 16 bits at maximum */
+
+		n = (int)m;		/* 16 bits here */
+		n >>= 4;		/* 12 bits here */
+		if (n&1)		/* round to nearest */
+			n = (n>>1)+1;
+		else
+			n = n>>1;
+						/* 11 bits here (rounded) */
+		n <<= 2;		/* 13 bits here (as in real chip) */
+
+
+		/* 14 bits (with sign bit) */
+		tl_tab[ x*2 + 0 ] = n;
+		tl_tab[ x*2 + 1 ] = -tl_tab[ x*2 + 0 ];
+
+		/* one entry in the 'Power' table use the following format, xxxxxyyyyyyyys with:            */
+		/*        s = sign bit                                                                      */
+		/* yyyyyyyy = 8-bits decimal part (0-TL_RES_LEN)                                            */
+		/* xxxxx    = 5-bits integer 'shift' value (0-31) but, since Power table output is 13 bits, */
+		/*            any value above 13 (included) would be discarded.                             */
+		for (i=1; i<13; i++)
+		{
+			tl_tab[ x*2+0 + i*2*TL_RES_LEN ] =  tl_tab[ x*2+0 ]>>i;
+			tl_tab[ x*2+1 + i*2*TL_RES_LEN ] = -tl_tab[ x*2+0 + i*2*TL_RES_LEN ];
+		}
+	}
+
+	/* build Logarithmic Sinus table */
+	for (i=0; i<SIN_LEN; i++)
+	{
+		/* non-standard sinus */
+		m = sin( ((i*2)+1) * M_PI / SIN_LEN ); /* checked against the real chip */
+		/* we never reach zero here due to ((i*2)+1) */
+
+		if (m>0.0)
+			o = 8*log(1.0/m)/log(2.0);	/* convert to 'decibels' */
+		else
+			o = 8*log(-1.0/m)/log(2.0);	/* convert to 'decibels' */
+
+		o = o / (ENV_STEP/4);
+
+		n = (int)(2.0*o);
+		if (n&1)    		/* round to nearest */
+			n = (n>>1)+1;
+		else
+			n = n>>1;
+
+		/* 13-bits (8.5) value is formatted for above 'Power' table */
+		sin_tab[ i ] = n*2 + (m>=0.0? 0: 1 );
+	}
+
+	/* build LFO PM modulation table */
+	for(i = 0; i < 8; i++) /* 8 PM depths */
+	{
+		UINT8 fnum;
+		for (fnum=0; fnum<128; fnum++) /* 7 bits meaningful of F-NUMBER */
+		{
+			UINT8 value;
+			UINT8 step;
+			UINT32 offset_depth = i;
+			UINT32 offset_fnum_bit;
+			UINT32 bit_tmp;
+
+			for (step=0; step<8; step++)
+			{
+				value = 0;
+				for (bit_tmp=0; bit_tmp<7; bit_tmp++) /* 7 bits */
+				{
+					if (fnum & (1<<bit_tmp)) /* only if bit "bit_tmp" is set */
+					{
+						offset_fnum_bit = bit_tmp * 8;
+						value += lfo_pm_output[offset_fnum_bit + offset_depth][step];
+					}
+				}
+				/* 32 steps for LFO PM (sinus) */
+				lfo_pm_table[(fnum*32*8) + (i*32) + step   + 0] = value;
+				lfo_pm_table[(fnum*32*8) + (i*32) +(step^7)+ 8] = value;
+				lfo_pm_table[(fnum*32*8) + (i*32) + step   +16] = -value;
+				lfo_pm_table[(fnum*32*8) + (i*32) +(step^7)+24] = -value;
+			}
+
+		}
+	}
+
+#ifdef SAVE_SAMPLE
+	sample[0]=fopen("sampsum.pcm","wb");
+#endif
+}
+
+#endif /* BUILD_OPN */
+
+
+/*******************************************************************************/
+/*      YM2612 local section                                                   */
+/*******************************************************************************/
+
+static void ym2612_generate(void *chip, FMSAMPLE *buffer, int frames, int mix)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	FM_CH  *cch = F2612->CH;
+	FMSAMPLE  *bufOut = buffer;
+	int i;
+#if !RSM_ENABLE
+	FMSAMPLE bufTmp[2];
+#endif
+
+	ym2612_pre_generate(chip);
+
+	if (!frames)
+	{
+		update_ssg_eg_channel(&cch[0].SLOT[SLOT1]);
+		update_ssg_eg_channel(&cch[1].SLOT[SLOT1]);
+		update_ssg_eg_channel(&cch[2].SLOT[SLOT1]);
+		update_ssg_eg_channel(&cch[3].SLOT[SLOT1]);
+		update_ssg_eg_channel(&cch[4].SLOT[SLOT1]);
+		update_ssg_eg_channel(&cch[5].SLOT[SLOT1]);
+	}
+
+	/* buffering */
+	for(i=0 ; i < frames ; i++)
+	{
+#if RSM_ENABLE
+		while(F2612->OPN.ST.framecnt >= F2612->OPN.ST.rateratio)/* Copy-Pasta from Nuked */
+		{
+			/* Copy-Pasta from Nuked */
+			F2612->OPN.ST.prev_sample[0] = F2612->OPN.ST.cur_sample[0];
+			F2612->OPN.ST.prev_sample[1] = F2612->OPN.ST.cur_sample[1];
+			ym2612_generate_one_native(chip, F2612->OPN.ST.cur_sample);
+			F2612->OPN.ST.framecnt -= F2612->OPN.ST.rateratio;
+			/* Copy-Pasta from Nuked */
+		}
+		if (mix)
+		{
+			*bufOut++ += (FMSAMPLE)((F2612->OPN.ST.prev_sample[0] * (F2612->OPN.ST.rateratio - F2612->OPN.ST.framecnt)
+								  + F2612->OPN.ST.cur_sample[0] * F2612->OPN.ST.framecnt) / F2612->OPN.ST.rateratio);
+			*bufOut++ += (FMSAMPLE)((F2612->OPN.ST.prev_sample[1] * (F2612->OPN.ST.rateratio - F2612->OPN.ST.framecnt)
+								  + F2612->OPN.ST.cur_sample[1] * F2612->OPN.ST.framecnt) / F2612->OPN.ST.rateratio);
+		} else {
+			*bufOut++ = (FMSAMPLE)((F2612->OPN.ST.prev_sample[0] * (F2612->OPN.ST.rateratio - F2612->OPN.ST.framecnt)
+								  + F2612->OPN.ST.cur_sample[0] * F2612->OPN.ST.framecnt) / F2612->OPN.ST.rateratio);
+			*bufOut++ = (FMSAMPLE)((F2612->OPN.ST.prev_sample[1] * (F2612->OPN.ST.rateratio - F2612->OPN.ST.framecnt)
+								  + F2612->OPN.ST.cur_sample[1] * F2612->OPN.ST.framecnt) / F2612->OPN.ST.rateratio);
+		}
+		F2612->OPN.ST.framecnt += 1 << RSM_FRAC;
+#else
+		if (mix)
+		{
+			ym2612_generate_one_native(chip, bufTmp);
+			bufOut[0] += bufTmp[0];
+			bufOut[1] += bufTmp[1];
+		}
+		else
+		{
+			ym2612_generate_one_native(chip, bufOut);
+		}
+		bufOut += 2;
+#endif
+	}
+	/* ym2612_post_generate(chip, frames); */
+}
+
+void ym2612_pre_generate(void *chip)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	FM_OPN *OPN   = &F2612->OPN;
+	FM_CH  *cch = F2612->CH;
+
+	/* refresh PG and EG */
+	refresh_fc_eg_chan( OPN, &cch[0] );
+	refresh_fc_eg_chan( OPN, &cch[1] );
+	if( (OPN->ST.mode & 0xc0) )
+	{
+		/* 3SLOT MODE */
+		if( cch[2].SLOT[SLOT1].Incr==-1)
+		{
+			refresh_fc_eg_slot(OPN, &cch[2].SLOT[SLOT1] , OPN->SL3.fc[1] , OPN->SL3.kcode[1] );
+			refresh_fc_eg_slot(OPN, &cch[2].SLOT[SLOT2] , OPN->SL3.fc[2] , OPN->SL3.kcode[2] );
+			refresh_fc_eg_slot(OPN, &cch[2].SLOT[SLOT3] , OPN->SL3.fc[0] , OPN->SL3.kcode[0] );
+			refresh_fc_eg_slot(OPN, &cch[2].SLOT[SLOT4] , cch[2].fc , cch[2].kcode );
+		}
+	} else
+		refresh_fc_eg_chan( OPN, &cch[2] );
+	refresh_fc_eg_chan( OPN, &cch[3] );
+	refresh_fc_eg_chan( OPN, &cch[4] );
+	refresh_fc_eg_chan( OPN, &cch[5] );
+}
+
+void ym2612_generate_one_native(void *chip, FMSAMPLE buffer[])
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	FM_OPN *OPN   = &F2612->OPN;
+	INT32  *out_fm = OPN->out_fm;
+	FM_CH  *cch = F2612->CH;
+	INT32 dacout;
+	int lt,rt;
+
+	if (! F2612->MuteDAC)
+		dacout = F2612->dacout;
+	else
+		dacout = 0;
+
+	/* clear outputs */
+	out_fm[0] = 0;
+	out_fm[1] = 0;
+	out_fm[2] = 0;
+	out_fm[3] = 0;
+	out_fm[4] = 0;
+	out_fm[5] = 0;
+
+	/* update SSG-EG output */
+	update_ssg_eg_channel(&cch[0].SLOT[SLOT1]);
+	update_ssg_eg_channel(&cch[1].SLOT[SLOT1]);
+	update_ssg_eg_channel(&cch[2].SLOT[SLOT1]);
+	update_ssg_eg_channel(&cch[3].SLOT[SLOT1]);
+	update_ssg_eg_channel(&cch[4].SLOT[SLOT1]);
+	update_ssg_eg_channel(&cch[5].SLOT[SLOT1]);
+
+	/* calculate FM */
+	if (! F2612->dac_test)
+	{
+		chan_calc(F2612, OPN, &cch[0]);
+		chan_calc(F2612, OPN, &cch[1]);
+		chan_calc(F2612, OPN, &cch[2]);
+		chan_calc(F2612, OPN, &cch[3]);
+		chan_calc(F2612, OPN, &cch[4]);
+		if( F2612->dacen )
+			cch[5].connect4 += dacout;
+		else
+			chan_calc(F2612, OPN, &cch[5]);
+	}
+	else
+	{
+		out_fm[0] = out_fm[1] = dacout;
+		out_fm[2] = out_fm[3] = dacout;
+		out_fm[5] = dacout;
+	}
+
+	/* advance LFO */
+	advance_lfo(OPN);
+
+	/* advance envelope generator */
+	OPN->eg_timer += OPN->eg_timer_add;
+	while (OPN->eg_timer >= OPN->eg_timer_overflow)
+	{
+		/* reset EG timer */
+		OPN->eg_timer -= OPN->eg_timer_overflow;
+		/* increment EG counter */
+		OPN->eg_cnt++;
+		/* EG counter is 12-bit only and zero value is skipped (verified on real hardware) */
+		if (OPN->eg_cnt == 4096)
+			OPN->eg_cnt = 1;
+
+		/* advance envelope generator */
+		advance_eg_channel(OPN, &cch[0].SLOT[SLOT1]);
+		advance_eg_channel(OPN, &cch[1].SLOT[SLOT1]);
+		advance_eg_channel(OPN, &cch[2].SLOT[SLOT1]);
+		advance_eg_channel(OPN, &cch[3].SLOT[SLOT1]);
+		advance_eg_channel(OPN, &cch[4].SLOT[SLOT1]);
+		advance_eg_channel(OPN, &cch[5].SLOT[SLOT1]);
+	}
+
+	/*fprintf(hFile, "%u", FileSample, out_fm[0]);
+	for (lt = 0; lt < 6; lt ++)
+		fprintf(hFile, "\t%d", out_fm[lt]);
+	fprintf(hFile, "\n");
+	FileSample ++;*/
+
+	if (out_fm[0] > 8192) out_fm[0] = 8192;
+	else if (out_fm[0] < -8192) out_fm[0] = -8192;
+	if (out_fm[1] > 8192) out_fm[1] = 8192;
+	else if (out_fm[1] < -8192) out_fm[1] = -8192;
+	if (out_fm[2] > 8192) out_fm[2] = 8192;
+	else if (out_fm[2] < -8192) out_fm[2] = -8192;
+	if (out_fm[3] > 8192) out_fm[3] = 8192;
+	else if (out_fm[3] < -8192) out_fm[3] = -8192;
+	if (out_fm[4] > 8192) out_fm[4] = 8192;
+	else if (out_fm[4] < -8192) out_fm[4] = -8192;
+	if (out_fm[5] > 8192) out_fm[5] = 8192;
+	else if (out_fm[5] < -8192) out_fm[5] = -8192;
+
+	/* 6-channels mixing  */
+	lt  = ((out_fm[0]>>0) & OPN->pan[0]);
+	rt  = ((out_fm[0]>>0) & OPN->pan[1]);
+	lt += ((out_fm[1]>>0) & OPN->pan[2]);
+	rt += ((out_fm[1]>>0) & OPN->pan[3]);
+	lt += ((out_fm[2]>>0) & OPN->pan[4]);
+	rt += ((out_fm[2]>>0) & OPN->pan[5]);
+	lt += ((out_fm[3]>>0) & OPN->pan[6]);
+	rt += ((out_fm[3]>>0) & OPN->pan[7]);
+	if (! F2612->dac_test)
+	{
+		lt += ((out_fm[4]>>0) & OPN->pan[8]);
+		rt += ((out_fm[4]>>0) & OPN->pan[9]);
+	}
+	else
+	{
+		lt += dacout;
+		lt += dacout;
+	}
+	lt += ((out_fm[5]>>0) & OPN->pan[10]);
+	rt += ((out_fm[5]>>0) & OPN->pan[11]);
+
+	/* Limit( lt, MAXOUT, MINOUT ); */
+	/* Limit( rt, MAXOUT, MINOUT ); */
+
+	#ifdef SAVE_SAMPLE
+		SAVE_ALL_CHANNELS
+	#endif
+
+	/* buffering */
+	if (F2612->WaveOutMode & 0x01)
+		F2612->WaveL = lt;
+	if (F2612->WaveOutMode & 0x02)
+		F2612->WaveR = rt;
+	if (F2612->WaveOutMode ^ 0x03)
+		F2612->WaveOutMode ^= 0x03;
+
+	buffer[0] = (FMSAMPLE)(F2612->WaveL / 2);
+	buffer[1] = (FMSAMPLE)(F2612->WaveR / 2);
+
+	/* CSM mode: if CSM Key ON has occured, CSM Key OFF need to be sent       */
+	/* only if Timer A does not overflow again (i.e CSM Key ON not set again) */
+	OPN->SL3.key_csm <<= 1;
+
+	/* timer A control */
+	/* INTERNAL_TIMER_A( &OPN->ST , cch[2] ) */
+	{
+		if( OPN->ST.TAC &&  (OPN->ST.timer_handler==0) )
+			if( (OPN->ST.TAC -= (int)(OPN->ST.freqbase*4096)) <= 0 )
+			{
+				TimerAOver( &OPN->ST );
+				/* CSM mode total level latch and auto key on */
+				if( OPN->ST.mode & 0x80 )
+					CSMKeyControll( OPN, &cch[2] );
+			}
+	}
+
+	/* CSM Mode Key ON still disabled */
+	if (OPN->SL3.key_csm & 2)
+	{
+		/* CSM Mode Key OFF (verified by Nemesis on real hardware) */
+		FM_KEYOFF_CSM(&cch[2],SLOT1);
+		FM_KEYOFF_CSM(&cch[2],SLOT2);
+		FM_KEYOFF_CSM(&cch[2],SLOT3);
+		FM_KEYOFF_CSM(&cch[2],SLOT4);
+		OPN->SL3.key_csm = 0;
+	}
+}
+
+#if 0
+void ym2612_post_generate(void *chip, int length)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	/* timer B control */
+	INTERNAL_TIMER_B(&F2612->OPN.ST, length);
+}
+#endif
+
+#ifdef __STATE_H__
+void ym2612_postload(void *chip)
+{
+	if (chip)
+	{
+		YM2612 *F2612 = (YM2612 *)chip;
+		int r;
+
+		/* DAC data & port */
+		F2612->dacout = ((int)F2612->REGS[0x2a] - 0x80) << 6;	/* level unknown */
+		F2612->dacen  = F2612->REGS[0x2d] & 0x80;
+		/* OPN registers */
+		/* DT / MULTI , TL , KS / AR , AMON / DR , SR , SL / RR , SSG-EG */
+		for(r=0x30;r<0x9e;r++)
+			if((r&3) != 3)
+			{
+				OPNWriteReg(&F2612->OPN,r,F2612->REGS[r]);
+				OPNWriteReg(&F2612->OPN,r|0x100,F2612->REGS[r|0x100]);
+			}
+		/* FB / CONNECT , L / R / AMS / PMS */
+		for(r=0xb0;r<0xb6;r++)
+			if((r&3) != 3)
+			{
+				OPNWriteReg(&F2612->OPN,r,F2612->REGS[r]);
+				OPNWriteReg(&F2612->OPN,r|0x100,F2612->REGS[r|0x100]);
+			}
+		/* channels */
+		/*FM_channel_postload(F2612->CH,6);*/
+	}
+}
+
+static void YM2612_save_state(YM2612 *F2612, running_device *device)
+{
+	state_save_register_device_item_array(device, 0, F2612->REGS);
+	FMsave_state_st(device,&F2612->OPN.ST);
+	FMsave_state_channel(device,F2612->CH,6);
+	/* 3slots */
+	state_save_register_device_item_array(device, 0, F2612->OPN.SL3.fc);
+	state_save_register_device_item(device, 0, F2612->OPN.SL3.fn_h);
+	state_save_register_device_item_array(device, 0, F2612->OPN.SL3.kcode);
+	/* address register1 */
+	state_save_register_device_item(device, 0, F2612->addr_A1);
+}
+#endif /* _STATE_H */
+
+/* initialize YM2612 emulator(s) */
+static void * ym2612_init(void *param, int clock, int rate,
+				FM_TIMERHANDLER timer_handler,FM_IRQHANDLER IRQHandler)
+{
+	YM2612 *F2612;
+
+	if (clock <= 0 || rate <= 0)
+		return NULL; /* Forbid zero clock and sample rate */
+
+	/* allocate extend state space */
+	/* F2612 = auto_alloc_clear(device->machine, YM2612); */
+	F2612 = (YM2612 *)malloc(sizeof(YM2612));
+	if (F2612 == NULL)
+		return NULL;
+	memset(F2612, 0x00, sizeof(YM2612));
+	/* allocate total level table (128kb space) */
+	init_tables();
+
+	F2612->OPN.ST.param = param;
+	F2612->OPN.type = TYPE_YM2612;
+	F2612->OPN.P_CH = F2612->CH;
+	/* F2612->OPN.ST.device = device; */
+	F2612->OPN.ST.clock = clock;
+#if RSM_ENABLE
+	F2612->OPN.ST.rate = 53267;
+	F2612->OPN.ST.rateratio = (INT32)(UINT32)((((UINT64)144 * rate) << RSM_FRAC) / clock);
+	F2612->OPN.ST.framecnt = 1 << RSM_FRAC;
+	memset(&(F2612->OPN.ST.cur_sample), 0x00, sizeof(FMSAMPLE) * 2);
+	memset(&(F2612->OPN.ST.prev_sample), 0x00, sizeof(FMSAMPLE) * 2);
+#else
+	F2612->OPN.ST.rate = rate;
+#endif
+	/* F2612->OPN.ST.irq = 0; */
+	/* F2612->OPN.ST.status = 0; */
+	/* Extend handler */
+	F2612->OPN.ST.timer_handler = timer_handler;
+	F2612->OPN.ST.IRQ_Handler   = IRQHandler;
+
+	if (PseudoSt)
+		F2612->WaveOutMode = 0x01;
+	else
+		F2612->WaveOutMode = 0x03;
+	/*hFile = fopen("YM2612.log", "wt");
+	fprintf(hFile, "Clock: %d, Sample Rate: %d\n", clock, rate);
+	fprintf(hFile, "Sample\tCh 0\tCh 1\tCh 2\tCh 3\tCh 4\tCh 5\n");
+	FileSample = 0;*/
+
+#ifdef __STATE_H__
+	YM2612_save_state(F2612, device);
+#endif
+	return F2612;
+}
+
+/* shut down emulator */
+static void ym2612_shutdown(void *chip)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	/* fclose(hFile); */
+
+	FMCloseTable();
+	/* auto_free(F2612->OPN.ST.device->machine, F2612); */
+	free(F2612);
+}
+
+/* reset one of chip */
+static void ym2612_reset_chip(void *chip)
+{
+	int i;
+	YM2612 *F2612 = (YM2612 *)chip;
+	FM_OPN *OPN   = &F2612->OPN;
+
+	OPNSetPres( OPN, 6*24, 6*24, 0);
+	/* status clear */
+	FM_IRQMASK_SET(&OPN->ST,0x03);
+	FM_BUSY_CLEAR(&OPN->ST);
+	/* OPNWriteMode(OPN,0x27,0x30); */ /* mode 0 , timer reset */
+
+#if RSM_ENABLE
+	/* Resampler's state */
+	F2612->OPN.ST.framecnt = 1 << RSM_FRAC;
+	memset(&(F2612->OPN.ST.cur_sample), 0x00, sizeof(FMSAMPLE) * 2);
+	memset(&(F2612->OPN.ST.prev_sample), 0x00, sizeof(FMSAMPLE) * 2);
+#endif
+
+	OPN->eg_timer = 0;
+	OPN->eg_cnt   = 0;
+
+	OPN->lfo_timer = 0;
+	OPN->lfo_cnt   = 0;
+	OPN->LFO_AM    = 126;
+	OPN->LFO_PM    = 0;
+
+	OPN->ST.TAC    = 0;
+	OPN->ST.TBC    = 0;
+
+	OPN->SL3.key_csm = 0;
+
+	OPN->ST.status = 0;
+	OPN->ST.mode = 0;
+
+	memset(F2612->REGS, 0x00, sizeof(UINT8) * 512);
+
+	OPNWriteMode(OPN,0x22,0x00);
+
+	OPNWriteMode(OPN,0x27,0x30);
+	OPNWriteMode(OPN,0x26,0x00);
+	OPNWriteMode(OPN,0x25,0x00);
+	OPNWriteMode(OPN,0x24,0x00);
+
+	reset_channels( &OPN->ST , &F2612->CH[0] , 6 );
+
+	for(i = 0xb6 ; i >= 0xb4 ; i-- )
+	{
+		OPNWriteReg(OPN,i      ,0xc0);
+		OPNWriteReg(OPN,i|0x100,0xc0);
+	}
+	for(i = 0xb2 ; i >= 0x30 ; i-- )
+	{
+		OPNWriteReg(OPN,i      ,0);
+		OPNWriteReg(OPN,i|0x100,0);
+	}
+
+	/* DAC mode clear */
+	F2612->dacen = 0;
+	F2612->dac_test = 0;
+	F2612->dacout = 0;
+
+	if (F2612->WaveOutMode == 0x02)
+		F2612->WaveOutMode >>= 1;
+}
+
+/* YM2612 write */
+/* n = number  */
+/* a = address */
+/* v = value   */
+static int ym2612_write(void *chip, int a, UINT8 v)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	int addr;
+
+	v &= 0xff;	/* adjust to 8 bit bus */
+
+	switch( a&3)
+	{
+	case 0:	/* address port 0 */
+		F2612->OPN.ST.address = v;
+		F2612->addr_A1 = 0;
+		break;
+
+	case 1:	/* data port 0    */
+		if (F2612->addr_A1 != 0)
+			break;	/* verified on real YM2608 */
+
+		addr = F2612->OPN.ST.address;
+		F2612->REGS[addr] = v;
+		switch( addr & 0xf0 )
+		{
+		case 0x20:	/* 0x20-0x2f Mode */
+			switch( addr )
+			{
+			case 0x2a:	/* DAC data (YM2612) */
+				ym2612_update_one(chip, DUMMYBUF, 0);
+				F2612->dacout = ((int)v - 0x80) << 6;	/* level unknown */
+				break;
+			case 0x2b:	/* DAC Sel  (YM2612) */
+				/* b7 = dac enable */
+				F2612->dacen = v & 0x80;
+				break;
+			case 0x2C:	/* undocumented: DAC Test Reg */
+				/* b5 = volume enable */
+				F2612->dac_test = v & 0x20;
+				break;
+			default:	/* OPN section */
+				/* ym2612_update_req(F2612->OPN.ST.param); */
+				ym2612_update_one(chip, DUMMYBUF, 0);
+				/* write register */
+				OPNWriteMode(&(F2612->OPN),addr,v);
+			}
+			break;
+		default:	/* 0x30-0xff OPN section */
+			ym2612_update_one(chip, DUMMYBUF, 0);
+			/* write register */
+			OPNWriteReg(&(F2612->OPN),addr,v);
+		}
+		break;
+
+	case 2:	/* address port 1 */
+		F2612->OPN.ST.address = v;
+		F2612->addr_A1 = 1;
+		break;
+
+	case 3:	/* data port 1    */
+		if (F2612->addr_A1 != 1)
+			break;	/* verified on real YM2608 */
+
+		addr = F2612->OPN.ST.address;
+		F2612->REGS[addr | 0x100] = v;
+		ym2612_update_one(chip, DUMMYBUF, 0);
+		OPNWriteReg(&(F2612->OPN),addr | 0x100,v);
+		break;
+	}
+	return F2612->OPN.ST.irq;
+}
+
+#if 0
+static UINT8 ym2612_read(void *chip,int a)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+
+	switch( a&3)
+	{
+	case 0:	/* status 0 */
+		return FM_STATUS_FLAG(&F2612->OPN.ST);
+	case 1:
+	case 2:
+	case 3:
+		/* LOG(LOG_WAR,("YM2612 #%p:A=%d read unmapped area\n",F2612->OPN.ST.param,a)); */
+		return FM_STATUS_FLAG(&F2612->OPN.ST);
+	}
 	return 0;
 }
+
+static int ym2612_timer_over(void *chip,int c)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+
+	if( c )
+	{	/* Timer B */
+		TimerBOver( &(F2612->OPN.ST) );
+	}
+	else
+	{	/* Timer A */
+		ym2612_update_one(chip, DUMMYBUF, 0);
+		/* timer update */
+		TimerAOver( &(F2612->OPN.ST) );
+		/* CSM mode key,TL controll */
+		if ((F2612->OPN.ST.mode & 0xc0) == 0x80)
+		{	/* CSM mode total level latch and auto key on */
+			CSMKeyControll( &F2612->OPN, &(F2612->CH[2]) );
+		}
+	}
+	return F2612->OPN.ST.irq;
+}
+#endif
+
+static void ym2612_set_mutemask(void *chip, UINT32 MuteMask)
+{
+	YM2612 *F2612 = (YM2612 *)chip;
+	UINT8 CurChn;
+
+	for (CurChn = 0; CurChn < 6; CurChn ++)
+		F2612->CH[CurChn].Muted = (MuteMask >> CurChn) & 0x01;
+	F2612->MuteDAC = (MuteMask >> 6) & 0x01;
+
+	return;
+}
+#if 0
+static void ym2612_setoptions(UINT8 Flags)
+{
+	PseudoSt = (Flags >> 2) & 0x01;
+
+	return;
+}
+#endif
+
+} // Ym2612_MameImpl
+
+
+Ym2612_Emu::Ym2612_Emu() { impl = 0; }
 
 Ym2612_Emu::~Ym2612_Emu()
 {
-	free( impl );
+	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
 }
 
-inline void Ym2612_Impl::write0( int opn_addr, int data )
+const char *Ym2612_Emu::set_rate(double sample_rate, double clock_rate)
 {
-	assert( (unsigned) data <= 0xFF );
-	
-	if ( opn_addr < 0x30 )
-	{
-		YM2612.REG [0] [opn_addr] = data;
-		YM_SET( opn_addr, data );
-	}
-	else if ( YM2612.REG [0] [opn_addr] != data )
-	{
-		YM2612.REG [0] [opn_addr] = data;
-		
-		if ( opn_addr < 0xA0 )
-			SLOT_SET( opn_addr, data );
-		else
-			CHANNEL_SET( opn_addr, data );
-	}
-}
-
-inline void Ym2612_Impl::write1( int opn_addr, int data )
-{
-	assert( (unsigned) data <= 0xFF );
-	
-	if ( opn_addr >= 0x30 && YM2612.REG [1] [opn_addr] != data )
-	{
-		YM2612.REG [1] [opn_addr] = data;
-
-		if ( opn_addr < 0xA0 )
-			SLOT_SET( opn_addr + 0x100, data );
-		else
-			CHANNEL_SET( opn_addr + 0x100, data );
-	}
+	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
+	impl = Ym2612_MameImpl::ym2612_init( NULL, static_cast<int>(clock_rate), static_cast<int>(sample_rate), NULL, NULL );
+	if ( !impl )
+		return "Out of memory";
+	return 0;
 }
 
 void Ym2612_Emu::reset()
 {
-	impl->reset();
+	if ( impl ) Ym2612_MameImpl::ym2612_reset_chip( impl );
 }
 
-void Ym2612_Impl::reset()
+void Ym2612_Emu::mute_voices(int mask)
 {
-	g.LFOcnt = 0;
-	YM2612.TimerA = 0;
-	YM2612.TimerAL = 0;
-	YM2612.TimerAcnt = 0;
-	YM2612.TimerB = 0;
-	YM2612.TimerBL = 0;
-	YM2612.TimerBcnt = 0;
-	YM2612.DAC = 0;
-
-	YM2612.Status = 0;
-
-	int i;
-	for ( i = 0; i < channel_count; i++ )
-	{
-		channel_t& ch = YM2612.CHANNEL [i];
-		
-		ch.LEFT = ~0;
-		ch.RIGHT = ~0;
-		ch.ALGO = 0;
-		ch.FB = 31;
-		ch.FMS = 0;
-		ch.AMS = 0;
-
-		for ( int j = 0 ;j < 4 ; j++ )
-		{
-			ch.S0_OUT [j] = 0;
-			ch.FNUM [j] = 0;
-			ch.FOCT [j] = 0;
-			ch.KC [j] = 0;
-
-			ch.SLOT [j].Fcnt = 0;
-			ch.SLOT [j].Finc = 0;
-			ch.SLOT [j].Ecnt = ENV_END;     // Put it at the end of Decay phase...
-			ch.SLOT [j].Einc = 0;
-			ch.SLOT [j].Ecmp = 0;
-			ch.SLOT [j].Ecurp = RELEASE;
-
-			ch.SLOT [j].ChgEnM = 0;
-		}
-	}
-
-	for ( i = 0; i < 0x100; i++ )
-	{
-		YM2612.REG [0] [i] = -1;
-		YM2612.REG [1] [i] = -1;
-	}
-
-	for ( i = 0xB6; i >= 0xB4; i-- )
-	{
-		write0( i, 0xC0 );
-		write1( i, 0xC0 );
-	}
-
-	for ( i = 0xB2; i >= 0x22; i-- )
-	{
-		write0( i, 0 );
-		write1( i, 0 );
-	}
-	
-	write0( 0x2A, 0x80 );
+	if ( impl ) Ym2612_MameImpl::ym2612_set_mutemask( impl, mask );
 }
 
-void Ym2612_Emu::write0( int addr, int data )
+void Ym2612_Emu::write0(int addr, int data)
 {
-	impl->write0( addr, data );
+	if ( !impl ) return;
+	Ym2612_MameImpl::ym2612_write( impl, 0, static_cast<uint8_t>(addr) );
+	Ym2612_MameImpl::ym2612_write( impl, 1, static_cast<uint8_t>(data) );
 }
 
-void Ym2612_Emu::write1( int addr, int data )
+void Ym2612_Emu::write1(int addr, int data)
 {
-	impl->write1( addr, data );
+	if ( !impl ) return;
+	Ym2612_MameImpl::ym2612_write( impl, 0 + 2, static_cast<uint8_t>(addr) );
+	Ym2612_MameImpl::ym2612_write( impl, 1 + 2, static_cast<uint8_t>(data) );
 }
 
-void Ym2612_Emu::mute_voices( int mask ) { impl->mute_mask = mask; }
-
-static void update_envelope_( slot_t* sl )
+void Ym2612_Emu::run(int pair_count, Ym2612_Emu::sample_t *out)
 {
-	switch ( sl->Ecurp )
-	{
-	case 0:
-		// Env_Attack_Next
-		
-		// Verified with Gynoug even in HQ (explode SFX)
-		sl->Ecnt = ENV_DECAY;
-
-		sl->Einc = sl->EincD;
-		sl->Ecmp = sl->SLL;
-		sl->Ecurp = DECAY;
-		break;
-	
-	case 1:
-		// Env_Decay_Next
-		
-		// Verified with Gynoug even in HQ (explode SFX)
-		sl->Ecnt = sl->SLL;
-
-		sl->Einc = sl->EincS;
-		sl->Ecmp = ENV_END;
-		sl->Ecurp = SUBSTAIN;
-		break;
-	
-	case 2:
-		// Env_Substain_Next(slot_t *SL)
-		if (sl->SEG & 8)    // SSG envelope type
-		{
-			int release = sl->SEG & 1;
-			
-			if ( !release )
-			{
-				// re KEY ON
-
-				// sl->Fcnt = 0;
-				// sl->ChgEnM = ~0;
-
-				sl->Ecnt = 0;
-				sl->Einc = sl->EincA;
-				sl->Ecmp = ENV_DECAY;
-				sl->Ecurp = ATTACK;
-			}
-
-			set_seg( *sl, (sl->SEG << 1) & 4 );
-			
-			if ( !release )
-				break;
-		}
-		// fall through
-	
-	case 3:
-		// Env_Release_Next
-		sl->Ecnt = ENV_END;
-		sl->Einc = 0;
-		sl->Ecmp = ENV_END + 1;
-		break;
-	
-	// default: no op
-	}
+	if ( impl ) Ym2612_MameImpl::ym2612_generate( impl, out, pair_count, 0);
 }
-
-inline void update_envelope( slot_t& sl )
-{
-	int ecmp = sl.Ecmp;
-	if ( (sl.Ecnt += sl.Einc) >= ecmp )
-		update_envelope_( &sl );
-}
-
-template<int algo>
-struct ym2612_update_chan {
-	static void func( tables_t&, channel_t&, Ym2612_Emu::sample_t*, int );
-};
-
-typedef void (*ym2612_update_chan_t)( tables_t&, channel_t&, Ym2612_Emu::sample_t*, int );
-
-template<int algo>
-void ym2612_update_chan<algo>::func( tables_t& g, channel_t& ch,
-		Ym2612_Emu::sample_t* buf, int length )
-{
-	int not_end = ch.SLOT [S3].Ecnt - ENV_END;
-	
-	// algo is a compile-time constant, so all conditions based on it are resolved
-	// during compilation
-	
-	// special cases
-	if ( algo == 7 )
-		not_end |= ch.SLOT [S0].Ecnt - ENV_END;
-	
-	if ( algo >= 5 )
-		not_end |= ch.SLOT [S2].Ecnt - ENV_END;
-	
-	if ( algo >= 4 )
-		not_end |= ch.SLOT [S1].Ecnt - ENV_END;
-	
-	int CH_S0_OUT_1 = ch.S0_OUT [1];
-	
-	int in0 = ch.SLOT [S0].Fcnt;
-	int in1 = ch.SLOT [S1].Fcnt;
-	int in2 = ch.SLOT [S2].Fcnt;
-	int in3 = ch.SLOT [S3].Fcnt;
-	
-	int YM2612_LFOinc = g.LFOinc;
-	int YM2612_LFOcnt = g.LFOcnt + YM2612_LFOinc;
-	
-	if ( !not_end )
-		return;
-	
-	do
-	{
-		// envelope
-		int const env_LFO = g.LFO_ENV_TAB [YM2612_LFOcnt >> LFO_LBITS & LFO_MASK];
-		
-		short const* const ENV_TAB = g.ENV_TAB;
-		
-	#define CALC_EN( x ) \
-		int temp##x = ENV_TAB [ch.SLOT [S##x].Ecnt >> ENV_LBITS] + ch.SLOT [S##x].TLL;  \
-		int en##x = ((temp##x ^ ch.SLOT [S##x].env_xor) + (env_LFO >> ch.SLOT [S##x].AMS)) &    \
-				((temp##x - ch.SLOT [S##x].env_max) >> 31);
-		
-		CALC_EN( 0 )
-		CALC_EN( 1 )
-		CALC_EN( 2 )
-		CALC_EN( 3 )
-		
-		int const* const TL_TAB = g.TL_TAB;
-		
-	#define SINT( i, o ) (TL_TAB [g.SIN_TAB [(i)] + (o)])
-		
-		// feedback
-		int CH_S0_OUT_0 = ch.S0_OUT [0];
-		{
-			int temp = in0 + ((CH_S0_OUT_0 + CH_S0_OUT_1) >> ch.FB);
-			CH_S0_OUT_1 = CH_S0_OUT_0;
-			CH_S0_OUT_0 = SINT( (temp >> SIN_LBITS) & SIN_MASK, en0 );
-		}
-		
-		int CH_OUTd;
-		if ( algo == 0 )
-		{
-			int temp = in1 + CH_S0_OUT_1;
-			temp = in2 + SINT( (temp >> SIN_LBITS) & SIN_MASK, en1 );
-			temp = in3 + SINT( (temp >> SIN_LBITS) & SIN_MASK, en2 );
-			CH_OUTd = SINT( (temp >> SIN_LBITS) & SIN_MASK, en3 );
-		}
-		else if ( algo == 1 )
-		{
-			int temp = in2 + CH_S0_OUT_1 + SINT( (in1 >> SIN_LBITS) & SIN_MASK, en1 );
-			temp = in3 + SINT( (temp >> SIN_LBITS) & SIN_MASK, en2 );
-			CH_OUTd = SINT( (temp >> SIN_LBITS) & SIN_MASK, en3 );
-		}
-		else if ( algo == 2 )
-		{
-			int temp = in2 + SINT( (in1 >> SIN_LBITS) & SIN_MASK, en1 );
-			temp = in3 + CH_S0_OUT_1 + SINT( (temp >> SIN_LBITS) & SIN_MASK, en2 );
-			CH_OUTd = SINT( (temp >> SIN_LBITS) & SIN_MASK, en3 );
-		}
-		else if ( algo == 3 )
-		{
-			int temp = in1 + CH_S0_OUT_1;
-			temp = in3 + SINT( (temp >> SIN_LBITS) & SIN_MASK, en1 ) +
-					SINT( (in2 >> SIN_LBITS) & SIN_MASK, en2 );
-			CH_OUTd = SINT( (temp >> SIN_LBITS) & SIN_MASK, en3 );
-		}
-		else if ( algo == 4 )
-		{
-			int temp = in3 + SINT( (in2 >> SIN_LBITS) & SIN_MASK, en2 );
-			CH_OUTd = SINT( (temp >> SIN_LBITS) & SIN_MASK, en3 ) +
-					SINT( ((in1 + CH_S0_OUT_1) >> SIN_LBITS) & SIN_MASK, en1 );
-			//DO_LIMIT
-		}
-		else if ( algo == 5 )
-		{
-			int temp = CH_S0_OUT_1;
-			CH_OUTd = SINT( ((in3 + temp) >> SIN_LBITS) & SIN_MASK, en3 ) +
-					SINT( ((in1 + temp) >> SIN_LBITS) & SIN_MASK, en1 ) +
-					SINT( ((in2 + temp) >> SIN_LBITS) & SIN_MASK, en2 );
-			//DO_LIMIT
-		}
-		else if ( algo == 6 )
-		{
-			CH_OUTd = SINT( (in3 >> SIN_LBITS) & SIN_MASK, en3 ) +
-					SINT( ((in1 + CH_S0_OUT_1) >> SIN_LBITS) & SIN_MASK, en1 ) +
-					SINT( (in2 >> SIN_LBITS) & SIN_MASK, en2 );
-			//DO_LIMIT
-		}
-		else if ( algo == 7 )
-		{
-			CH_OUTd = SINT( (in3 >> SIN_LBITS) & SIN_MASK, en3 ) +
-					SINT( (in1 >> SIN_LBITS) & SIN_MASK, en1 ) +
-					SINT( (in2 >> SIN_LBITS) & SIN_MASK, en2 ) + CH_S0_OUT_1;
-			//DO_LIMIT
-		}
-		
-		CH_OUTd >>= MAX_OUT_BITS - output_bits + 2;
-		
-		// update phase
-		unsigned freq_LFO = ((g.LFO_FREQ_TAB [YM2612_LFOcnt >> LFO_LBITS & LFO_MASK] *
-				ch.FMS) >> (LFO_HBITS - 1 + 1)) + (1L << (LFO_FMS_LBITS - 1));
-		YM2612_LFOcnt += YM2612_LFOinc;
-		in0 += (ch.SLOT [S0].Finc * freq_LFO) >> (LFO_FMS_LBITS - 1);
-		in1 += (ch.SLOT [S1].Finc * freq_LFO) >> (LFO_FMS_LBITS - 1);
-		in2 += (ch.SLOT [S2].Finc * freq_LFO) >> (LFO_FMS_LBITS - 1);
-		in3 += (ch.SLOT [S3].Finc * freq_LFO) >> (LFO_FMS_LBITS - 1);
-		
-		int t0 = buf [0] + (CH_OUTd & ch.LEFT);
-		int t1 = buf [1] + (CH_OUTd & ch.RIGHT);
-		
-		update_envelope( ch.SLOT [0] );
-		update_envelope( ch.SLOT [1] );
-		update_envelope( ch.SLOT [2] );
-		update_envelope( ch.SLOT [3] );
-		
-		ch.S0_OUT [0] = CH_S0_OUT_0;
-		buf [0] = t0;
-		buf [1] = t1;
-		buf += 2;
-	}
-	while ( --length );
-	
-	ch.S0_OUT [1] = CH_S0_OUT_1;
-	
-	ch.SLOT [S0].Fcnt = in0;
-	ch.SLOT [S1].Fcnt = in1;
-	ch.SLOT [S2].Fcnt = in2;
-	ch.SLOT [S3].Fcnt = in3;
-}
-
-static const ym2612_update_chan_t UPDATE_CHAN [8] = {
-	&ym2612_update_chan<0>::func,
-	&ym2612_update_chan<1>::func,
-	&ym2612_update_chan<2>::func,
-	&ym2612_update_chan<3>::func,
-	&ym2612_update_chan<4>::func,
-	&ym2612_update_chan<5>::func,
-	&ym2612_update_chan<6>::func,
-	&ym2612_update_chan<7>::func
-};
-
-void Ym2612_Impl::run_timer( int length )
-{
-	int const step = 6;
-	int remain = length;
-	do
-	{
-		int n = step;
-		if ( n > remain )
-			n = remain;
-		remain -= n;
-		
-		long i = n * YM2612.TimerBase;
-		if (YM2612.Mode & 1)                            // Timer A ON ?
-		{
-	//      if ((YM2612.TimerAcnt -= 14073) <= 0)       // 13879=NTSC (old: 14475=NTSC  14586=PAL)
-			if ((YM2612.TimerAcnt -= i) <= 0)
-			{
-				// timer a overflow
-				
-				YM2612.Status |= (YM2612.Mode & 0x04) >> 2;
-				YM2612.TimerAcnt += YM2612.TimerAL;
-
-				if (YM2612.Mode & 0x80)
-				{
-					KEY_ON( YM2612.CHANNEL [2], 0 );
-					KEY_ON( YM2612.CHANNEL [2], 1 );
-					KEY_ON( YM2612.CHANNEL [2], 2 );
-					KEY_ON( YM2612.CHANNEL [2], 3 );
-				}
-			}
-		}
-
-		if (YM2612.Mode & 2)                            // Timer B ON ?
-		{
-	//      if ((YM2612.TimerBcnt -= 14073) <= 0)       // 13879=NTSC (old: 14475=NTSC  14586=PAL)
-			if ((YM2612.TimerBcnt -= i) <= 0)
-			{
-				// timer b overflow
-				YM2612.Status |= (YM2612.Mode & 0x08) >> 2;
-				YM2612.TimerBcnt += YM2612.TimerBL;
-			}
-		}
-	}
-	while ( remain > 0 );
-}
-
-void Ym2612_Impl::run( int pair_count, Ym2612_Emu::sample_t* out )
-{
-	if ( pair_count <= 0 )
-		return;
-	
-	if ( YM2612.Mode & 3 )
-		run_timer( pair_count );
-	
-	// Mise à jour des pas des compteurs-frequences s'ils ont ete modifies
-	
-	for ( int chi = 0; chi < channel_count; chi++ )
-	{
-		channel_t& ch = YM2612.CHANNEL [chi];
-		if ( ch.SLOT [0].Finc != -1 )
-			continue;
-		
-		int i2 = 0;
-		if ( chi == 2 && (YM2612.Mode & 0x40) )
-			i2 = 2;
-		
-		for ( int i = 0; i < 4; i++ )
-		{
-			// static int seq [4] = { 2, 1, 3, 0 };
-			// if ( i2 ) i2 = seq [i];
-			
-			slot_t& sl = ch.SLOT [i];
-			int finc = g.FINC_TAB [ch.FNUM [i2]] >> (7 - ch.FOCT [i2]);
-			int ksr = ch.KC [i2] >> sl.KSR_S;   // keycode attenuation
-			sl.Finc = (finc + sl.DT [ch.KC [i2]]) * sl.MUL;
-			if (sl.KSR != ksr)          // si le KSR a change alors
-			{                       // les differents taux pour l'enveloppe sont mis à jour
-				sl.KSR = ksr;
-
-				sl.EincA = sl.AR [ksr];
-				sl.EincD = sl.DR [ksr];
-				sl.EincS = sl.SR [ksr];
-				sl.EincR = sl.RR [ksr];
-
-				if (sl.Ecurp == ATTACK)
-				{
-					sl.Einc = sl.EincA;
-				}
-				else if (sl.Ecurp == DECAY)
-				{
-					sl.Einc = sl.EincD;
-				}
-				else if (sl.Ecnt < ENV_END)
-				{
-					if (sl.Ecurp == SUBSTAIN)
-						sl.Einc = sl.EincS;
-					else if (sl.Ecurp == RELEASE)
-						sl.Einc = sl.EincR;
-				}
-			}
-			
-			if ( i2 )
-				i2 = (i2 ^ 2) ^ (i2 >> 1);
-		}
-	}
-	
-	for ( int i = 0; i < channel_count; i++ )
-	{
-		if ( !(mute_mask & (1 << i)) && (i != 5 || !YM2612.DAC) )
-			UPDATE_CHAN [YM2612.CHANNEL [i].ALGO]( g, YM2612.CHANNEL [i], out, pair_count );
-	}
-	
-	g.LFOcnt += g.LFOinc * pair_count;
-}
-
-void Ym2612_Emu::run( int pair_count, sample_t* out ) { impl->run( pair_count, out ); }
