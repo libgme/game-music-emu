@@ -52,6 +52,10 @@ if (NOT DEFINED USE_GME_VGM)
     SET(USE_GME_VGM 1 CACHE BOOL "Enable Sega VGM/VGZ music emulation")
 endif()
 
+if (NOT DEFINED GME_YM2612_EMU)
+    SET(GME_YM2612_EMU "Nuked" CACHE STRING "Which YM2612 emulator to use: \"Nuked\" (LGPLv2.1+), \"MAME\" (GPLv2+), or \"GENS\" (LGPLv2.1+)")
+endif()
+
 if (USE_GME_NSFE AND NOT USE_GME_NSF)
     MESSAGE(" -- NSFE support requires NSF, enabling NSF support. --")
     SET(USE_GME_NSF 1 CACHE BOOL "Enable NES NSF music emulation" FORCE)

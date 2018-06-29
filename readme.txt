@@ -37,6 +37,9 @@ Author : Shay Green <gblargg@gmail.com>
 Website: https://bitbucket.org/mpyne/game-music-emu/wiki/Home
 License: GNU Lesser General Public License (LGPL)
 
+Note: When you will use MAME YM2612 emulator, the license of library
+will be GNU General Public License (GPL) v2.0+!
+
 Current Maintainer: Michael Pyne <mpyne@purinchu.net>
 
 Getting Started
@@ -190,8 +193,13 @@ gme/
   Sms_Apu.cpp         Common Sega emulator files
   Sms_Apu.h
   Sms_Oscs.h
-  Ym2612_Emu.cpp
   Ym2612_Emu.h
+  Ym2612_GENS.cpp     GENS 2.10 YM2612 emulator (LGPLv2.1+ license)
+  Ym2612_GENS.h
+  Ym2612_MAME.cpp     MAME YM2612 emulator (GPLv2.0+ license)
+  Ym2612_MAME.h
+  Ym2612_Nuked.cpp    Nuked OPN2 emulator (LGPLv2.1+ license)
+  Ym2612_Nuked.h
   Dual_Resampler.cpp
   Dual_Resampler.h
   Fir_Resampler.cpp
@@ -218,7 +226,7 @@ gme/
   Multi_Buffer.cpp
   Data_Reader.h
   Data_Reader.cpp
-  
+
   CMakeLists.txt      CMake build rules
 
 
@@ -226,6 +234,8 @@ Legal
 -----
 Game_Music_Emu library copyright (C) 2003-2009 Shay Green.
 Sega Genesis YM2612 emulator copyright (C) 2002 Stephane Dallongeville.
+MAME YM2612 emulator copyright (C) 2003 Jarek Burczynski, Tatsuyuki Satoh
+Nuked OPN2 emulator copyright (C) 2017 Alexey Khokholov (Nuke.YKT)
 
 --
 Shay Green <gblargg@gmail.com>

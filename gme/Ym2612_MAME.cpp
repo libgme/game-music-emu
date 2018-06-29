@@ -2,7 +2,7 @@
 
 // Based on Mame YM2612 ym2612.c
 
-#include "Ym2612_Emu.h"
+#include "Ym2612_MAME.h"
 
 /*
 **
@@ -3062,14 +3062,14 @@ static void ym2612_setoptions(UINT8 Flags)
 } // Ym2612_MameImpl
 
 
-Ym2612_Emu::Ym2612_Emu() { impl = 0; }
+Ym2612_MAME_Emu::Ym2612_MAME_Emu() { impl = 0; }
 
-Ym2612_Emu::~Ym2612_Emu()
+Ym2612_MAME_Emu::~Ym2612_MAME_Emu()
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
 }
 
-const char *Ym2612_Emu::set_rate(double sample_rate, double clock_rate)
+const char *Ym2612_MAME_Emu::set_rate(double sample_rate, double clock_rate)
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
 	impl = Ym2612_MameImpl::ym2612_init( NULL, static_cast<int>(clock_rate), static_cast<int>(sample_rate), NULL, NULL );
@@ -3078,31 +3078,31 @@ const char *Ym2612_Emu::set_rate(double sample_rate, double clock_rate)
 	return 0;
 }
 
-void Ym2612_Emu::reset()
+void Ym2612_MAME_Emu::reset()
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_reset_chip( impl );
 }
 
-void Ym2612_Emu::mute_voices(int mask)
+void Ym2612_MAME_Emu::mute_voices(int mask)
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_set_mutemask( impl, mask );
 }
 
-void Ym2612_Emu::write0(int addr, int data)
+void Ym2612_MAME_Emu::write0(int addr, int data)
 {
 	if ( !impl ) return;
 	Ym2612_MameImpl::ym2612_write( impl, 0, static_cast<uint8_t>(addr) );
 	Ym2612_MameImpl::ym2612_write( impl, 1, static_cast<uint8_t>(data) );
 }
 
-void Ym2612_Emu::write1(int addr, int data)
+void Ym2612_MAME_Emu::write1(int addr, int data)
 {
 	if ( !impl ) return;
 	Ym2612_MameImpl::ym2612_write( impl, 0 + 2, static_cast<uint8_t>(addr) );
 	Ym2612_MameImpl::ym2612_write( impl, 1 + 2, static_cast<uint8_t>(data) );
 }
 
-void Ym2612_Emu::run(int pair_count, Ym2612_Emu::sample_t *out)
+void Ym2612_MAME_Emu::run(int pair_count, Ym2612_MAME_Emu::sample_t *out)
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_generate( impl, out, pair_count, 0);
 }
