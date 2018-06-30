@@ -61,6 +61,8 @@ option(BUILD_SHARED_LIBS "Build shared library (set to OFF for static library)" 
 
 option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ON)
 
+option(BUILD_FRAMEWORK "Build framework instead of dylib (on macOS)" OFF)
+
 # Check for GCC/Clang "visibility" support.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     OR
