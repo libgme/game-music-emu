@@ -32,9 +32,25 @@ endif()
 
 # so is Ym2612_Emu
 if (USE_GME_VGM OR USE_GME_GYM)
-    set(libgme_SRCS ${libgme_SRCS}
-                Ym2612_Emu.cpp
-        )
+    if(GME_YM2612_EMU STREQUAL "Nuked")
+        add_definitions(-DVGM_YM2612_NUKED)
+        set(libgme_SRCS ${libgme_SRCS}
+                    Ym2612_Nuked.cpp
+            )
+        message("VGM/GYM: Nuked OPN2 emulator will be used")
+    elseif(GME_YM2612_EMU STREQUAL "MAME")
+        add_definitions(-DVGM_YM2612_MAME)
+        set(libgme_SRCS ${libgme_SRCS}
+                    Ym2612_MAME.cpp
+            )
+        message("VGM/GYM: MAME YM2612 emulator will be used")
+    else()
+        add_definitions(-DVGM_YM2612_GENS)
+        set(libgme_SRCS ${libgme_SRCS}
+                    Ym2612_GENS.cpp
+            )
+        message("VGM/GYM: GENS 2.10 emulator will be used")
+    endif()
 endif()
 
 # But none are as popular as Sms_Apu
