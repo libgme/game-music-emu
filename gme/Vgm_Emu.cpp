@@ -203,10 +203,10 @@ static Music_Emu* new_vgm_emu () { return BLARGG_NEW Vgm_Emu ; }
 static Music_Emu* new_vgm_file() { return BLARGG_NEW Vgm_File; }
 
 static gme_type_t_ const gme_vgm_type_ = { "Sega SMS/Genesis", 1, &new_vgm_emu, &new_vgm_file, "VGM", 1 };
-BLARGG_EXPORT extern gme_type_t const gme_vgm_type = &gme_vgm_type_;
+extern gme_type_t const gme_vgm_type = &gme_vgm_type_;
 
 static gme_type_t_ const gme_vgz_type_ = { "Sega SMS/Genesis", 1, &new_vgm_emu, &new_vgm_file, "VGZ", 1 };
-BLARGG_EXPORT extern gme_type_t const gme_vgz_type = &gme_vgz_type_;
+extern gme_type_t const gme_vgz_type = &gme_vgz_type_;
 
 
 // Setup
