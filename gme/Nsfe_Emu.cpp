@@ -5,6 +5,7 @@
 #include "blargg_endian.h"
 #include <string.h>
 #include <ctype.h>
+#include <algorithm>
 
 /* Copyright (C) 2005-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -18,6 +19,9 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+
+using std::min;
+using std::max;
 
 Nsfe_Info::Nsfe_Info() { playlist_disabled = false; }
 

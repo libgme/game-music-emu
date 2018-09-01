@@ -5,6 +5,8 @@
 #include "blargg_endian.h"
 #include <string.h>
 
+#include <algorithm> // min, max
+
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
 General Public License as published by the Free Software Foundation; either
@@ -23,6 +25,9 @@ long const cpc_clock      = 2000000;
 
 unsigned const ram_start = 0x4000;
 int const osc_count = Ay_Apu::osc_count + 1;
+
+using std::min;
+using std::max;
 
 Ay_Emu::Ay_Emu()
 {

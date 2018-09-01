@@ -3,6 +3,7 @@
 #include "Gb_Apu.h"
 
 #include <string.h>
+#include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -19,6 +20,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 unsigned const vol_reg    = 0xFF24;
 unsigned const status_reg = 0xFF26;
+
+using std::min;
+using std::max;
 
 Gb_Apu::Gb_Apu()
 {

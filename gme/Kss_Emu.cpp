@@ -4,6 +4,7 @@
 
 #include "blargg_endian.h"
 #include <string.h>
+#include <algorithm>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -20,6 +21,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 long const clock_rate = 3579545;
 int const osc_count = Ay_Apu::osc_count + Scc_Apu::osc_count;
+
+using std::min;
+using std::max;
 
 Kss_Emu::Kss_Emu()
 {

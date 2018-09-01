@@ -4,6 +4,7 @@
 
 #include "blargg_endian.h"
 #include <string.h>
+#include <algorithm>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -24,6 +25,9 @@ int const i_flag_mask = 0x04;
 int const unmapped    = 0xFF;
 
 long const period_60hz = 262 * 455L; // scanlines * clocks per scanline
+
+using std::min;
+using std::max;
 
 Hes_Emu::Hes_Emu()
 {

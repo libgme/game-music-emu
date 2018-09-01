@@ -5,6 +5,7 @@
 #include "blargg_endian.h"
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -22,6 +23,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 double const fm_gain = 3.0; // FM emulators are internally quieter to avoid 16-bit overflow
 double const rolloff = 0.990;
 double const oversample_factor = 1.5;
+
+using std::min;
+using std::max;
 
 Vgm_Emu::Vgm_Emu()
 {
