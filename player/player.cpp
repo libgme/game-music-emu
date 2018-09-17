@@ -5,10 +5,15 @@ Run program with path to a game music file.
 Left/Right  Change track
 Space       Pause/unpause
 E           Normal/slight stereo echo/more stereo echo
-A			Enable/disable accurate emulation
+A           Enable/disable accurate emulation
+L           Toggle track looping (infinite playback)
 -/=         Adjust tempo
 1-9         Toggle channel on/off
 0           Reset tempo and turn channels back on */
+
+// Make ISO C99 symbols available for snprintf, define must be set before any
+// system header includes
+#define _ISOC99_SOURCE 1
 
 int const scope_width = 512;
 
@@ -73,10 +78,12 @@ static void start_track( int track, const char* path )
 	}
 	
 	char title [512];
-	sprintf( title, "%s: %d/%d %s (%ld:%02ld)",
+	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%ld:%02ld)",
 			game, track, player->track_count(), player->track_info().song,
-			seconds / 60, seconds % 60 );
-	SDL_WM_SetCaption( title, title );
+			seconds / 60, seconds % 60 ) )
+	{
+		SDL_WM_SetCaption( title, title );
+	}
 }
 
 int main( int argc, char** argv )
@@ -94,6 +101,7 @@ int main( int argc, char** argv )
 	bool running = true;
 	double stereo_depth = 0.0;
 	bool accurate = false;
+	bool fading_out = true;
 	int muting_mask = 0;
 	while ( running )
 	{
@@ -170,6 +178,11 @@ int main( int argc, char** argv )
 					if ( stereo_depth > 0.5 )
 						stereo_depth = 0;
 					player->set_stereo_depth( stereo_depth );
+					break;
+				
+				case SDLK_l: // toggle loop
+					player->set_fadeout( fading_out = !fading_out );
+					printf( "%s\n", fading_out ? "Will stop at track end" : "Playing forever" );
 					break;
 				
 				case SDLK_0: // reset tempo and muting

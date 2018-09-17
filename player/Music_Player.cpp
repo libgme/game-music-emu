@@ -176,6 +176,11 @@ void Music_Player::mute_voices( int mask )
 	resume();
 }
 
+void Music_Player::set_fadeout( bool fade )
+{
+	gme_set_fade( emu_, fade ? track_info_->length : -1 );
+}
+
 void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 {
 	Music_Player* self = (Music_Player*) data;
@@ -195,7 +200,7 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 static sound_callback_t sound_callback;
 static void* sound_callback_data;
 
-static void sdl_callback( void* data, Uint8* out, int count )
+static void sdl_callback( void* /* data */, Uint8* out, int count )
 {
 	if ( sound_callback )
 		sound_callback( sound_callback_data, (short*) out, count / 2 );
