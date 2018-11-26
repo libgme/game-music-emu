@@ -372,7 +372,7 @@ long Std_File_Reader::size() const
 long Std_File_Reader::read_avail( void* p, long s )
 {
 #ifdef HAVE_ZLIB_H
-	if ( file_ && s > 0 && s <= UINT_MAX ) {
+	if ( file_ && s > 0 && static_cast<unsigned long>(s) <= UINT_MAX ) {
 		return gzread( reinterpret_cast<gzFile>(file_),
 			p, static_cast<unsigned>(s) );
 	}
@@ -386,7 +386,7 @@ long Std_File_Reader::read_avail( void* p, long s )
 
 blargg_err_t Std_File_Reader::read( void* p, long s )
 {
-	RETURN_VALIDITY_CHECK( s > 0 && s <= UINT_MAX );
+	RETURN_VALIDITY_CHECK( s > 0 && static_cast<unsigned long>(s) <= UINT_MAX );
 #ifdef HAVE_ZLIB_H
 	if ( file_ )
 	{
