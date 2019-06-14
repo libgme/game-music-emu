@@ -301,8 +301,9 @@ blargg_err_t Spc_Emu::start_track_( int track )
 	apu.clear_echo();
 	track_info_t spc_info;
 	RETURN_ERR( track_info_( &spc_info, track ) );
+
 	// Set a default track length, need a non-zero fadeout
-	if ( spc_info.length > 0 )
+	if ( autoload_playback_limit() && ( spc_info.length > 0 ) )
 		set_fade ( spc_info.length, 50 );
 	return 0;
 }

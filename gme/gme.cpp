@@ -197,6 +197,16 @@ BLARGG_EXPORT gme_err_t gme_open_file( const char* path, Music_Emu** out, int sa
 	return err;
 }
 
+BLARGG_EXPORT void gme_set_autoload_playback_limit( Music_Emu *emu, int do_autoload_limit )
+{
+	emu->set_autoload_playback_limit( do_autoload_limit != 0 );
+};
+
+BLARGG_EXPORT int gme_autoload_playback_limit( Music_Emu *const emu )
+{
+	return emu->autoload_playback_limit();
+}
+
 // Used to implement gme_new_emu and gme_new_emu_multi_channel
 Music_Emu* gme_internal_new_emu_( gme_type_t type, int rate, bool multi_channel )
 {
