@@ -41,6 +41,22 @@ void gme_delete( Music_Emu* );
 Fade time can be changed while track is playing. */
 void gme_set_fade( Music_Emu*, int start_msec );
 
+/**
+ * On supported emulators, automatically load track length metadata (if present)
+ * and terminate playback once the track length has been reached. This uses
+ * gme_set_fade behind the scenes.
+ *
+ * By default, playback limits are loaded and applied.
+ *
+ * @since 0.6.2
+ */
+void gme_set_autoload_playback_limit( int do_autoload_limit );
+
+/** See gme_set_autoload_playback_limit.
+ * @since 0.6.2
+ */
+int gme_autoload_playback_limit( void );
+
 /* True if a track has reached its end */
 int gme_track_ended( Music_Emu const* );
 
