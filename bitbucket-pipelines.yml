@@ -3,17 +3,24 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: gcc:6
+image: gcc:8
 
 pipelines:
   default:
-    - step:
-        script: # Modify the commands below to build your repository.
-          - apt-get update
-          - apt-get install -y cmake
-          - mkdir build
-          - cd build
-          - cmake ../
-          - make
-          - cd demo
-          - make
+    - parallel:
+      - step:
+        # Test whether it compiles on older GCC
+        image: gcc:6
+        name: GCC 6 compile
+        script:
+          - apt-get -qq update && apt-get -qq install -y cmake
+          - mkdir build && cd build && cmake ../ && make
+          - cd demo && make
+      - step:
+        # Test whether it compiles on newer GCC
+        image: gcc:8
+        name: GCC 8 compile
+        script:
+          - apt-get -qq update && apt-get -qq install -y cmake
+          - mkdir build && cd build && cmake ../ && make
+          - cd demo && make
