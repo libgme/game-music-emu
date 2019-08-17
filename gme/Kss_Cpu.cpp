@@ -178,10 +178,10 @@ bool Kss_Cpu::run( cpu_time_t end_time )
 	rg = this->r.b;
 	
 	cpu_time_t s_time = s.time;
-	uint16_t pc = r.pc;
-	uint16_t sp = r.sp;
-	uint16_t ix = r.ix; // TODO: keep in memory for direct access?
-	uint16_t iy = r.iy;
+	uint_fast32_t pc = r.pc;
+	uint_fast32_t sp = r.sp;
+	uint_fast32_t ix = r.ix; // TODO: keep in memory for direct access?
+	uint_fast32_t iy = r.iy;
 	int flags = r.b.flags;
 	
 	goto loop;
@@ -203,7 +203,7 @@ loop:
 	uint8_t const* instr = s.read [pc >> page_shift];
 #define GET_ADDR()  GET_LE16( instr )
 	
-	uint8_t opcode;
+	uint_fast8_t opcode;
 	
 	// TODO: eliminate this special case
 	#if BLARGG_NONPORTABLE
@@ -236,7 +236,7 @@ loop:
 		11,10,10, 4,17,11, 7,11,11, 6,10, 4,17, 8, 7,11, // F
 	};
 	
-	uint16_t data;
+	uint_fast16_t data;
 	data = base_timing [opcode];
 	if ( (s_time += data) >= 0 )
 		goto possibly_out_of_time;
@@ -292,7 +292,7 @@ possibly_out_of_time:
 		goto loop;
 	
 	case 0x3A:{// LD A,(addr)
-		uint16_t addr = GET_ADDR();
+		uint_fast16_t addr = GET_ADDR();
 		pc += 2;
 		rg.a = READ( addr );
 		goto loop;
@@ -380,7 +380,7 @@ possibly_out_of_time:
 	
 	case 0xCD:{// CALL addr
 	call_taken:
-		uint16_t addr = pc + 2;
+		uint_fast16_t addr = pc + 2;
 		pc = GET_ADDR();
 		sp = uint16_t (sp - 2);
 		WRITE_WORD( sp, addr );
@@ -388,7 +388,7 @@ possibly_out_of_time:
 	}
 	
 	case 0xFF: // RST
-		if ( pc >= idle_addr )
+		if ( pc > idle_addr )
 			goto hit_idle_addr;
 	CASE7( C7, CF, D7, DF, E7, EF, F7 ):
 		data = pc;
@@ -686,21 +686,21 @@ possibly_out_of_time:
 		goto loop;
 	
 	case 0x2A:{// LD HL,(addr)
-		uint16_t addr = GET_ADDR();
+		uint_fast16_t addr = GET_ADDR();
 		pc += 2;
 		rp.hl = READ_WORD( addr );
 		goto loop;
 	}
 	
 	case 0x32:{// LD (addr),A
-		uint16_t addr = GET_ADDR();
+		uint_fast16_t addr = GET_ADDR();
 		pc += 2;
 		WRITE( addr, rg.a );
 		goto loop;
 	}
 	
 	case 0x22:{// LD (addr),HL
-		uint16_t addr = GET_ADDR();
+		uint_fast16_t addr = GET_ADDR();
 		pc += 2;
 		WRITE_WORD( addr, rp.hl );
 		goto loop;
@@ -723,7 +723,7 @@ possibly_out_of_time:
 // Rotate
 	
 	case 0x07:{// RLCA
-		uint16_t temp = rg.a;
+		uint_fast16_t temp = rg.a;
 		temp = (temp << 1) | (temp >> 7);
 		flags = (flags & (S80 | Z40 | P04)) |
 				(temp & (F20 | F08 | C01));
@@ -732,7 +732,7 @@ possibly_out_of_time:
 	}
 	
 	case 0x0F:{// RRCA
-		uint16_t temp = rg.a;
+		uint_fast16_t temp = rg.a;
 		flags = (flags & (S80 | Z40 | P04)) |
 				(temp & C01);
 		temp = (temp << 7) | (temp >> 1);
@@ -746,12 +746,12 @@ possibly_out_of_time:
 		flags = (flags & (S80 | Z40 | P04)) |
 				(temp & (F20 | F08)) |
 				(temp >> 8);
-		rg.a = temp;
+		rg.a = (uint8_t)temp;
 		goto loop;
 	}
 	
 	case 0x1F:{// RRA
-		uint16_t temp = (flags << 7) | (rg.a >> 1);
+		uint_fast16_t temp = (flags << 7) | (rg.a >> 1);
 		flags = (flags & (S80 | Z40 | P04)) |
 				(temp & (F20 | F08)) |
 				(rg.a & C01);
@@ -761,7 +761,7 @@ possibly_out_of_time:
 	
 // Misc
 	case 0x2F:{// CPL
-		uint16_t temp = ~rg.a;
+		uint_fast16_t temp = ~rg.a;
 		flags = (flags & (S80 | Z40 | P04 | C01)) |
 				(temp & (F20 | F08)) |
 				(H10 | N02);
@@ -787,21 +787,21 @@ possibly_out_of_time:
 		goto loop;
 
 	case 0xE3:{// EX (SP),HL
-		uint16_t temp = READ_WORD( sp );
+		uint_fast16_t temp = READ_WORD( sp );
 		WRITE_WORD( sp, rp.hl );
 		rp.hl = temp;
 		goto loop;
 	}
 	
 	case 0xEB:{// EX DE,HL
-		uint16_t temp = rp.hl;
+		uint_fast16_t temp = rp.hl;
 		rp.hl = rp.de;
 		rp.de = temp;
 		goto loop;
 	}
 	
 	case 0xD9:{// EXX DE,HL
-		uint16_t temp = r.alt.w.bc;
+		uint_fast16_t temp = r.alt.w.bc;
 		r.alt.w.bc = rp.bc;
 		rp.bc = temp;
 		
@@ -842,7 +842,7 @@ possibly_out_of_time:
 	// Rotate left
 		
 	#define RLC( read, write ) {\
-		uint8_t result = read;\
+		uint_fast8_t result = read;\
 		result = uint8_t (result << 1) | (result >> 7);\
 		flags = SZ28P( result ) | (result & C01);\
 		write;\
@@ -861,7 +861,7 @@ possibly_out_of_time:
 		}
 		
 	#define RL( read, write ) {\
-		uint16_t result = (read << 1) | (flags & C01);\
+		uint_fast16_t result = (read << 1) | (flags & C01);\
 		flags = SZ28PC( result );\
 		write;\
 		goto loop;\
@@ -879,7 +879,7 @@ possibly_out_of_time:
 		}
 		
 	#define SLA( read, add, write ) {\
-		uint16_t result = (read << 1) | add;\
+		uint_fast16_t result = (read << 1) | add;\
 		flags = SZ28PC( result );\
 		write;\
 		goto loop;\
@@ -910,7 +910,7 @@ possibly_out_of_time:
 	// Rotate right
 		
 	#define RRC( read, write ) {\
-		uint8_t result = read;\
+		uint_fast8_t result = read;\
 		flags = result & C01;\
 		result = uint8_t (result << 7) | (result >> 1);\
 		flags |= SZ28P( result );\
@@ -930,8 +930,8 @@ possibly_out_of_time:
 		}
 		
 	#define RR( read, write ) {\
-		uint8_t result = read;\
-		uint8_t temp = result & C01;\
+		uint_fast8_t result = read;\
+		uint_fast8_t temp = result & C01;\
 		result = uint8_t (flags << 7) | (result >> 1);\
 		flags = SZ28P( result ) | temp;\
 		write;\
@@ -950,7 +950,7 @@ possibly_out_of_time:
 		}
 		
 	#define SRA( read, write ) {\
-		uint8_t result = read;\
+		uint_fast8_t result = read;\
 		flags = result & C01;\
 		result = (result & 0x80) | (result >> 1);\
 		flags |= SZ28P( result );\
@@ -970,7 +970,7 @@ possibly_out_of_time:
 		}
 		
 	#define SRL( read, write ) {\
-		uint8_t result = read;\
+		uint_fast8_t result = read;\
 		flags = result & C01;\
 		result >>= 1;\
 		flags |= SZ28P( result );\
@@ -1114,7 +1114,7 @@ possibly_out_of_time:
 		case 0x43: // LD (ADDR),BC
 		case 0x53: // LD (ADDR),DE
 				temp = R16( data, 4, 0x43 );
-			uint16_t addr = GET_ADDR();
+			uint_fast16_t addr = GET_ADDR();
 			pc += 2;
 			WRITE_WORD( addr, temp );
 			goto loop;
@@ -1122,21 +1122,21 @@ possibly_out_of_time:
 		
 		case 0x4B: // LD BC,(ADDR)
 		case 0x5B:{// LD DE,(ADDR)
-			uint16_t addr = GET_ADDR();
+			uint_fast16_t addr = GET_ADDR();
 			pc += 2;
 			R16( data, 4, 0x4B ) = READ_WORD( addr );
 			goto loop;
 		}
 		
 		case 0x7B:{// LD SP,(ADDR)
-			uint16_t addr = GET_ADDR();
+			uint_fast16_t addr = GET_ADDR();
 			pc += 2;
 			sp = READ_WORD( addr );
 			goto loop;
 		}
 		
 		case 0x67:{// RRD
-			uint8_t temp = READ( rp.hl );
+			uint_fast8_t temp = READ( rp.hl );
 			WRITE( rp.hl, (rg.a << 4) | (temp >> 4) );
 			temp = (rg.a & 0xF0) | (temp & 0x0F);
 			flags = (flags & C01) | SZ28P( temp );
@@ -1145,7 +1145,7 @@ possibly_out_of_time:
 		}
 		
 		case 0x6F:{// RLD
-			uint8_t temp = READ( rp.hl );
+			uint_fast8_t temp = READ( rp.hl );
 			WRITE( rp.hl, (temp << 4) | (rg.a & 0x0F) );
 			temp = (rg.a & 0xF0) | (temp >> 4);
 			flags = (flags & C01) | SZ28P( temp );
@@ -1169,7 +1169,7 @@ possibly_out_of_time:
 		case 0xA1: // CPI
 		case 0xB1: // CPIR
 				inc = +1;
-			uint16_t addr = rp.hl;
+			uint_fast16_t addr = rp.hl;
 			rp.hl = addr + inc;
 			int temp = READ( addr );
 			
@@ -1202,7 +1202,7 @@ possibly_out_of_time:
 		case 0xA0: // LDI
 		case 0xB0: // LDIR
 				inc = +1;
-			uint16_t addr = rp.hl;
+			uint_fast16_t addr = rp.hl;
 			rp.hl = addr + inc;
 			int temp = READ( addr );
 			
@@ -1234,7 +1234,7 @@ possibly_out_of_time:
 		case 0xA3: // OUTI
 		case 0xB3: // OTIR
 				inc = +1;
-			uint16_t addr = rp.hl;
+			uint_fast16_t addr = rp.hl;
 			rp.hl = addr + inc;
 			int temp = READ( addr );
 			
@@ -1260,7 +1260,7 @@ possibly_out_of_time:
 		case 0xB2: // INIR
 				inc = +1;
 			
-			uint16_t addr = rp.hl;
+			uint_fast16_t addr = rp.hl;
 			rp.hl = addr + inc;
 			
 			int temp = IN( rp.bc );
@@ -1325,7 +1325,7 @@ possibly_out_of_time:
 
 //////////////////////////////////////// DD/FD prefix
 	{
-	uint16_t ixy;
+	uint_fast16_t ixy;
 	case 0xDD:
 		ixy = ix;
 		goto ix_prefix;
@@ -1521,7 +1521,7 @@ possibly_out_of_time:
 			goto loop;
 	
 		case 0x22:{// LD (ADDR),IXY
-			uint16_t addr = GET_ADDR();
+			uint_fast16_t addr = GET_ADDR();
 			pc += 2;
 			WRITE_WORD( addr, ixy );
 			goto loop;
@@ -1533,7 +1533,7 @@ possibly_out_of_time:
 			goto set_ixy;
 		
 		case 0x2A:{// LD IXY,(addr)
-			uint16_t addr = GET_ADDR();
+			uint_fast16_t addr = GET_ADDR();
 			ixy = READ_WORD( addr );
 			pc += 2;
 			goto set_ixy;
@@ -1557,7 +1557,7 @@ possibly_out_of_time:
 			case 0x3E: goto srl_data_addr; // SRL (IXY)
 			
 			CASE8( 46, 4E, 56, 5E, 66, 6E, 76, 7E ):{// BIT b,(IXY+disp)
-				uint8_t temp = READ( data );
+				uint_fast8_t temp = READ( data );
 				int masked = temp & 1 << (data2 >> 3 & 7);
 				flags = (flags & C01) | H10 |
 						(masked & S80) |
@@ -1659,7 +1659,7 @@ possibly_out_of_time:
 			goto loop;
 		
 		case 0xE3:{// EX (SP),IXY
-			uint16_t temp = READ_WORD( sp );
+			uint_fast16_t temp = READ_WORD( sp );
 			WRITE_WORD( sp, ixy );
 			ixy = temp;
 			goto set_ixy;
