@@ -192,6 +192,7 @@ void Spc_Dsp::run( int clock_count )
 		return;
 	
 	uint8_t* const ram = m.ram;
+	uint8_t* const echo_ram = m.echo_ram;
 	uint8_t const* const dir = &ram [REG(dir) * 0x100];
 	int const slow_gaussian = (REG(pmon) >> 1) | REG(non);
 	int const noise_rate = REG(flg) & 0x1F;
