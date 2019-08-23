@@ -254,14 +254,38 @@ blargg_err_t Vgm_Emu::set_multi_channel ( bool is_enabled )
 
 void Vgm_Emu::update_eq( blip_eq_t const& eq )
 {
-	psg.treble_eq( eq );
+	psg[0].treble_eq( eq );
+	if ( psg_dual )
+		psg[1].treble_eq( eq );
 	dac_synth.treble_eq( eq );
 }
 
 void Vgm_Emu::set_voice( int i, Blip_Buffer* c, Blip_Buffer* l, Blip_Buffer* r )
 {
-	if ( i < psg.osc_count )
-		psg.osc_output( i, c, l, r );
+	if ( psg_dual )
+	{
+		if ( psg_t6w28 )
+		{
+			// TODO: Make proper output of each PSG chip: 0 - all right, 1 - all left
+			if ( i < psg[0].osc_count )
+				psg[0].osc_output( i, c, r, r );
+			if ( psg_dual && i < psg[1].osc_count )
+				psg[1].osc_output( i, c, l, l );
+		}
+		else
+		{
+			if ( i < psg[0].osc_count )
+				psg[0].osc_output( i, c, l, r );
+			if ( psg_dual && i < psg[1].osc_count )
+				psg[1].osc_output( i, c, l, r );
+		}
+	}
+	else
+	{
+		if ( i < psg[0].osc_count )
+			psg[0].osc_output( i, c, l, r );
+	}
+
 }
 
 void Vgm_Emu::mute_voices_( int mask )
@@ -270,21 +294,22 @@ void Vgm_Emu::mute_voices_( int mask )
 	dac_synth.output( &blip_buf );
 	if ( uses_fm )
 	{
-		psg.output( (mask & 0x80) ? 0 : &blip_buf );
-		if ( ym2612.enabled() )
+		psg[0].output( (mask & 0x80) ? 0 : &blip_buf );
+		if ( psg_dual )
+			psg[1].output( (mask & 0x80) ? 0 : &blip_buf );
+		if ( ym2612[0].enabled() )
 		{
 			dac_synth.volume( (mask & 0x40) ? 0.0 : 0.1115 / 256 * fm_gain * gain() );
-			ym2612.mute_voices( mask );
+			ym2612[0].mute_voices( mask );
 		}
-		
-		if ( ym2413.enabled() )
+		if ( ym2413[0].enabled() )
 		{
 			int m = mask & 0x3F;
 			if ( mask & 0x20 )
 				m |= 0x01E0; // channels 5-8
 			if ( mask & 0x40 )
 				m |= 0x3E00;
-			ym2413.mute_voices( m );
+			ym2413[0].mute_voices( m );
 		}
 	}
 }
@@ -306,6 +331,9 @@ blargg_err_t Vgm_Emu::load_mem_( byte const* new_data, long new_size )
 	psg_rate = get_le32( h.psg_rate );
 	if ( !psg_rate )
 		psg_rate = 3579545;
+	psg_dual = ( psg_rate & 0x40000000 ) != 0;
+	psg_t6w28 = ( psg_rate & 0x80000000 ) != 0;
+	psg_rate &= 0x0FFFFFFF;
 	blip_buf.clock_rate( psg_rate );
 	
 	data     = new_data;
@@ -316,7 +344,7 @@ blargg_err_t Vgm_Emu::load_mem_( byte const* new_data, long new_size )
 	if ( get_le32( h.loop_offset ) )
 		loop_begin = &data [get_le32( h.loop_offset ) + offsetof (header_t,loop_offset)];
 	
-	set_voice_count( psg.osc_count );
+	set_voice_count( psg[0].osc_count );
 	
 	RETURN_ERR( setup_fm() );
 	
@@ -333,7 +361,9 @@ blargg_err_t Vgm_Emu::load_mem_( byte const* new_data, long new_size )
 blargg_err_t Vgm_Emu::setup_fm()
 {
 	long ym2612_rate = get_le32( header().ym2612_rate );
+	bool ym2612_dual = ( ym2612_rate & 0x40000000 ) != 0;
 	long ym2413_rate = get_le32( header().ym2413_rate );
+	bool ym2413_dual = ( ym2413_rate & 0x40000000 ) != 0;
 	if ( ym2413_rate && get_le32( header().version ) < 0x110 )
 		update_fm_rates( &ym2413_rate, &ym2612_rate );
 	
@@ -343,39 +373,59 @@ blargg_err_t Vgm_Emu::setup_fm()
 	
 	if ( ym2612_rate )
 	{
+		ym2612_rate &= ~0xC0000000;
 		uses_fm = true;
 		if ( disable_oversampling_ )
 			fm_rate = ym2612_rate / 144.0;
 		Dual_Resampler::setup( fm_rate / blip_buf.sample_rate(), rolloff, fm_gain * gain() );
-		RETURN_ERR( ym2612.set_rate( fm_rate, ym2612_rate ) );
-		ym2612.enable( true );
+		RETURN_ERR( ym2612[0].set_rate( fm_rate, ym2612_rate ) );
+		ym2612[0].enable( true );
+		if ( ym2612_dual )
+		{
+			RETURN_ERR( ym2612[1].set_rate( fm_rate, ym2612_rate ) );
+			ym2612[1].enable( true );
+		}
 		set_voice_count( 8 );
 	}
 	
 	if ( !uses_fm && ym2413_rate )
 	{
+		ym2413_rate &= ~0xC0000000;
 		uses_fm = true;
 		if ( disable_oversampling_ )
 			fm_rate = ym2413_rate / 72.0;
 		Dual_Resampler::setup( fm_rate / blip_buf.sample_rate(), rolloff, fm_gain * gain() );
-		int result = ym2413.set_rate( fm_rate, ym2413_rate );
+		int result = ym2413[0].set_rate( fm_rate, ym2413_rate );
 		if ( result == 2 )
 			return "YM2413 FM sound isn't supported";
 		CHECK_ALLOC( !result );
-		ym2413.enable( true );
+		ym2413[0].enable( true );
+		if ( ym2413_dual )
+		{
+			ym2413[1].enable( true );
+			int result = ym2413[1].set_rate( fm_rate, ym2413_rate );
+			if ( result == 2 )
+				return "YM2413 FM sound isn't supported";
+			CHECK_ALLOC( !result );
+		}
 		set_voice_count( 8 );
 	}
 	
 	if ( uses_fm )
 	{
 		RETURN_ERR( Dual_Resampler::reset( blip_buf.length() * blip_buf.sample_rate() / 1000 ) );
-		psg.volume( 0.135 * fm_gain * gain() );
+		psg[0].volume( 0.135 * fm_gain * gain() );
+		if ( psg_dual )
+			psg[1].volume( 0.135 * fm_gain * gain() );
 	}
 	else
 	{
-		ym2612.enable( false );
-		ym2413.enable( false );
-		psg.volume( gain() );
+		ym2612[0].enable( false );
+		ym2612[1].enable( false );
+		ym2413[0].enable( false );
+		ym2413[1].enable( false );
+		psg[0].volume( gain() );
+		psg[1].volume( gain() );
 	}
 	
 	return 0;
@@ -386,7 +436,9 @@ blargg_err_t Vgm_Emu::setup_fm()
 blargg_err_t Vgm_Emu::start_track_( int track )
 {
 	RETURN_ERR( Classic_Emu::start_track_( track ) );
-	psg.reset( get_le16( header().noise_feedback ), header().noise_width );
+	psg[0].reset( get_le16( header().noise_feedback ), header().noise_width );
+	if ( psg_dual )
+		psg[1].reset( get_le16( header().noise_feedback ), header().noise_width );
 	
 	dac_disabled = -1;
 	pos          = data + header_size;
@@ -404,11 +456,17 @@ blargg_err_t Vgm_Emu::start_track_( int track )
 	
 	if ( uses_fm )
 	{
-		if ( ym2413.enabled() )
-			ym2413.reset();
+		if ( ym2413[0].enabled() )
+			ym2413[0].reset();
+
+		if ( ym2413[1].enabled() )
+			ym2413[1].reset();
 		
-		if ( ym2612.enabled() )
-			ym2612.reset();
+		if ( ym2612[0].enabled() )
+			ym2612[0].reset();
+
+		if ( ym2612[1].enabled() )
+			ym2612[1].reset();
 		
 		fm_time_offset = 0;
 		blip_buf.clear();
@@ -420,7 +478,9 @@ blargg_err_t Vgm_Emu::start_track_( int track )
 blargg_err_t Vgm_Emu::run_clocks( blip_time_t& time_io, int msec )
 {
 	time_io = run_commands( msec * vgm_rate / 1000 );
-	psg.end_frame( time_io );
+	psg[0].end_frame( time_io );
+	if ( psg_dual )
+		psg[1].end_frame( time_io );
 	return 0;
 }
 

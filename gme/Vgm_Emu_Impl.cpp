@@ -36,6 +36,12 @@ enum {
 	cmd_pcm_delay       = 0x80,
 	cmd_pcm_seek        = 0xE0,
 	
+	cmd_gg_stereo_2     = 0x3F,
+	cmd_psg_2           = 0x30,
+	cmd_ym2413_2        = 0xA1,
+	cmd_ym2612_2_port0  = 0xA2,
+	cmd_ym2612_2_port1  = 0xA3,
+
 	pcm_block_type      = 0x00,
 	ym2612_dac_port     = 0x2A
 };
@@ -142,13 +148,21 @@ blip_time_t Vgm_Emu_Impl::run_commands( vgm_time_t end_time )
 			break;
 		
 		case cmd_gg_stereo:
-			psg.write_ggstereo( to_blip_time( vgm_time ), *pos++ );
+			psg[0].write_ggstereo( to_blip_time( vgm_time ), *pos++ );
 			break;
 		
 		case cmd_psg:
-			psg.write_data( to_blip_time( vgm_time ), *pos++ );
+			psg[0].write_data( to_blip_time( vgm_time ), *pos++ );
 			break;
 		
+		case cmd_gg_stereo_2:
+			psg[1].write_ggstereo( to_blip_time( vgm_time ), *pos++ );
+			break;
+
+		case cmd_psg_2:
+			psg[1].write_data( to_blip_time( vgm_time ), *pos++ );
+			break;
+
 		case cmd_delay:
 			vgm_time += pos [1] * 0x100L + pos [0];
 			pos += 2;
@@ -159,8 +173,14 @@ blip_time_t Vgm_Emu_Impl::run_commands( vgm_time_t end_time )
 			break;
 		
 		case cmd_ym2413:
-			if ( ym2413.run_until( to_fm_time( vgm_time ) ) )
-				ym2413.write( pos [0], pos [1] );
+			if ( ym2413[0].run_until( to_fm_time( vgm_time ) ) )
+				ym2413[0].write( pos [0], pos [1] );
+			pos += 2;
+			break;
+
+		case cmd_ym2413_2:
+			if ( ym2413[1].run_until( to_fm_time( vgm_time ) ) )
+				ym2413[1].write( pos [0], pos [1] );
 			pos += 2;
 			break;
 		
@@ -169,24 +189,47 @@ blip_time_t Vgm_Emu_Impl::run_commands( vgm_time_t end_time )
 			{
 				write_pcm( vgm_time, pos [1] );
 			}
-			else if ( ym2612.run_until( to_fm_time( vgm_time ) ) )
+			else if ( ym2612[0].run_until( to_fm_time( vgm_time ) ) )
 			{
 				if ( pos [0] == 0x2B )
 				{
 					dac_disabled = (pos [1] >> 7 & 1) - 1;
 					dac_amp |= dac_disabled;
 				}
-				ym2612.write0( pos [0], pos [1] );
+				ym2612[0].write0( pos [0], pos [1] );
 			}
 			pos += 2;
 			break;
 		
 		case cmd_ym2612_port1:
-			if ( ym2612.run_until( to_fm_time( vgm_time ) ) )
-				ym2612.write1( pos [0], pos [1] );
+			if ( ym2612[0].run_until( to_fm_time( vgm_time ) ) )
+				ym2612[0].write1( pos [0], pos [1] );
 			pos += 2;
 			break;
-			
+
+		case cmd_ym2612_2_port0:
+			if ( pos [0] == ym2612_dac_port )
+			{
+				write_pcm( vgm_time, pos [1] );
+			}
+			else if ( ym2612[1].run_until( to_fm_time( vgm_time ) ) )
+			{
+				if ( pos [0] == 0x2B )
+				{
+					dac_disabled = (pos [1] >> 7 & 1) - 1;
+					dac_amp |= dac_disabled;
+				}
+				ym2612[1].write0( pos [0], pos [1] );
+			}
+			pos += 2;
+			break;
+
+		case cmd_ym2612_2_port1:
+			if ( ym2612[1].run_until( to_fm_time( vgm_time ) ) )
+				ym2612[1].write1( pos [0], pos [1] );
+			pos += 2;
+			break;
+
 		case cmd_data_block: {
 			check( *pos == cmd_end );
 			int type = pos [1];
@@ -246,24 +289,39 @@ int Vgm_Emu_Impl::play_frame( blip_time_t blip_time, int sample_count, sample_t*
 		vgm_time++;
 	//debug_printf( "pairs: %d, min_pairs: %d\n", pairs, min_pairs );
 	
-	if ( ym2612.enabled() )
+	if ( ym2612[0].enabled() )
 	{
-		ym2612.begin_frame( buf );
+		ym2612[0].begin_frame( buf );
+		if ( ym2612[1].enabled() )
+			ym2612[1].begin_frame( buf );
 		memset( buf, 0, pairs * stereo * sizeof *buf );
 	}
-	else if ( ym2413.enabled() )
+	else if ( ym2413[0].enabled() )
 	{
-		ym2413.begin_frame( buf );
+		ym2413[0].begin_frame( buf );
+		if ( ym2413[1].enabled() )
+			ym2413[1].begin_frame( buf );
+		memset( buf, 0, pairs * stereo * sizeof *buf );
 	}
 	
 	run_commands( vgm_time );
-	ym2612.run_until( pairs );
-	ym2413.run_until( pairs );
+
+	if ( ym2612[0].enabled() )
+		ym2612[0].run_until( pairs );
+	if ( ym2612[1].enabled() )
+		ym2612[1].run_until( pairs );
+
+	if ( ym2413[0].enabled() )
+		ym2413[0].run_until( pairs );
+	if ( ym2413[1].enabled() )
+		ym2413[1].run_until( pairs );
 	
 	fm_time_offset = (vgm_time * fm_time_factor + fm_time_offset) -
 			((long) pairs << fm_time_bits);
 	
-	psg.end_frame( blip_time );
+	psg[0].end_frame( blip_time );
+	if ( psg_dual )
+		psg[1].end_frame( blip_time );
 	
 	return pairs * stereo;
 }
