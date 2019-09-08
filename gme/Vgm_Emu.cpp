@@ -269,14 +269,14 @@ void Vgm_Emu::set_voice( int i, Blip_Buffer* c, Blip_Buffer* l, Blip_Buffer* r )
 			// TODO: Make proper output of each PSG chip: 0 - all right, 1 - all left
 			if ( i < psg[0].osc_count )
 				psg[0].osc_output( i, c, r, r );
-			if ( psg_dual && i < psg[1].osc_count )
+			if ( i < psg[1].osc_count )
 				psg[1].osc_output( i, c, l, l );
 		}
 		else
 		{
 			if ( i < psg[0].osc_count )
 				psg[0].osc_output( i, c, l, r );
-			if ( psg_dual && i < psg[1].osc_count )
+			if ( i < psg[1].osc_count )
 				psg[1].osc_output( i, c, l, r );
 		}
 	}
@@ -301,6 +301,8 @@ void Vgm_Emu::mute_voices_( int mask )
 		{
 			dac_synth.volume( (mask & 0x40) ? 0.0 : 0.1115 / 256 * fm_gain * gain() );
 			ym2612[0].mute_voices( mask );
+			if ( ym2612[1].enabled() )
+				ym2612[1].mute_voices( mask );
 		}
 		if ( ym2413[0].enabled() )
 		{
@@ -310,6 +312,8 @@ void Vgm_Emu::mute_voices_( int mask )
 			if ( mask & 0x40 )
 				m |= 0x3E00;
 			ym2413[0].mute_voices( m );
+			if ( ym2413[1].enabled() )
+				ym2413[1].mute_voices( m );
 		}
 	}
 }
