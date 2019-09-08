@@ -137,6 +137,9 @@ if (USE_GME_SPC)
                 Spc_Emu.cpp
                 Spc_Filter.cpp
         )
+    if (GME_SPC_ISOLATED_ECHO_BUFFER)
+        add_definitions(-DSPC_ISOLATED_ECHO_BUFFER)
+    endif()
 endif()
 
 if (USE_GME_VGM)
