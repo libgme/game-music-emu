@@ -1868,5 +1868,5 @@ void Ym2612_Nuked_Emu::run(int pair_count, Ym2612_Nuked_Emu::sample_t *out)
 {
 	Ym2612_NukedImpl::ym3438_t *chip_r = reinterpret_cast<Ym2612_NukedImpl::ym3438_t*>(impl);
 	if ( !chip_r ) return;
-	Ym2612_NukedImpl::OPN2_GenerateStream(chip_r, out, pair_count);
+	Ym2612_NukedImpl::OPN2_GenerateStreamMix(chip_r, out, pair_count);
 }
