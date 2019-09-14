@@ -109,51 +109,66 @@ int Fir_Resampler<width>::read( sample_t* out_begin, blargg_long count )
 	
 	count >>= 1;
 	
+	// Resampling can add noise so don't actually do it if we've matched sample
+	// rate
+	const double ratio1 = ratio() - 1.0;
+	const bool should_resample =
+		( ratio1 >= 0 ? ratio1 : -ratio1 ) >= 0.00001;
+	
 	if ( end_pos - in >= width * stereo )
 	{
 		end_pos -= width * stereo;
 		do
 		{
 			count--;
-			
-			// accumulate in extended precision
-			blargg_long l = 0;
-			blargg_long r = 0;
-			
-			const sample_t* i = in;
 			if ( count < 0 )
 				break;
 			
-			for ( int n = width / 2; n; --n )
+			if( !should_resample )
 			{
-				int pt0 = imp [0];
-				l += pt0 * i [0];
-				r += pt0 * i [1];
-				int pt1 = imp [1];
-				imp += 2;
-				l += pt1 * i [2];
-				r += pt1 * i [3];
-				i += 4;
+				out [0] = static_cast<sample_t>( in [0] );
+				out [1] = static_cast<sample_t>( in [1] );
+			}
+			else
+			{
+				// accumulate in extended precision
+				blargg_long l = 0;
+				blargg_long r = 0;
+				
+				const sample_t* i = in;
+				
+				for ( int n = width / 2; n; --n )
+				{
+					int pt0 = imp [0];
+					l += pt0 * i [0];
+					r += pt0 * i [1];
+					int pt1 = imp [1];
+					imp += 2;
+					l += pt1 * i [2];
+					r += pt1 * i [3];
+					i += 4;
+				}
+				
+				remain--;
+				
+				l >>= 15;
+				r >>= 15;
+				
+				in += (skip * stereo) & stereo;
+				skip >>= 1;
+				
+				if ( !remain )
+				{
+					imp = impulses [0];
+					skip = skip_bits;
+					remain = res;
+				}
+				
+				out [0] = (sample_t) l;
+				out [1] = (sample_t) r;
 			}
 			
-			remain--;
-			
-			l >>= 15;
-			r >>= 15;
-			
-			in += (skip * stereo) & stereo;
-			skip >>= 1;
 			in += step;
-			
-			if ( !remain )
-			{
-				imp = impulses [0];
-				skip = skip_bits;
-				remain = res;
-			}
-			
-			out [0] = (sample_t) l;
-			out [1] = (sample_t) r;
 			out += 2;
 		}
 		while ( in <= end_pos );

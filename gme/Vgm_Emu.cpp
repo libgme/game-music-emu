@@ -21,7 +21,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 double const fm_gain = 3.0; // FM emulators are internally quieter to avoid 16-bit overflow
 double const rolloff = 0.990;
-double const oversample_factor = 1.5;
+double const oversample_factor = 1.0;
 
 Vgm_Emu::Vgm_Emu()
 {
