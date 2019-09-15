@@ -38,14 +38,14 @@ static void init()
 	if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
 		exit( EXIT_FAILURE );
 	atexit( SDL_Quit );
-	SDL_EnableKeyRepeat( 500, 80 );
 	
 	// Init scope
 	scope = new Audio_Scope;
 	if ( !scope )
 		handle_error( "Out of memory" );
-	if ( scope->init( scope_width, 256 ) )
-		handle_error( "Couldn't initialize scope" );
+	std::string err_msg = scope->init( scope_width, 256 );
+	if ( !err_msg.empty() )
+		handle_error( err_msg.c_str() );
 	memset( scope_buf, 0, sizeof scope_buf );
 	
 	// Create player
@@ -82,7 +82,7 @@ static void start_track( int track, const char* path )
 			game, track, player->track_count(), player->track_info().song,
 			seconds / 60, seconds % 60 ) )
 	{
-		SDL_WM_SetCaption( title, title );
+		scope->set_caption( title );
 	}
 }
 
@@ -105,8 +105,6 @@ int main( int argc, char** argv )
 	int muting_mask = 0;
 	while ( running )
 	{
-		SDL_Delay( 1000 / 100 );
-		
 		// Update scope
 		scope->draw( scope_buf, scope_width, 2 );
 		
@@ -201,6 +199,8 @@ int main( int argc, char** argv )
 				}
 			}
 		}
+
+		SDL_Delay( 1000 / 100 ); // Sets 'frame rate'
 	}
 	
 	// Cleanup
@@ -218,7 +218,7 @@ void handle_error( const char* error )
 		char str [256];
 		sprintf( str, "Error: %s", error );
 		fprintf( stderr, "%s\n", str );
-		SDL_WM_SetCaption( str, str );
+		scope->set_caption( str );
 		
 		// wait for keyboard or mouse activity
 		SDL_Event e;

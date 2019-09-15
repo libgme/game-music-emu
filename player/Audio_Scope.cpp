@@ -4,6 +4,8 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <sstream>
+#include <stdexcept>
 
 /* Copyright (C) 2005-2006 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -20,14 +22,68 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+/* Copyright (c) 2019 by Michael Pyne, under the same terms as above. */
+
 int const step_bits = 8;
 int const step_unit = 1 << step_bits;
-int const erase_color = 1;
-int const draw_color = 2;
+int const erase_color = 0;
+int const draw_color = 1;
+
+// Returns largest power of 2 that is <= the given value.
+// From Henry Warren's book "Hacker's Delight"
+static unsigned largest_power_of_2_within(unsigned x)
+{
+	static_assert(sizeof(x) <= 4, "This code doesn't work on 64-bit int");
+
+	// Set all bits less significant than most significant bit that's set
+	// e.g. 0b00100111  ->  0b00111111
+	x = x | (x >>  1);
+	x = x | (x >>  2);
+	x = x | (x >>  4);
+	x = x | (x >>  8);
+	x = x | (x >> 16);
+
+	// Clear all set bits besides the highest one.
+	return x - (x >> 1);
+}
+
+// =============
+// Error helpers
+// =============
+
+// If the given SDL return code is an error and if so returns a string
+// with an explanation based on the provided explanation and SDL library
+std::string check_sdl( int ret_code, const char *explanation )
+{
+	static std::string empty;
+	if ( ret_code >= 0 )
+		return empty;
+
+	std::stringstream outstream;
+	outstream << explanation << " " << SDL_GetError();
+	return outstream.str();
+}
+
+// Overload of above
+std::string check_sdl( const void *ptr, const char *explanation )
+{
+	return check_sdl( ptr ? 0 : -1, explanation );
+}
+
+#define RETURN_SDL_ERR(res,msg) do {            \
+	auto check_res = check_sdl( (res), (msg) ); \
+	if( !check_res.empty() ) {                  \
+		return check_res;                       \
+	}                                           \
+} while (0)
+
+// ===========
+// Audio_Scope
+// ===========
 
 Audio_Scope::Audio_Scope()
 {
-	surface = 0;
+	draw_buffer = 0;
 	buf = 0;
 }
 
@@ -35,11 +91,17 @@ Audio_Scope::~Audio_Scope()
 {
 	free( buf );
 	
-	if ( surface )
-		SDL_FreeSurface( surface );
+	if ( surface_tex )
+		SDL_DestroyTexture( surface_tex );
+	if ( draw_buffer )
+		SDL_FreeSurface( draw_buffer );
+	if ( window_renderer )
+		SDL_DestroyRenderer( window_renderer );
+	if ( window )
+		SDL_DestroyWindow( window );
 }
 
-const char* Audio_Scope::init( int width, int height )
+std::string Audio_Scope::init( int width, int height )
 {
 	assert( height <= 256 );
 	assert( !buf ); // can only call init() once
@@ -48,64 +110,78 @@ const char* Audio_Scope::init( int width, int height )
 	if ( !buf )
 		return "Out of memory";
 	
-	low_y = 0;
-	high_y = height;
 	buf_size = width;
 	
 	for ( sample_shift = 6; sample_shift < 14; )
 		if ( ((0x7FFFL * 2) >> sample_shift++) < height )
 			break;
 	
-	v_offset = height / 2 - (0x10000 >> sample_shift);
+//	v_offset = height / 2 - (0x10000 >> sample_shift);
+	v_offset = (height - largest_power_of_2_within(height)) / 2;
 	
-	screen = SDL_SetVideoMode( width, height, 0, 0 );
-	if ( !screen )
-		return "Couldn't set video mode";
+	// What the user will see
+	window = SDL_CreateWindow( "libgme sample player",
+			SDL_WINDOWPOS_UNDEFINED,
+			SDL_WINDOWPOS_UNDEFINED,
+			width, height,
+			0 /* no flags */ );
+	RETURN_SDL_ERR( window, "Couldn't create output window" );
+
+	// Render object used to update window (perhaps in video or GPU ram)
+	window_renderer = SDL_CreateRenderer( window, -1, 0 /* no flags */ );
+	RETURN_SDL_ERR( window_renderer, "Couldn't create renderer for output window" );
+
+	SDL_SetRenderDrawColor( window_renderer, 0, 0, 0, 255 ); // only used to clear
 	
-	surface = SDL_CreateRGBSurface( SDL_SWSURFACE, width, height, 8, 0, 0, 0, 0 );
-	if ( !screen )
-		return "Couldn't create surface";
+	// A software pixel buffer that we play within
+	// TODO: Use textured format directly
+	draw_buffer = SDL_CreateRGBSurfaceWithFormat( 0, width, height, 8, SDL_PIXELFORMAT_INDEX8 );
+	RETURN_SDL_ERR( draw_buffer, "Couldn't create draw buffer" );
+
+	SDL_Color colors[] = {
+		{ 0,   0, 0, 255 }, // index 0, black
+		{ 0, 255, 0, 255 }  // index 1, green
+	};
+	SDL_SetPaletteColors(
+		draw_buffer->format->palette,
+		colors,
+		0, sizeof(colors) / sizeof(SDL_Color)
+	);
 	
-	static SDL_Color palette [2] = { {0, 0, 0}, {0, 255, 0} };
-	SDL_SetColors( surface, palette, 1, 2 );
-	
-	return 0; // success
+	// Ties a render object to that draw buffer
+	// NOTE: Most SDL doesn't support paletteized textures
+	surface_tex = SDL_CreateTexture( window_renderer, SDL_PIXELFORMAT_RGB888,
+			SDL_TEXTUREACCESS_STREAMING, width, height );
+	if ( !surface_tex )
+	RETURN_SDL_ERR( surface_tex, "Couldn't create video texture to draw into" );
+
+	return std::string(); // success
 }
 
 const char* Audio_Scope::draw( const short* in, long count, double step )
 {
-	int low = low_y;
-	int high = high_y;
-	
 	if ( count >= buf_size )
 	{
 		count = buf_size;
-		low_y = 0x7FFF;
-		high_y = 0;
 	}
 	
-	if ( SDL_LockSurface( surface ) < 0 )
-		return "Couldn't lock surface";
+	if ( SDL_LockSurface( draw_buffer ) < 0 )
+		return "Couldn't lock draw buffer";
 	render( in, count, (long) (step * step_unit) );
-	SDL_UnlockSurface( surface );
+	SDL_UnlockSurface( draw_buffer );
 	
-	if ( low > low_y )
-		low = low_y;
-	
-	if ( high < high_y )
-		high = high_y;
-	
-	SDL_Rect r;
-	r.x = 0;
-	r.w = buf_size;
-	r.y = low + v_offset;
-	r.h = high - low + 1;
-	
-	if ( SDL_BlitSurface( surface, &r, screen, &r ) < 0 )
-		return "Blit to screen failed";
-	
-	if ( SDL_Flip( screen ) < 0 )
-		return "Couldn't flip screen";
+	// TODO: Remove conversion from indexed to pixel buffer formats
+	SDL_Surface *surface_for_tex = SDL_ConvertSurfaceFormat(
+			draw_buffer, SDL_PIXELFORMAT_RGB888, 0 );
+	if ( !surface_for_tex )
+		return "Couldn't convert to texture's pixel format";
+	SDL_SetSurfaceBlendMode( surface_for_tex, SDL_BLENDMODE_NONE );
+	SDL_UpdateTexture( surface_tex, NULL, surface_for_tex->pixels, surface_for_tex->pitch );
+	SDL_FreeSurface( surface_for_tex );
+
+	SDL_RenderClear( window_renderer );
+	SDL_RenderCopy( window_renderer, surface_tex, NULL, NULL );
+	SDL_RenderPresent( window_renderer );
 	
 	return 0; // success
 }
@@ -113,14 +189,12 @@ const char* Audio_Scope::draw( const short* in, long count, double step )
 void Audio_Scope::render( short const* in, long count, long step )
 {
 	byte* old_pos = buf;
-	long surface_pitch = surface->pitch;
-	byte* out = (byte*) surface->pixels + v_offset * surface_pitch;
+	long surface_pitch = draw_buffer->pitch;
+	byte* out = (byte*) draw_buffer->pixels + v_offset * surface_pitch;
 	int old_erase = *old_pos;
 	int old_draw = 0;
 	long in_pos = 0;
 	
-	int low_y  = this->low_y;
-	int high_y = this->high_y;
 	int half_step = (step + step_unit / 2) >> (step_bits + 1);
 	
 	while ( count-- )
@@ -176,23 +250,19 @@ void Audio_Scope::render( short const* in, long count, long step )
 			
 			// min/max updating can be interleved anywhere
 			
-			if ( low_y > sample )
-				low_y = sample;
-			
 			do
 			{
 				out [offset] = draw_color;
 				offset += next_line;
 			}
 			while ( delta-- > 1 );
-			
-			if ( high_y < sample )
-				high_y = sample;
 		}
 		
 		out++;
 	}
-	
-	this->low_y = low_y;
-	this->high_y = high_y;
+}
+
+void Audio_Scope::set_caption( const char* caption )
+{
+    SDL_SetWindowTitle( window, caption );
 }
