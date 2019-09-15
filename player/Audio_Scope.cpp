@@ -24,11 +24,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 /* Copyright (c) 2019 by Michael Pyne, under the same terms as above. */
 
-int const step_bits = 8;
-int const step_unit = 1 << step_bits;
-int const erase_color = 0;
-int const draw_color = 1;
-
 // Returns largest power of 2 that is <= the given value.
 // From Henry Warren's book "Hacker's Delight"
 static unsigned largest_power_of_2_within(unsigned x)
@@ -83,18 +78,12 @@ std::string check_sdl( const void *ptr, const char *explanation )
 
 Audio_Scope::Audio_Scope()
 {
-	draw_buffer = 0;
-	buf = 0;
 }
 
 Audio_Scope::~Audio_Scope()
 {
-	free( buf );
+	free( scope_lines );
 	
-	if ( surface_tex )
-		SDL_DestroyTexture( surface_tex );
-	if ( draw_buffer )
-		SDL_FreeSurface( draw_buffer );
 	if ( window_renderer )
 		SDL_DestroyRenderer( window_renderer );
 	if ( window )
@@ -104,10 +93,10 @@ Audio_Scope::~Audio_Scope()
 std::string Audio_Scope::init( int width, int height )
 {
 	assert( height <= 256 );
-	assert( !buf ); // can only call init() once
+	assert( !scope_lines ); // can only call init() once
 	
-	buf = (byte*) calloc( width * sizeof *buf, 1 );
-	if ( !buf )
+	scope_lines = reinterpret_cast<SDL_Point *>( calloc( width, sizeof( SDL_Point ) ) );
+	if ( !scope_lines )
 		return "Out of memory";
 	
 	buf_size = width;
@@ -116,7 +105,6 @@ std::string Audio_Scope::init( int width, int height )
 		if ( ((0x7FFFL * 2) >> sample_shift++) < height )
 			break;
 	
-//	v_offset = height / 2 - (0x10000 >> sample_shift);
 	v_offset = (height - largest_power_of_2_within(height)) / 2;
 	
 	// What the user will see
@@ -130,135 +118,37 @@ std::string Audio_Scope::init( int width, int height )
 	// Render object used to update window (perhaps in video or GPU ram)
 	window_renderer = SDL_CreateRenderer( window, -1, 0 /* no flags */ );
 	RETURN_SDL_ERR( window_renderer, "Couldn't create renderer for output window" );
-
-	SDL_SetRenderDrawColor( window_renderer, 0, 0, 0, 255 ); // only used to clear
 	
-	// A software pixel buffer that we play within
-	// TODO: Use textured format directly
-	draw_buffer = SDL_CreateRGBSurfaceWithFormat( 0, width, height, 8, SDL_PIXELFORMAT_INDEX8 );
-	RETURN_SDL_ERR( draw_buffer, "Couldn't create draw buffer" );
-
-	SDL_Color colors[] = {
-		{ 0,   0, 0, 255 }, // index 0, black
-		{ 0, 255, 0, 255 }  // index 1, green
-	};
-	SDL_SetPaletteColors(
-		draw_buffer->format->palette,
-		colors,
-		0, sizeof(colors) / sizeof(SDL_Color)
-	);
-	
-	// Ties a render object to that draw buffer
-	// NOTE: Most SDL doesn't support paletteized textures
-	surface_tex = SDL_CreateTexture( window_renderer, SDL_PIXELFORMAT_RGB888,
-			SDL_TEXTUREACCESS_STREAMING, width, height );
-	if ( !surface_tex )
-	RETURN_SDL_ERR( surface_tex, "Couldn't create video texture to draw into" );
-
 	return std::string(); // success
 }
 
-const char* Audio_Scope::draw( const short* in, long count, double step )
+const char* Audio_Scope::draw( const short* in, long count, int step )
 {
 	if ( count >= buf_size )
 	{
 		count = buf_size;
 	}
 	
-	if ( SDL_LockSurface( draw_buffer ) < 0 )
-		return "Couldn't lock draw buffer";
-	render( in, count, (long) (step * step_unit) );
-	SDL_UnlockSurface( draw_buffer );
-	
-	// TODO: Remove conversion from indexed to pixel buffer formats
-	SDL_Surface *surface_for_tex = SDL_ConvertSurfaceFormat(
-			draw_buffer, SDL_PIXELFORMAT_RGB888, 0 );
-	if ( !surface_for_tex )
-		return "Couldn't convert to texture's pixel format";
-	SDL_SetSurfaceBlendMode( surface_for_tex, SDL_BLENDMODE_NONE );
-	SDL_UpdateTexture( surface_tex, NULL, surface_for_tex->pixels, surface_for_tex->pitch );
-	SDL_FreeSurface( surface_for_tex );
-
+	SDL_SetRenderDrawColor( window_renderer, 0, 0, 0, 255 );
 	SDL_RenderClear( window_renderer );
-	SDL_RenderCopy( window_renderer, surface_tex, NULL, NULL );
+
+	render( in, count, step );
+	SDL_SetRenderDrawColor( window_renderer, 0, 255, 0, 255 );
+	SDL_RenderDrawLines( window_renderer, scope_lines, count );
+
 	SDL_RenderPresent( window_renderer );
-	
+
 	return 0; // success
 }
 
-void Audio_Scope::render( short const* in, long count, long step )
+void Audio_Scope::render( short const* in, long count, int step )
 {
-	byte* old_pos = buf;
-	long surface_pitch = draw_buffer->pitch;
-	byte* out = (byte*) draw_buffer->pixels + v_offset * surface_pitch;
-	int old_erase = *old_pos;
-	int old_draw = 0;
-	long in_pos = 0;
-	
-	int half_step = (step + step_unit / 2) >> (step_bits + 1);
-	
-	while ( count-- )
+	for( long i = 0; i < count; i++ )
 	{
-		// Line drawing/erasing starts at previous sample and ends one short of
-		// current sample, except when previous and current are the same.
-		
-		// Extra read on the last iteration of line loops will always be at the
-		// height of the next sample, and thus within the gworld bounds.
-		
-		// Erase old line
-		{
-			int delta = *old_pos - old_erase;
-			int offset = old_erase * surface_pitch;
-			old_erase += delta;
-			
-			int next_line = surface_pitch;
-			if ( delta < 0 )
-			{
-				delta = -delta;
-				next_line = -surface_pitch;
-			}
-			
-			do
-			{
-				out [offset] = erase_color;
-				offset += next_line;
-			}
-			while ( delta-- > 1 );
-		}
-		
-		// Draw new line and put in old_buf
-		{
-			
-			int in_whole = in_pos >> step_bits;
-			int sample = (0x7FFF * 2 - in [in_whole] - in [in_whole + half_step]) >> sample_shift;
-			if ( !in_pos )
-				old_draw = sample;
-			in_pos += step;
-			
-			int delta = sample - old_draw;
-			int offset = old_draw * surface_pitch;
-			old_draw += delta;
-			
-			int next_line = surface_pitch;
-			if ( delta < 0 )
-			{
-				delta = -delta;
-				next_line = -surface_pitch;
-			}
-			
-			*old_pos++ = sample;
-			
-			// min/max updating can be interleved anywhere
-			
-			do
-			{
-				out [offset] = draw_color;
-				offset += next_line;
-			}
-			while ( delta-- > 1 );
-		}
-		
-		out++;
+		// Average left, right channels
+		int sample = (0x7FFF * 2 - in [i * step] - in [i * step + 1]) >> sample_shift;
+		scope_lines [i].x = i;
+		scope_lines [i].y = sample + v_offset;
 	}
 }
 

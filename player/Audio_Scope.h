@@ -16,8 +16,9 @@ public:
 	std::string init( int width, int height );
 	
 	// Draw at most 'count' samples from 'in', skipping 'step' samples after
-	// each sample drawn. Step can be less than 1.0.
-	error_t draw( const short* in, long count, double step = 1.0 );
+	// each sample drawn. Step should be 2 but wouldn't be hard to adapt
+	// to be 1.
+	error_t draw( const short* in, long count, int step = 2 );
 	
 	Audio_Scope();
 	~Audio_Scope();
@@ -28,14 +29,13 @@ private:
 	typedef unsigned char byte;
 	SDL_Window* window;
 	SDL_Renderer* window_renderer;
-	SDL_Surface* draw_buffer;
-	SDL_Texture* surface_tex;
 	byte* buf;
+	SDL_Point* scope_lines = nullptr; // lines to be drawn each frame
 	int buf_size;
 	int sample_shift;
 	int v_offset;
 	
-	void render( short const* in, long count, long step );
+	void render( short const* in, long count, int step );
 };
 
 #endif
