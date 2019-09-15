@@ -15,7 +15,8 @@ L           Toggle track looping (infinite playback)
 // system header includes
 #define _ISOC99_SOURCE 1
 
-int const scope_width = 512;
+int const scope_width = 1024;
+int const scope_height = 512;
 
 #include "Music_Player.h"
 #include "Audio_Scope.h"
@@ -43,7 +44,7 @@ static void init()
 	scope = new Audio_Scope;
 	if ( !scope )
 		handle_error( "Out of memory" );
-	std::string err_msg = scope->init( scope_width, 256 );
+	std::string err_msg = scope->init( scope_width, scope_height );
 	if ( !err_msg.empty() )
 		handle_error( err_msg.c_str() );
 	memset( scope_buf, 0, sizeof scope_buf );

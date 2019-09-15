@@ -92,16 +92,17 @@ Audio_Scope::~Audio_Scope()
 
 std::string Audio_Scope::init( int width, int height )
 {
-	assert( height <= 256 );
+	assert( height <= 16384 );
 	assert( !scope_lines ); // can only call init() once
 	
+	scope_height = height;
 	scope_lines = reinterpret_cast<SDL_Point *>( calloc( width, sizeof( SDL_Point ) ) );
 	if ( !scope_lines )
 		return "Out of memory";
 	
 	buf_size = width;
 	
-	for ( sample_shift = 6; sample_shift < 14; )
+	for ( sample_shift = 1; sample_shift < 14; )
 		if ( ((0x7FFFL * 2) >> sample_shift++) < height )
 			break;
 	

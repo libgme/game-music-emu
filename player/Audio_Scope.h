@@ -11,7 +11,7 @@ class Audio_Scope {
 public:
 	typedef const char* error_t;
 	
-	// Initialize scope window of specified size. Height must be 256 or less.
+	// Initialize scope window of specified size. Height must be 16384 or less.
 	// If result is not an empty string, it is an error message
 	std::string init( int width, int height );
 	
@@ -32,6 +32,7 @@ private:
 	byte* buf;
 	SDL_Point* scope_lines = nullptr; // lines to be drawn each frame
 	int buf_size;
+	int scope_height;
 	int sample_shift;
 	int v_offset;
 	
