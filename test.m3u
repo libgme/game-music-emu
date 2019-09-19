@@ -1,2 +1,2 @@
-# filename,track number,track name,track time
-test.nsf,$00,BGM C,1:16
+# filename,track number,track name,track time,,track fade
+test.nsf,$00,BGM C,0:01:16.456,,0:00:05.7
