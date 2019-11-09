@@ -55,12 +55,12 @@ BLARGG_EXPORT void gme_set_fade( Music_Emu*, int start_msec );
  *
  * @since 0.6.2
  */
-void gme_set_autoload_playback_limit( Music_Emu *, int do_autoload_limit );
+BLARGG_EXPORT void gme_set_autoload_playback_limit( Music_Emu *, int do_autoload_limit );
 
 /** See gme_set_autoload_playback_limit.
  * @since 0.6.2
  */
-int gme_autoload_playback_limit( Music_Emu const* );
+BLARGG_EXPORT int gme_autoload_playback_limit( Music_Emu const* );
 
 /* True if a track has reached its end */
 BLARGG_EXPORT int gme_track_ended( Music_Emu const* );

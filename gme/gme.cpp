@@ -197,12 +197,12 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 	return err;
 }
 
-BLARGG_EXPORT void gme_set_autoload_playback_limit( Music_Emu *emu, int do_autoload_limit )
+void gme_set_autoload_playback_limit( Music_Emu *emu, int do_autoload_limit )
 {
 	emu->set_autoload_playback_limit( do_autoload_limit != 0 );
 }
 
-BLARGG_EXPORT int gme_autoload_playback_limit( Music_Emu *const emu )
+int gme_autoload_playback_limit( Music_Emu *const emu )
 {
 	return emu->autoload_playback_limit();
 }
