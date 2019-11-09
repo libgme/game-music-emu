@@ -137,6 +137,9 @@ if (USE_GME_SPC)
                 Spc_Emu.cpp
                 Spc_Filter.cpp
         )
+    if (GME_SPC_ISOLATED_ECHO_BUFFER)
+        add_definitions(-DSPC_ISOLATED_ECHO_BUFFER)
+    endif()
 endif()
 
 if (USE_GME_VGM)
@@ -151,6 +154,12 @@ endif()
 
 # These headers are part of the generic gme interface.
 set (EXPORTED_HEADERS gme.h)
+
+# while building a macOS framework, exported headers must be in the source
+# list, or the header files aren't copied to the bundle.
+if (BUILD_FRAMEWORK)
+    set(libgme_SRCS ${libgme_SRCS} ${EXPORTED_HEADERS})
+endif()
 
 # On some platforms we may need to change headers or whatnot based on whether
 # we're building the library or merely using the library. The following is
@@ -184,9 +193,22 @@ set_target_properties(gme
     PROPERTIES VERSION ${GME_VERSION}
                SOVERSION 0)
 
+# macOS framework build
+if(BUILD_FRAMEWORK)
+    set_target_properties(gme
+        PROPERTIES FRAMEWORK TRUE
+                   FRAMEWORK_VERSION A
+                   MACOSX_FRAMEWORK_IDENTIFIER net.mpyne.gme
+                   VERSION ${GME_VERSION}
+                   SOVERSION 0
+                   PUBLIC_HEADER "${EXPORTED_HEADERS}")
+endif()
+
 install(TARGETS gme LIBRARY DESTINATION lib${LIB_SUFFIX}
                     RUNTIME DESTINATION bin  # DLL platforms
-                    ARCHIVE DESTINATION lib) # DLL platforms
+                    ARCHIVE DESTINATION lib # DLL platforms
+                    FRAMEWORK DESTINATION /Library/Frameworks) # macOS framework
+
 
 # Run during cmake phase, so this is available during make
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/gme_types.h.in

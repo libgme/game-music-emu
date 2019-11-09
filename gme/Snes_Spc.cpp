@@ -248,6 +248,8 @@ blargg_err_t Snes_Spc::load_spc( void const* data, long size )
 
 void Snes_Spc::clear_echo()
 {
+// Allows playback of dodgy Super Mario World mod SPCs
+#ifndef SPC_ISOLATED_ECHO_BUFFER
 	if ( !(dsp.read( Spc_Dsp::r_flg ) & 0x20) )
 	{
 		int addr = 0x100 * dsp.read( Spc_Dsp::r_esa );
@@ -256,6 +258,7 @@ void Snes_Spc::clear_echo()
 			end = 0x10000;
 		memset( &RAM [addr], 0xFF, end - addr );
 	}
+#endif
 }
 
 

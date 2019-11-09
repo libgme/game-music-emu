@@ -48,6 +48,10 @@ public:
 	
 	// Set voice muting bitmask
 	void mute_voices( int );
+
+	// Toggle whether fadeout is used or not. If used, stops at track length,
+	// if not used, loop forever
+	void set_fadeout( bool do_fade );
 	
 	// Set buffer to copy samples from each buffer into, or NULL to disable
 	typedef short sample_t;

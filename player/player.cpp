@@ -5,12 +5,18 @@ Run program with path to a game music file.
 Left/Right  Change track
 Space       Pause/unpause
 E           Normal/slight stereo echo/more stereo echo
-A			Enable/disable accurate emulation
+A           Enable/disable accurate emulation
+L           Toggle track looping (infinite playback)
 -/=         Adjust tempo
 1-9         Toggle channel on/off
 0           Reset tempo and turn channels back on */
 
-int const scope_width = 512;
+// Make ISO C99 symbols available for snprintf, define must be set before any
+// system header includes
+#define _ISOC99_SOURCE 1
+
+int const scope_width = 1024;
+int const scope_height = 512;
 
 #include "Music_Player.h"
 #include "Audio_Scope.h"
@@ -33,14 +39,14 @@ static void init()
 	if ( SDL_Init( SDL_INIT_VIDEO | SDL_INIT_AUDIO ) < 0 )
 		exit( EXIT_FAILURE );
 	atexit( SDL_Quit );
-	SDL_EnableKeyRepeat( 500, 80 );
 	
 	// Init scope
 	scope = new Audio_Scope;
 	if ( !scope )
 		handle_error( "Out of memory" );
-	if ( scope->init( scope_width, 256 ) )
-		handle_error( "Couldn't initialize scope" );
+	std::string err_msg = scope->init( scope_width, scope_height );
+	if ( !err_msg.empty() )
+		handle_error( err_msg.c_str() );
 	memset( scope_buf, 0, sizeof scope_buf );
 	
 	// Create player
@@ -73,10 +79,12 @@ static void start_track( int track, const char* path )
 	}
 	
 	char title [512];
-	sprintf( title, "%s: %d/%d %s (%ld:%02ld)",
+	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%ld:%02ld)",
 			game, track, player->track_count(), player->track_info().song,
-			seconds / 60, seconds % 60 );
-	SDL_WM_SetCaption( title, title );
+			seconds / 60, seconds % 60 ) )
+	{
+		scope->set_caption( title );
+	}
 }
 
 int main( int argc, char** argv )
@@ -94,11 +102,10 @@ int main( int argc, char** argv )
 	bool running = true;
 	double stereo_depth = 0.0;
 	bool accurate = false;
+	bool fading_out = true;
 	int muting_mask = 0;
 	while ( running )
 	{
-		SDL_Delay( 1000 / 100 );
-		
 		// Update scope
 		scope->draw( scope_buf, scope_width, 2 );
 		
@@ -172,6 +179,11 @@ int main( int argc, char** argv )
 					player->set_stereo_depth( stereo_depth );
 					break;
 				
+				case SDLK_l: // toggle loop
+					player->set_fadeout( fading_out = !fading_out );
+					printf( "%s\n", fading_out ? "Will stop at track end" : "Playing forever" );
+					break;
+				
 				case SDLK_0: // reset tempo and muting
 					tempo = 1.0;
 					muting_mask = 0;
@@ -188,6 +200,8 @@ int main( int argc, char** argv )
 				}
 			}
 		}
+
+		SDL_Delay( 1000 / 100 ); // Sets 'frame rate'
 	}
 	
 	// Cleanup
@@ -205,7 +219,7 @@ void handle_error( const char* error )
 		char str [256];
 		sprintf( str, "Error: %s", error );
 		fprintf( stderr, "%s\n", str );
-		SDL_WM_SetCaption( str, str );
+		scope->set_caption( str );
 		
 		// wait for keyboard or mouse activity
 		SDL_Event e;

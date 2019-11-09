@@ -110,6 +110,11 @@ private:
 	{
 		uint8_t regs [register_count];
 		
+#ifdef SPC_ISOLATED_ECHO_BUFFER
+		// Echo buffer, for dodgy SPC rips that were only made to work in dodgy emulators
+		uint8_t echo_ram [64 * 1024];
+#endif
+		
 		// Echo history keeps most recent 8 samples (twice the size to simplify wrap handling)
 		int echo_hist [echo_hist_size * 2] [2];
 		int (*echo_hist_pos) [2]; // &echo_hist [0 to 7]

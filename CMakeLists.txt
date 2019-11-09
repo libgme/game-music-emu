@@ -48,6 +48,10 @@ if (NOT DEFINED USE_GME_SPC)
     SET(USE_GME_SPC 1 CACHE BOOL "Enable SNES SPC music emulation")
 endif()
 
+if (NOT DEFINED GME_SPC_ISOLATED_ECHO_BUFFER)
+    option(GME_SPC_ISOLATED_ECHO_BUFFER "Enable isolated echo buffer on SPC emulator to allow correct playing of \"dodgy\" SPC files made for various ROM hacks ran on ZSNES" OFF)
+endif()
+
 if (NOT DEFINED USE_GME_VGM)
     SET(USE_GME_VGM 1 CACHE BOOL "Enable Sega VGM/VGZ music emulation")
 endif()
@@ -64,6 +68,8 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared library (set to OFF for static library)" ON)
 
 option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ON)
+
+option(BUILD_FRAMEWORK "Build framework instead of dylib (on macOS)" OFF)
 
 # Check for GCC/Clang "visibility" support.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"

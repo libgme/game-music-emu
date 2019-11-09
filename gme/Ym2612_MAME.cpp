@@ -360,7 +360,7 @@ static stream_sample_t *DUMMYBUF = NULL;
 #define BUILD_OPN (BUILD_YM2203||BUILD_YM2608||BUILD_YM2610||BUILD_YM2610B||BUILD_YM2612||BUILD_YM3438)
 #define BUILD_OPN_PRESCALER (BUILD_YM2203||BUILD_YM2608)
 
-#define RSM_ENABLE 0
+#define RSM_ENABLE 1
 #define RSM_FRAC 10
 
 /* globals */
@@ -3104,5 +3104,5 @@ void Ym2612_MAME_Emu::write1(int addr, int data)
 
 void Ym2612_MAME_Emu::run(int pair_count, Ym2612_MAME_Emu::sample_t *out)
 {
-	if ( impl ) Ym2612_MameImpl::ym2612_generate( impl, out, pair_count, 0);
+	if ( impl ) Ym2612_MameImpl::ym2612_generate( impl, out, pair_count, 1);
 }
