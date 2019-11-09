@@ -34,7 +34,7 @@ all other #include lines. */
 // Like printf() except output goes to debug log file. Might be defined to do
 // nothing (not even evaluate its arguments).
 // void debug_printf( const char* format, ... );
-static inline void blargg_dprintf_( const char*, ... ) { }
+static inline void blargg_dprintf_( const char* fmt_str, ... ) { (void) fmt_str; }
 #undef debug_printf
 #define debug_printf (1) ? (void) 0 : blargg_dprintf_
 
@@ -55,46 +55,6 @@ static inline void blargg_dprintf_( const char*, ... ) { }
 #undef CHECK_ALLOC
 #define CHECK_ALLOC( ptr ) do { if ( (ptr) == 0 ) return "Out of memory"; } while ( 0 )
 
-// Avoid any macros which evaluate their arguments multiple times
-#undef min
-#undef max
-
-#define DEF_MIN_MAX( type ) \
-	static inline type min( type x, type y ) { if ( x < y ) return x; return y; }\
-	static inline type max( type x, type y ) { if ( y < x ) return x; return y; }
-
-DEF_MIN_MAX( int )
-DEF_MIN_MAX( unsigned )
-DEF_MIN_MAX( long )
-DEF_MIN_MAX( unsigned long )
-DEF_MIN_MAX( float )
-DEF_MIN_MAX( double )
-
-#undef DEF_MIN_MAX
-
-/*
-// using const references generates crappy code, and I am currenly only using these
-// for built-in types, so they take arguments by value
-
-// TODO: remove
-inline int min( int x, int y ) 
-template<class T>
-inline T min( T x, T y )
-{
-	if ( x < y )
-		return x;
-	return y;
-}
-
-template<class T>
-inline T max( T x, T y )
-{
-	if ( x < y )
-		return y;
-	return x;
-}
-*/
-
 // TODO: good idea? bad idea?
 #undef byte
 #define byte byte_
@@ -102,9 +62,13 @@ typedef unsigned char byte;
 
 // Setup compiler defines useful for exporting required public API symbols in gme.cpp
 #ifndef BLARGG_EXPORT
-    #if defined (_WIN32) && defined(BLARGG_BUILD_DLL)
-        #define BLARGG_EXPORT __declspec(dllexport)
-    #elif defined (LIBGME_VISIBILITY)
+    #if defined (_WIN32)
+        #if defined(BLARGG_BUILD_DLL)
+            #define BLARGG_EXPORT __declspec(dllexport)
+        #else
+            #define BLARGG_EXPORT __declspec(dllimport)
+        #endif
+    #elif defined (LIBGME_VISIBILITY) && defined(__cplusplus)
         #define BLARGG_EXPORT __attribute__((visibility ("default")))
     #else
         #define BLARGG_EXPORT

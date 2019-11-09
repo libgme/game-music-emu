@@ -5,6 +5,7 @@
 #include "blargg_endian.h"
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 
 /* Copyright (C) 2004-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -18,6 +19,9 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+
+using std::min;
+using std::max;
 
 // TODO: support Spc_Filter's bass
 
@@ -244,7 +248,7 @@ static Music_Emu* new_spc_emu () { return BLARGG_NEW Spc_Emu ; }
 static Music_Emu* new_spc_file() { return BLARGG_NEW Spc_File; }
 
 static gme_type_t_ const gme_spc_type_ = { "Super Nintendo", 1, &new_spc_emu, &new_spc_file, "SPC", 0 };
-BLARGG_EXPORT extern gme_type_t const gme_spc_type = &gme_spc_type_;
+extern gme_type_t const gme_spc_type = &gme_spc_type_;
 
 
 // Setup

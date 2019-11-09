@@ -5,6 +5,7 @@
 #include "blargg_endian.h"
 #include <string.h>
 #include <ctype.h>
+#include <algorithm>
 
 /* Copyright (C) 2005-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -18,6 +19,9 @@ License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
+
+using std::min;
+using std::max;
 
 Nsfe_Info::Nsfe_Info() { playlist_disabled = false; }
 
@@ -301,7 +305,7 @@ static Music_Emu* new_nsfe_emu () { return BLARGG_NEW Nsfe_Emu ; }
 static Music_Emu* new_nsfe_file() { return BLARGG_NEW Nsfe_File; }
 
 static gme_type_t_ const gme_nsfe_type_ = { "Nintendo NES", 0, &new_nsfe_emu, &new_nsfe_file, "NSFE", 1 };
-BLARGG_EXPORT extern gme_type_t const gme_nsfe_type = &gme_nsfe_type_;
+extern gme_type_t const gme_nsfe_type = &gme_nsfe_type_;
 
 
 blargg_err_t Nsfe_Emu::load_( Data_Reader& in )

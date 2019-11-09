@@ -5,6 +5,7 @@
 #include "blargg_endian.h"
 #include <string.h>
 #include <stdio.h>
+#include <algorithm>
 
 #if !NSF_EMU_APU_ONLY
 	#include "Nes_Namco_Apu.h"
@@ -30,6 +31,9 @@ int const namco_flag = 0x10;
 int const fme7_flag  = 0x20;
 
 long const clock_divisor = 12;
+
+using std::min;
+using std::max;
 
 Nsf_Emu::equalizer_t const Nsf_Emu::nes_eq     =
 	Music_Emu::make_equalizer( -1.0, 80 );
@@ -130,7 +134,7 @@ static Music_Emu* new_nsf_emu () { return BLARGG_NEW Nsf_Emu ; }
 static Music_Emu* new_nsf_file() { return BLARGG_NEW Nsf_File; }
 
 static gme_type_t_ const gme_nsf_type_ = { "Nintendo NES", 0, &new_nsf_emu, &new_nsf_file, "NSF", 1 };
-BLARGG_EXPORT extern gme_type_t const gme_nsf_type = &gme_nsf_type_;
+extern gme_type_t const gme_nsf_type = &gme_nsf_type_;
 
 
 // Setup

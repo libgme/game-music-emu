@@ -3,6 +3,7 @@
 #include "Effects_Buffer.h"
 
 #include <string.h>
+#include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -22,6 +23,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #endif
 
 typedef blargg_long fixed_t;
+
+using std::min;
+using std::max;
 
 #define TO_FIXED( f )   fixed_t ((f) * (1L << 15) + 0.5)
 #define FMUL( x, y )    (((x) * (y)) >> 15)

@@ -4,6 +4,7 @@
 
 #include "Multi_Buffer.h"
 #include <string.h>
+#include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -22,6 +23,9 @@ int const silence_max = 6; // seconds
 int const silence_threshold = 0x10;
 long const fade_block_size = 512;
 int const fade_shift = 8; // fade ends with gain at 1.0 / (1 << fade_shift)
+
+using std::min;
+using std::max;
 
 Music_Emu::equalizer_t const Music_Emu::tv_eq =
 	Music_Emu::make_equalizer( -8.0, 180 );

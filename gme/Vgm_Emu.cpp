@@ -5,6 +5,7 @@
 #include "blargg_endian.h"
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -22,6 +23,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 double const fm_gain = 3.0; // FM emulators are internally quieter to avoid 16-bit overflow
 double const rolloff = 0.990;
 double const oversample_factor = 1.0;
+
+using std::min;
+using std::max;
 
 Vgm_Emu::Vgm_Emu()
 {
@@ -203,10 +207,10 @@ static Music_Emu* new_vgm_emu () { return BLARGG_NEW Vgm_Emu ; }
 static Music_Emu* new_vgm_file() { return BLARGG_NEW Vgm_File; }
 
 static gme_type_t_ const gme_vgm_type_ = { "Sega SMS/Genesis", 1, &new_vgm_emu, &new_vgm_file, "VGM", 1 };
-BLARGG_EXPORT extern gme_type_t const gme_vgm_type = &gme_vgm_type_;
+extern gme_type_t const gme_vgm_type = &gme_vgm_type_;
 
 static gme_type_t_ const gme_vgz_type_ = { "Sega SMS/Genesis", 1, &new_vgm_emu, &new_vgm_file, "VGZ", 1 };
-BLARGG_EXPORT extern gme_type_t const gme_vgz_type = &gme_vgz_type_;
+extern gme_type_t const gme_vgz_type = &gme_vgz_type_;
 
 
 // Setup
