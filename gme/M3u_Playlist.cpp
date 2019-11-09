@@ -153,6 +153,23 @@ static char* parse_int_( char* in, int* out )
 	return in;
 }
 
+static char* parse_mil_( char* in, int* out )
+{
+	int n = 0;
+	int x = 100;
+	while ( 1 )
+	{
+		unsigned d = from_dec( *in );
+		if ( d > 9 )
+			break;
+		in++;
+		n += d * x;
+		x /= 10;
+		*out = n;
+	}
+	return in;
+}
+
 static char* parse_int( char* in, int* out, int* result )
 {
 	return next_field( parse_int_( in, out ), result );
@@ -200,12 +217,21 @@ static char* parse_time_( char* in, int* out )
 	if ( n >= 0 )
 	{
 		*out = n;
-		if ( *in == ':' )
+		while ( *in == ':' )
 		{
 			n = -1;
 			in = parse_int_( in + 1, &n );
 			if ( n >= 0 )
 				*out = *out * 60 + n;
+		}
+		*out *= 1000;
+
+		if ( *in == '.' )
+		{
+			n = -1;
+			in = parse_mil_( in + 1, &n );
+			if ( n >= 0 )
+				*out += n;
 		}
 	}
 	return in;

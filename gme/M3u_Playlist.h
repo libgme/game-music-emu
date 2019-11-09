@@ -36,7 +36,7 @@ public:
 		bool decimal_track; // true if track was specified in hex
 		// integers are -1 if not present
 		int track;  // 1-based
-		int length; // seconds
+		int length; // milliseconds
 		int intro;
 		int loop;
 		int fade;

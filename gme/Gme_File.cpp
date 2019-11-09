@@ -208,9 +208,9 @@ blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
 		
 		M3u_Playlist::entry_t const& e = playlist [track];
 		copy_field_( out->song, e.name );
-		if ( e.length >= 0 ) out->length       = e.length * 1000L;
-		if ( e.intro  >= 0 ) out->intro_length = e.intro  * 1000L;
-		if ( e.loop   >= 0 ) out->loop_length  = e.loop   * 1000L;
+		if ( e.length >= 0 ) out->length       = e.length;
+		if ( e.intro  >= 0 ) out->intro_length = e.intro;
+		if ( e.loop   >= 0 ) out->loop_length  = e.loop;
 	}
 	return 0;
 }
