@@ -153,7 +153,7 @@ if (USE_GME_VGM)
 endif()
 
 # These headers are part of the generic gme interface.
-set (EXPORTED_HEADERS gme.h)
+set (EXPORTED_HEADERS gme.h blargg_source.h)
 
 # while building a macOS framework, exported headers must be in the source
 # list, or the header files aren't copied to the bundle.
