@@ -203,7 +203,7 @@ case op + 0x0C: /* (ind),y */\
 	IND_Y( HANDLE_PAGE_CROSSING, data )\
 	goto ptr##op;\
 case op + 0x10: /* zp,X */\
-	data = uint8_t (data + x);\
+	data = uint8_t (data + x);/*FALLTHRU*/\
 case op + 0x00: /* zp */\
 	data = READ_LOW( data );\
 	goto imm##op;\
@@ -213,13 +213,13 @@ case op + 0x14: /* abs,Y */\
 case op + 0x18: /* abs,X */\
 	data += x;\
 ind##op:\
-	HANDLE_PAGE_CROSSING( data );\
+	HANDLE_PAGE_CROSSING( data );/*FALLTHRU*/\
 case op + 0x08: /* abs */\
 	ADD_PAGE();\
 ptr##op:\
 	FLUSH_TIME();\
 	data = READ( data );\
-	CACHE_TIME();\
+	CACHE_TIME();/*FALLTHRU*/\
 case op + 0x04: /* imm */\
 imm##op:
 
@@ -282,7 +282,7 @@ imm##op:
 		BRANCH( !(uint8_t) nz );
 	
 	case 0x95: // STA zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0x85: // STA zp
 		pc++;
 		WRITE_LOW( data, a );
@@ -430,23 +430,23 @@ imm##op:
 // Load/store
 	
 	case 0x94: // STY zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0x84: // STY zp
 		pc++;
 		WRITE_LOW( data, y );
 		goto loop;
 	
 	case 0x96: // STX zp,y
-		data = uint8_t (data + y);
+		data = uint8_t (data + y);/*FALLTHRU*/
 	case 0x86: // STX zp
 		pc++;
 		WRITE_LOW( data, x );
 		goto loop;
 	
 	case 0xB6: // LDX zp,y
-		data = uint8_t (data + y);
+		data = uint8_t (data + y);/*FALLTHRU*/
 	case 0xA6: // LDX zp
-		data = READ_LOW( data );
+		data = READ_LOW( data );/*FALLTHRU*/
 	case 0xA2: // LDX #imm
 		pc++;
 		x = data;
@@ -454,9 +454,9 @@ imm##op:
 		goto loop;
 	
 	case 0xB4: // LDY zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0xA4: // LDY zp
-		data = READ_LOW( data );
+		data = READ_LOW( data );/*FALLTHRU*/
 	case 0xA0: // LDY #imm
 		pc++;
 		y = data;
@@ -465,7 +465,7 @@ imm##op:
 	
 	case 0xBC: // LDY abs,X
 		data += x;
-		HANDLE_PAGE_CROSSING( data );
+		HANDLE_PAGE_CROSSING( data );/*FALLTHRU*/
 	case 0xAC:{// LDY abs
 		unsigned addr = data + 0x100 * GET_MSB();
 		pc += 2;
@@ -477,7 +477,7 @@ imm##op:
 	
 	case 0xBE: // LDX abs,y
 		data += y;
-		HANDLE_PAGE_CROSSING( data );
+		HANDLE_PAGE_CROSSING( data );/*FALLTHRU*/
 	case 0xAE:{// LDX abs
 		unsigned addr = data + 0x100 * GET_MSB();
 		pc += 2;
@@ -521,7 +521,7 @@ imm##op:
 	}
 	
 	case 0xE4: // CPX zp
-		data = READ_LOW( data );
+		data = READ_LOW( data );/*FALLTHRU*/
 	case 0xE0: // CPX #imm
 	cpx_data:
 		nz = x - data;
@@ -540,7 +540,7 @@ imm##op:
 	}
 	
 	case 0xC4: // CPY zp
-		data = READ_LOW( data );
+		data = READ_LOW( data ); // FALLTHRU
 	case 0xC0: // CPY #imm
 	cpy_data:
 		nz = y - data;
@@ -611,7 +611,7 @@ imm##op:
 // Shift/rotate
 
 	case 0x4A: // LSR A
-		c = 0;
+		c = 0;/*FALLTHRU*/
 	case 0x6A: // ROR A
 		nz = c >> 1 & 0x80;
 		c = a << 8;
@@ -635,9 +635,9 @@ imm##op:
 	}
 	
 	case 0x5E: // LSR abs,X
-		data += x;
+		data += x;/*FALLTHRU*/
 	case 0x4E: // LSR abs
-		c = 0;
+		c = 0;/*FALLTHRU*/
 	case 0x6E: // ROR abs
 	ror_abs: {
 		ADD_PAGE();
@@ -653,9 +653,9 @@ imm##op:
 		goto rol_abs;
 	
 	case 0x1E: // ASL abs,X
-		data += x;
+		data += x;/*FALLTHRU*/
 	case 0x0E: // ASL abs
-		c = 0;
+		c = 0;/*FALLTHRU*/
 	case 0x2E: // ROL abs
 	rol_abs:
 		ADD_PAGE();
@@ -677,9 +677,9 @@ imm##op:
 		goto ror_zp;
 	
 	case 0x56: // LSR zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0x46: // LSR zp
-		c = 0;
+		c = 0;/*FALLTHRU*/
 	case 0x66: // ROR zp
 	ror_zp: {
 		int temp = READ_LOW( data );
@@ -693,9 +693,9 @@ imm##op:
 		goto rol_zp;
 	
 	case 0x16: // ASL zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0x06: // ASL zp
-		c = 0;
+		c = 0;/*FALLTHRU*/
 	case 0x26: // ROL zp
 	rol_zp:
 		nz = c >> 8 & 1;
@@ -711,13 +711,13 @@ imm##op:
 		INC_DEC_XY( y, -1 )
 	
 	case 0xF6: // INC zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0xE6: // INC zp
 		nz = 1;
 		goto add_nz_zp;
 	
 	case 0xD6: // DEC zp,x
-		data = uint8_t (data + x);
+		data = uint8_t (data + x);/*FALLTHRU*/
 	case 0xC6: // DEC zp
 		nz = (uint16_t) -1;
 	add_nz_zp:
@@ -906,9 +906,9 @@ imm##op:
 	
 	// SKW - Skip word
 	case 0x1C: case 0x3C: case 0x5C: case 0x7C: case 0xDC: case 0xFC:
-		HANDLE_PAGE_CROSSING( data + x );
+		HANDLE_PAGE_CROSSING( data + x );/*FALLTHRU*/
 	case 0x0C:
-		pc++;
+		pc++;/*FALLTHRU*/
 	// SKB - Skip byte
 	case 0x74: case 0x04: case 0x14: case 0x34: case 0x44: case 0x54: case 0x64:
 	case 0x80: case 0x82: case 0x89: case 0xC2: case 0xD4: case 0xE2: case 0xF4:

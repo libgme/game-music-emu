@@ -312,7 +312,7 @@ void Gb_Apu::write_osc( int index, int reg, int data )
 	switch ( index )
 	{
 	case 0:
-		sq = &square1;
+		sq = &square1; // FALLTHRU
 	case 1:
 		if ( sq->write_register( reg, data ) && index == 0 )
 		{

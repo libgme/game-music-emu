@@ -292,7 +292,7 @@ loop:
 		#endif
 		goto loop;
 	
-#define CASE( n )   case n:
+#define CASE( n )   /*FALLTHRU*/case n:
 
 // Define common address modes based on opcode for immediate mode. Execution
 // ends with data set to the address of the operand.
@@ -311,13 +311,13 @@ loop:
 		data += y;\
 		goto abs_##op;\
 	CASE( op + 0x0D ) /* abs+X */\
-		data += x;\
+		data += x;/*FALLTHRU*/\
 	CASE( op - 0x03 ) /* abs */\
 	abs_##op:\
 		data += 0x100 * READ_PC( ++pc );\
 		goto end_##op;\
 	CASE( op + 0x0C ) /* dp+X */\
-		data = (uint8_t) (data + x);
+		data = (uint8_t) (data + x);/*FALLTHRU*/
 
 #define ADDR_MODES_NO_DP( op )\
 	ADDR_MODES_( op )\
@@ -349,7 +349,7 @@ loop:
 		goto inc_pc_loop;
 	
 	case 0xF9: // MOV X,dp+Y
-		data = (uint8_t) (data + y);
+		data = (uint8_t) (data + y);/*FALLTHRU*/
 	case 0xF8: // MOV X,dp
 		READ_DP_TIMER( 0, data, x = nz );
 		goto inc_pc_loop;
@@ -357,14 +357,14 @@ loop:
 	case 0xE9: // MOV X,abs
 		data = READ_PC16( pc );
 		++pc;
-		data = READ( 0, data );
+		data = READ( 0, data );/*FALLTHRU*/
 	case 0xCD: // MOV X,imm
 		x  = data;
 		nz = data;
 		goto inc_pc_loop;
 	
 	case 0xFB: // MOV Y,dp+X
-		data = (uint8_t) (data + x);
+		data = (uint8_t) (data + x);/*FALLTHRU*/
 	case 0xEB: // MOV Y,dp
 		// 70% from timer
 		pc++;
@@ -404,13 +404,13 @@ loop:
 	}
 	
 	case 0xD9: // MOV dp+Y,X
-		data = (uint8_t) (data + y);
+		data = (uint8_t) (data + y);/*FALLTHRU*/
 	case 0xD8: // MOV dp,X
 		WRITE( 0, data + dp, x );
 		goto inc_pc_loop;
 	
 	case 0xDB: // MOV dp+X,Y
-		data = (uint8_t) (data + x);
+		data = (uint8_t) (data + x);/*FALLTHRU*/
 	case 0xCB: // MOV dp,Y
 		WRITE( 0, data + dp, y );
 		goto inc_pc_loop;
@@ -456,7 +456,7 @@ loop:
 	
 #define LOGICAL_OP( op, func )\
 	ADDR_MODES( op ) /* addr */\
-		data = READ( 0, data );\
+		data = READ( 0, data );/*FALLTHRU*/\
 	case op: /* imm */\
 		nz = a func##= data;\
 		goto inc_pc_loop;\
@@ -487,7 +487,7 @@ loop:
 // 4. 8-BIT ARITHMETIC OPERATION COMMANDS
 
 	ADDR_MODES( 0x68 ) // CMP addr
-		data = READ( 0, data );
+		data = READ( 0, data );/*FALLTHRU*/
 	case 0x68: // CMP imm
 		nz = a - data;
 		c = ~nz;
@@ -502,7 +502,7 @@ loop:
 		goto loop;
 	
 	case 0x69: // CMP dp,dp
-		data = READ_DP( -3, data );
+		data = READ_DP( -3, data );/*FALLTHRU*/
 	case 0x78: // CMP dp,imm
 		nz = READ_DP( -1, READ_PC( ++pc ) ) - data;
 		c = ~nz;
@@ -516,7 +516,7 @@ loop:
 		data = READ_PC16( pc );
 		pc++;
 	cmp_x_addr:
-		data = READ( 0, data );
+		data = READ( 0, data );/*FALLTHRU*/
 	case 0xC8: // CMP X,imm
 		nz = x - data;
 		c = ~nz;
@@ -530,7 +530,7 @@ loop:
 		data = READ_PC16( pc );
 		pc++;
 	cmp_y_addr:
-		data = READ( 0, data );
+		data = READ( 0, data );/*FALLTHRU*/
 	case 0xAD: // CMP Y,imm
 		nz = y - data;
 		c = ~nz;
@@ -605,7 +605,7 @@ loop:
 
 	case 0x9B: // DEC dp+X
 	case 0xBB: // INC dp+X
-		data = (uint8_t) (data + x);
+		data = (uint8_t) (data + x); /* fallthrough */
 	case 0x8B: // DEC dp
 	case 0xAB: // INC dp
 		data += dp;
@@ -623,7 +623,7 @@ loop:
 // 7. SHIFT, ROTATION COMMANDS
 
 	case 0x5C: // LSR A
-		c = 0;
+		c = 0; /*fallthrough*/
 	case 0x7C:{// ROR A
 		nz = (c >> 1 & 0x80) | (a >> 1);
 		c = a << 8;
@@ -632,7 +632,7 @@ loop:
 	}
 	
 	case 0x1C: // ASL A
-		c = 0;
+		c = 0; /*fallthrough*/
 	case 0x3C:{// ROL A
 		int temp = c >> 8 & 1;
 		c = a << 1;
@@ -646,14 +646,14 @@ loop:
 		data += dp;
 		goto rol_mem;
 	case 0x1B: // ASL dp+X
-		c = 0;
+		c = 0; /*fallthrough*/
 	case 0x3B: // ROL dp+X
-		data = (uint8_t) (data + x);
+		data = (uint8_t) (data + x); /*fallthrough*/
 	case 0x2B: // ROL dp
 		data += dp;
 		goto rol_mem;
 	case 0x0C: // ASL abs
-		c = 0;
+		c = 0; /*fallthrough*/
 	case 0x2C: // ROL abs
 		data = READ_PC16( pc );
 		pc++;
@@ -668,14 +668,14 @@ loop:
 		data += dp;
 		goto ror_mem;
 	case 0x5B: // LSR dp+X
-		c = 0;
+		c = 0; /*fallthrough*/
 	case 0x7B: // ROR dp+X
-		data = (uint8_t) (data + x);
+		data = (uint8_t) (data + x); /*fallthrough*/
 	case 0x6B: // ROR dp
 		data += dp;
 		goto ror_mem;
 	case 0x4C: // LSR abs
-		c = 0;
+		c = 0; /*fallthrough*/
 	case 0x6C: // ROR abs
 		data = READ_PC16( pc );
 		pc++;

@@ -260,7 +260,7 @@ loop:
 		if ( flags & z_flag )
 			goto loop;
 	call:
-		pc -= 2;
+		pc -= 2; // FALLTHRU
 	case 0xCD: // CALL (most-common)
 		data = pc + 2;
 		pc = GET_ADDR();
@@ -274,6 +274,7 @@ loop:
 	case 0xC8: // RNZ (next-most-common)
 		if ( !(flags & z_flag) )
 			goto loop;
+		// FALLTHRU
 	case 0xC9: // RET (most common)
 	ret:
 		pc = READ( sp );
@@ -431,7 +432,7 @@ loop:
 			goto rl_comm;
 		
 		case 0x3E: // SRL (HL)
-			data += 0x10; // bump up to 0x4n to avoid preserving sign bit
+			data += 0x10; /* fallthrough */ // bump up to 0x4n to avoid preserving sign bit
 		case 0x1E: // RR (HL)
 		case 0x0E: // RRC (HL)
 		case 0x2E: // SRA (HL)
@@ -439,7 +440,7 @@ loop:
 			goto rr_comm;
 		
 		case 0x38: case 0x39: case 0x3A: case 0x3B: case 0x3C: case 0x3D: case 0x3F: // SRL A
-			data += 0x10; // bump up to 0x4n
+			data += 0x10; /* fallthrough */ // bump up to 0x4n
 		case 0x18: case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1F: // RR A
 		case 0x08: case 0x09: case 0x0A: case 0x0B: case 0x0C: case 0x0D: case 0x0F: // RRC A
 		case 0x28: case 0x29: case 0x2A: case 0x2B: case 0x2C: case 0x2D: case 0x2F: // SRA A
@@ -822,11 +823,11 @@ loop:
 	
 	case 0xA6: // AND (HL)
 		data = READ( rp.hl );
-		pc--;
+		pc--; // FALLTHRU
 	case 0xE6: // AND IMM
 		pc++;
 	and_comm:
-		rg.a &= data;
+		rg.a &= data; // FALLTHRU
 	case 0xA7: // AND A
 		flags = h_flag | (((rg.a - 1) >> 1) & z_flag);
 		goto loop;
@@ -842,11 +843,11 @@ loop:
 	
 	case 0xB6: // OR (HL)
 		data = READ( rp.hl );
-		pc--;
+		pc--; // FALLTHRU
 	case 0xF6: // OR IMM
 		pc++;
 	or_comm:
-		rg.a |= data;
+		rg.a |= data; // FALLTHRU
 	case 0xB7: // OR A
 		flags = ((rg.a - 1) >> 1) & z_flag;
 		goto loop;
@@ -862,7 +863,7 @@ loop:
 	
 	case 0xAE: // XOR (HL)
 		data = READ( rp.hl );
-		pc--;
+		pc--; // FALLTHRU
 	case 0xEE: // XOR IMM
 		pc++;
 	xor_comm:
@@ -912,6 +913,7 @@ loop:
 	case 0xFF:
 		if ( pc == idle_addr + 1 )
 			goto stop;
+		// FALLTHRU
 	case 0xC7: case 0xCF: case 0xD7: case 0xDF:  // RST
 	case 0xE7: case 0xEF: case 0xF7:
 		data = pc;
