@@ -68,7 +68,7 @@ typedef unsigned char byte;
         #if defined(BLARGG_BUILD_DLL)
             #define BLARGG_EXPORT __declspec(dllexport)
         #else
-            #define BLARGG_EXPORT __declspec(dllimport)
+            #define BLARGG_EXPORT /* Leave blank: friendly with both static and shared linking */
         #endif
     #elif defined (LIBGME_VISIBILITY) && defined(__cplusplus)
         #define BLARGG_EXPORT __attribute__((visibility ("default")))
