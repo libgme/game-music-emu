@@ -449,6 +449,7 @@ loop:
 		
 	} // CB op
 	assert( false ); // unhandled CB op
+	// fallthrough
 
 	case 0x07: // RLCA
 	case 0x17: // RLA
