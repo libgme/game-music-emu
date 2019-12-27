@@ -110,7 +110,7 @@ void Ay_Cpu::reset( void* m )
 #define R16( n, shift, offset )\
 	(*(uint16_t*) ((char*) r16_ - (offset >> (shift - 1)) + ((n) >> (shift - 1))))
 
-#define CASE5( a, b, c, d, e          ) case 0x##a:case 0x##b:case 0x##c:case 0x##d:case 0x##e
+#define CASE5( a, b, c, d, e          ) /* FALLTHRU */ case 0x##a:case 0x##b:case 0x##c:case 0x##d:case 0x##e
 #define CASE6( a, b, c, d, e, f       ) CASE5( a, b, c, d, e       ): case 0x##f
 #define CASE7( a, b, c, d, e, f, g    ) CASE6( a, b, c, d, e, f    ): case 0x##g
 #define CASE8( a, b, c, d, e, f, g, h ) CASE7( a, b, c, d, e, f, g ): case 0x##h
@@ -359,7 +359,7 @@ possibly_out_of_time:
 	CASE7( C7, CF, D7, DF, E7, EF, F7 ):
 		data = pc;
 		pc = opcode & 0x38;
-		goto push_data;
+		goto push_data; /* fallthrough */
 
 // PUSH/POP
 	case 0xF5: // PUSH AF
@@ -391,7 +391,7 @@ possibly_out_of_time:
 // ADC/ADD/SBC/SUB
 	case 0x96: // SUB (HL)
 	case 0x86: // ADD (HL)
-		flags &= ~C01;
+		flags &= ~C01; /* fallthrough */
 	case 0x9E: // SBC (HL)
 	case 0x8E: // ADC (HL)
 		data = READ( rp.hl );
@@ -399,7 +399,7 @@ possibly_out_of_time:
 	
 	case 0xD6: // SUB A,imm
 	case 0xC6: // ADD imm
-		flags &= ~C01;
+		flags &= ~C01; /* fallthrough */
 	case 0xDE: // SBC A,imm
 	case 0xCE: // ADC imm
 		pc++;
@@ -407,7 +407,7 @@ possibly_out_of_time:
 	
 	CASE7( 90, 91, 92, 93, 94, 95, 97 ): // SUB r
 	CASE7( 80, 81, 82, 83, 84, 85, 87 ): // ADD r
-		flags &= ~C01;
+		flags &= ~C01; /* fallthrough */
 	CASE7( 98, 99, 9A, 9B, 9C, 9D, 9F ): // SBC r
 	CASE7( 88, 89, 8A, 8B, 8C, 8D, 8F ): // ADC r
 		data = R8( opcode & 7, 0 );
@@ -1062,7 +1062,7 @@ possibly_out_of_time:
 			flags = (flags & C01) | SZ28P( temp );
 			goto loop;
 		}
-		
+
 		case 0x71: // OUT (C),0
 			rg.flags = 0;
 		CASE7( 41, 49, 51, 59, 61, 69, 79 ): // OUT (C),r
@@ -1309,7 +1309,7 @@ possibly_out_of_time:
 	
 		case 0x96: // SUB (IXY+disp)
 		case 0x86: // ADD (IXY+disp)
-			flags &= ~C01;
+			flags &= ~C01; /*fallthrough*/
 		case 0x9E: // SBC (IXY+disp)
 		case 0x8E: // ADC (IXY+disp)
 			pc++;
@@ -1319,7 +1319,7 @@ possibly_out_of_time:
 		
 		case 0x94: // SUB HXY
 		case 0x84: // ADD HXY
-			flags &= ~C01;
+			flags &= ~C01; /*fallthrough*/
 		case 0x9C: // SBC HXY
 		case 0x8C: // ADC HXY
 			opcode = data;
@@ -1328,7 +1328,7 @@ possibly_out_of_time:
 		
 		case 0x95: // SUB LXY
 		case 0x85: // ADD LXY
-			flags &= ~C01;
+			flags &= ~C01; /* fallthrough */
 		case 0x9D: // SBC LXY
 		case 0x8D: // ADC LXY
 			opcode = data;

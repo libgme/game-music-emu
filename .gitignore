@@ -5,7 +5,7 @@ build/*
 .idea/*
 
 # Qt Creator local user settings files
-*.user
+*.user*
 
 # test data
 test/demo

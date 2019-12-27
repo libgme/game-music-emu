@@ -88,13 +88,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     # potential uses; see https://bitbucket.org/mpyne/game-music-emu/issues/18/
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fwrapv")
 
-    if (NOT DEFINED LIBGME_SWITCH_FALLTHROUGH)
-        check_cxx_compiler_flag (-Wimplicit-fallthrough __LIBGME_SWITCH_FALLTHROUGH_WARNINGS)
-        set (LIBGME_SWITCH_FALLTHROUGH ${__LIBGME_SWITCH_FALLTHROUGH_WARNINGS}
-            CACHE BOOL "Set if the compiler will complain about implicit switch fallthrough"
-            )
-    endif()
-
     if (ENABLE_UBSAN)
         # GCC needs -static-libubsan
         if (NOT BUILD_SHARED_LIBS AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -104,12 +97,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
         endif()
     endif()
 endif ()
-
-if(LIBGME_SWITCH_FALLTHROUGH)
-     # Avoid warning spam about switch fallthroughs, which are numerous in
-     # the codebase.
-     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-fallthrough=0")
-endif()
 
 # Shared library defined here
 add_subdirectory(gme)
