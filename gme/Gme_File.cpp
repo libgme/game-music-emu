@@ -182,6 +182,7 @@ blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
 	out->length        = -1;
 	out->loop_length   = -1;
 	out->intro_length  = -1;
+	out->fade_length   = -1;
 	out->song [0]      = 0;
 	
 	out->game [0]      = 0;
@@ -211,6 +212,7 @@ blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
 		if ( e.length >= 0 ) out->length       = e.length;
 		if ( e.intro  >= 0 ) out->intro_length = e.intro;
 		if ( e.loop   >= 0 ) out->loop_length  = e.loop;
+		if ( e.fade   >= 0 ) out->fade_length  = e.fade;
 	}
 	return 0;
 }
