@@ -309,8 +309,8 @@ gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
 	COPY( length );
 	COPY( intro_length );
 	COPY( loop_length );
+	COPY( fade_length );
 
-	info->i4  = -1;
 	info->i5  = -1;
 	info->i6  = -1;
 	info->i7  = -1;
@@ -375,7 +375,7 @@ void      gme_set_user_cleanup(Music_Emu* me, gme_user_cleanup_t func ) { me->se
 
 gme_err_t gme_start_track    ( Music_Emu* me, int index )           { return me->start_track( index ); }
 gme_err_t gme_play           ( Music_Emu* me, int n, short* p )     { return me->play( n, p ); }
-void      gme_set_fade       ( Music_Emu* me, int start_msec )      { me->set_fade( start_msec ); }
+void      gme_set_fade       ( Music_Emu* me, int start_msec, int fade_msec ) { me->set_fade( start_msec, fade_msec ); }
 int       gme_track_ended    ( Music_Emu const* me )                { return me->track_ended(); }
 int       gme_tell           ( Music_Emu const* me )                { return me->tell(); }
 int       gme_tell_samples   ( Music_Emu const* me )                { return me->tell_samples(); }

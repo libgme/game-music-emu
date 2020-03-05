@@ -1,4 +1,4 @@
-Game_Music_Emu 0.6.3: Game Music Emulators
+Game_Music_Emu 0.7.0: Game Music Emulators
 ------------------------------------------
 Game_Music_Emu is a collection of video game music file emulators that
 support the following formats and systems:

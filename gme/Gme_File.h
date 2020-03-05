@@ -32,6 +32,7 @@ struct track_info_t
 	long length;
 	long intro_length;
 	long loop_length;
+	long fade_length;
 	
 	/* empty string if not available */
 	char system    [256];
