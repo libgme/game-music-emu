@@ -116,7 +116,7 @@ gme_err_t Music_Player::start_track( int track )
 		
 		if ( track_info_->length <= 0 )
 			track_info_->length = (long) (2.5 * 60 * 1000);
-		gme_set_fade( emu_, track_info_->length );
+		gme_set_fade( emu_, track_info_->length, 8000 );
 		
 		paused = false;
 		sound_start();
@@ -181,7 +181,7 @@ void Music_Player::mute_voices( int mask )
 
 void Music_Player::set_fadeout( bool fade )
 {
-	gme_set_fade( emu_, fade ? track_info_->length : -1 );
+	gme_set_fade( emu_, fade ? track_info_->length : -1, 8000 );
 }
 
 void Music_Player::fill_buffer( void* data, sample_t* out, int count )

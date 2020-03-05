@@ -191,7 +191,7 @@ endif()
 # Hopefully the API can stay compatible with old versions.
 set_target_properties(gme
     PROPERTIES VERSION ${GME_VERSION}
-               SOVERSION 0)
+               SOVERSION 1)
 
 # macOS framework build
 if(BUILD_FRAMEWORK)
@@ -205,7 +205,7 @@ if(BUILD_FRAMEWORK)
 endif()
 
 install(TARGETS gme LIBRARY DESTINATION lib${LIB_SUFFIX}
-                    RUNTIME DESTINATION bin  # DLL platforms
+                    RUNTIME DESTINATION bin # DLL platforms
                     ARCHIVE DESTINATION lib # DLL platforms
                     FRAMEWORK DESTINATION /Library/Frameworks) # macOS framework
 
