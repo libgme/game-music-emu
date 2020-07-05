@@ -55,6 +55,7 @@ gme_type_t const* gme_type_list()
 	#endif
 	#ifdef USE_GME_SPC
 	            gme_spc_type,
+				gme_rsn_type,
 	#endif
 	#ifdef USE_GME_VGM
 	            gme_vgm_type,
@@ -81,6 +82,7 @@ const char* gme_identify_header( void const* header )
 		case BLARGG_4CHAR('N','S','F','E'):  return "NSFE";
 		case BLARGG_4CHAR('S','A','P',0x0D): return "SAP";
 		case BLARGG_4CHAR('S','N','E','S'):  return "SPC";
+		case BLARGG_4CHAR('R','a','r','!'):  return "RSN";
 		case BLARGG_4CHAR('V','g','m',' '):  return "VGM";
 	}
 	if (get_be16(header) == BLARGG_2CHAR(0x1F, 0x8B))
@@ -188,6 +190,9 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 	Remaining_Reader rem( header, header_size, &in );
 	gme_err_t err = emu->load( rem );
 	in.close();
+
+	if ( emu->is_archive )
+		err = emu->load_archive( path );
 
 	if ( err )
 		delete emu;
