@@ -11,11 +11,12 @@ pipelines:
       - step:
           image: gcc:6
           name: GCC 6 compile
+          # CMake 3.0.2 doesn't appear to support cmake -S foo -B bar
           script:
             - apt-get -qq update && apt-get -qq install -y cmake
-            - cmake -S . -B build && cmake --build build
-            - cmake --build build --target demo
-            - cmake --build build --target test
+            - mkdir build && cd build && cmake ../ && cmake --build .
+            - cmake --build . --target demo
+            - cmake --build . --target test
       - step:
           image: gcc:8
           name: GCC 8 compile
