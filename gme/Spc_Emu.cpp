@@ -358,6 +358,7 @@ struct Rsn_File : Spc_File
 
 		return 0;
 	#else
+		(void) path;
 		return gme_wrong_file_type;
 	#endif
 	}
@@ -533,6 +534,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 
 	return 0;
 #else
+	(void) path;
 	return gme_wrong_file_type;
 #endif
 }
