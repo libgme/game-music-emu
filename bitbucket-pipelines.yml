@@ -24,3 +24,17 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - mkdir build && cd build && cmake ../ && make
             - cd demo && make
+      - step:
+          image: gcc:9
+          name: GCC 9 compile
+          script:
+            - apt-get -qq update && apt-get -qq install -y cmake
+            - cmake -S . -B build && cmake --build build
+            - cmake --build build --target demo
+      - step:
+          image: gcc:10
+          name: GCC 10 compile
+          script:
+            - apt-get -qq update && apt-get -qq install -y cmake
+            - cmake -S . -B build && cmake --build build
+            - cmake --build build --target demo
