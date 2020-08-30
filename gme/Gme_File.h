@@ -99,6 +99,9 @@ public:
 	// clear it. Passes user_data to cleanup function.
 	void set_user_cleanup( gme_user_cleanup_t func ) { user_cleanup_ = func; }
 	
+	bool is_archive = false;
+	virtual blargg_err_t load_archive( const char* ) { return gme_wrong_file_type; }
+	
 public:
 	// deprecated
 	int error_count() const; // use warning()
@@ -148,7 +151,7 @@ public:
 	static void copy_field_( char* out, const char* in );
 	static void copy_field_( char* out, const char* in, int len );
 };
-	
+
 Music_Emu* gme_new_( Music_Emu*, long sample_rate );
 
 #define GME_COPY_FIELD( in, out, name ) \

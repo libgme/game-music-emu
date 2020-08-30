@@ -71,6 +71,14 @@ option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ON)
 
 option(BUILD_FRAMEWORK "Build framework instead of dylib (on macOS)" OFF)
 
+
+# static builds need to find static zlib (and static forms of other needed
+# libraries.  Ensure CMake looks only for static libs if we're doing a static
+# build.  See https://stackoverflow.com/a/44738756
+if(NOT BUILD_SHARED_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+endif()
+
 # Check for GCC/Clang "visibility" support.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     OR
@@ -87,6 +95,15 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     # This has caused miscompilation of code already and there are other
     # potential uses; see https://bitbucket.org/mpyne/game-music-emu/issues/18/
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fwrapv")
+
+    if (USE_GME_SPC)
+        list(APPEND CMAKE_MODULE_PATH "${CMAKE_HOME_DIRECTORY}/cmake")
+        find_package(UNRAR QUIET)
+        if (UNRAR_FOUND)
+            # POSIX Threading for unRAR
+            set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+        endif()
+    endif()
 
     if (ENABLE_UBSAN)
         # GCC needs -static-libubsan

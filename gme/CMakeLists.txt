@@ -14,13 +14,6 @@ set(libgme_SRCS Blip_Buffer.cpp
                 Music_Emu.cpp
                 )
 
-# static builds need to find static zlib (and static forms of other needed
-# libraries.  Ensure CMake looks only for static libs if we're doing a static
-# build.  See https://stackoverflow.com/a/44738756
-if(NOT BUILD_SHARED_LIBS)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-endif()
-
 find_package(ZLIB QUIET)
 
 # Ay_Apu is very popular around here
@@ -184,6 +177,19 @@ else()
     message("ZLib library not found, disabling support for compressed formats such as VGZ")
 endif()
 
+if(USE_GME_SPC)
+    if(UNRAR_FOUND)
+        message(" ** unRAR library located, the RSN file format will be supported")
+        target_compile_definitions(gme PRIVATE -DRARDLL)
+        target_include_directories(gme PRIVATE ${UNRAR_INCLUDE_DIRS})
+        target_link_libraries(gme ${UNRAR_LIBRARIES})
+        # Is not to be installed though
+
+        set(PKG_CONFIG_UNRAR -lunrar) # evaluated in libgme.pc.in
+    else()
+        message("unRAR library not found, disabling support for the RSN file format")
+    endif()
+endif()
 # The version is the release.  The "soversion" is the API version.  As long
 # as only build fixes are performed (i.e. no backwards-incompatible changes
 # to the API), the SOVERSION should be the same even when bumping up VERSION.
