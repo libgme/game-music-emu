@@ -22,7 +22,7 @@ add_executable(demo_mem Wave_Writer.cpp basics_mem.c)
 add_custom_command(TARGET demo_mem
     POST_BUILD
     COMMAND cmake -E copy "${CMAKE_SOURCE_DIR}/test.vgz" ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Add convenience copy of test.nsf file for demo application"
+    COMMENT "Add convenience copy of test.vgz file for demo application"
     VERBATIM) # VERBATIM is essentially required, "please use correct command line kthx"
 
 target_link_libraries(demo_mem gme)
