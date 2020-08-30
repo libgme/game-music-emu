@@ -15,7 +15,7 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - cmake -S . -B build && cmake --build build
             - cmake --build build --target demo
-            - cmake --build build --target demo/test
+            - cmake --build build --target test
       - step:
           image: gcc:8
           name: GCC 8 compile
@@ -23,7 +23,7 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - cmake -S . -B build && cmake --build build
             - cmake --build build --target demo
-            - cmake --build build --target demo/test
+            - cmake --build build --target test
       - step:
           image: gcc:9
           name: GCC 9 compile
@@ -31,7 +31,7 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - cmake -S . -B build && cmake --build build
             - cmake --build build --target demo
-            - cmake --build build --target demo/test
+            - cmake --build build --target test
       - step:
           image: gcc:10
           name: GCC 10 compile
@@ -39,4 +39,4 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - cmake -S . -B build && cmake --build build
             - cmake --build build --target demo
-            - cmake --build build --target demo/test
+            - cmake --build build --target test
