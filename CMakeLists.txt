@@ -1,15 +1,12 @@
 # CMake project definition file.
 project(libgme)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 include (CheckCXXCompilerFlag)
+include (CTest)
 
 # When version is changed, also change the one in gme/gme.h to match
 set(GME_VERSION 0.7.0 CACHE INTERNAL "libgme Version")
-
-# 2.6+ always assumes FATAL_ERROR, but 2.4 and below don't.
-# Of course, 2.4 might work, in which case you're welcome to drop
-# down the requirement, but I can't test that.
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
 
 # Default emulators to build (all of them! ;)
 if (NOT DEFINED USE_GME_AY)

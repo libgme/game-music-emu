@@ -3,27 +3,27 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: gcc:8
 
 pipelines:
   default:
     - parallel:
+      # Test from older to newer GCC releases. GCC 6's image supplies CMake 3.0.2.
       - step:
-      # Test whether it compiles on older GCC
           image: gcc:6
           name: GCC 6 compile
           script:
             - apt-get -qq update && apt-get -qq install -y cmake
-            - mkdir build && cd build && cmake ../ && make
-            - cd demo && make
+            - cmake -S . -B build && cmake --build build
+            - cmake --build build --target demo
+            - cmake --build build --target demo/test
       - step:
-      # Test whether it compiles on newer GCC
           image: gcc:8
           name: GCC 8 compile
           script:
             - apt-get -qq update && apt-get -qq install -y cmake
-            - mkdir build && cd build && cmake ../ && make
-            - cd demo && make
+            - cmake -S . -B build && cmake --build build
+            - cmake --build build --target demo
+            - cmake --build build --target demo/test
       - step:
           image: gcc:9
           name: GCC 9 compile
@@ -31,6 +31,7 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - cmake -S . -B build && cmake --build build
             - cmake --build build --target demo
+            - cmake --build build --target demo/test
       - step:
           image: gcc:10
           name: GCC 10 compile
@@ -38,3 +39,4 @@ pipelines:
             - apt-get -qq update && apt-get -qq install -y cmake
             - cmake -S . -B build && cmake --build build
             - cmake --build build --target demo
+            - cmake --build build --target demo/test
