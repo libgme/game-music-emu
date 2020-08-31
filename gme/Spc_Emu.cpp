@@ -365,6 +365,8 @@ struct Rsn_File : Spc_File
 
 	blargg_err_t track_info_( track_info_t* out, int track ) const
 	{
+		if ( static_cast<size_t>(track) >= spc.size() )
+			return "Invalid track";
 		long xid6_size = spc[track + 1] - ( spc[track] + head_size );
 		get_spc_info(
 			*(Spc_Emu::header_t const*) spc[track],
@@ -541,6 +543,8 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 
 blargg_err_t Rsn_Emu::start_track_( int track )
 {
+	if ( static_cast<size_t>(track) >= spc.size() )
+		return "Invalid track requested";
 	file_data = spc[track];
 	file_size = spc[track + 1] - spc[track];
 	return Spc_Emu::start_track_( track );

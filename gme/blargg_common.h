@@ -52,7 +52,7 @@ public:
 		size_ = n;
 		return 0;
 	}
-	void clear() { void* p = begin_; begin_ = 0; size_ = 0; free( p ); }
+	void clear() { free( begin_ ); begin_ = nullptr; size_ = 0; }
 	T& operator [] ( size_t n ) const
 	{
 		assert( n <= size_ ); // <= to allow past-the-end value
