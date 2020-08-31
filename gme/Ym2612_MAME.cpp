@@ -3104,6 +3104,6 @@ void Ym2612_MAME_Emu::write1(int addr, int data)
 
 void Ym2612_MAME_Emu::run(int pair_count, Ym2612_MAME_Emu::sample_t *out)
 {
-	(void) &TimerBOver; // squelch clang warning, which appears to be from a config choice
+	(void) &Ym2612_MameImpl::TimerBOver; // squelch clang warning, which appears to be from a config choice
 	if ( impl ) Ym2612_MameImpl::ym2612_generate( impl, out, pair_count, 1);
 }
