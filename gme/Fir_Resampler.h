@@ -78,7 +78,7 @@ protected:
 // better quality and rolloff effectiveness, and take longer to calculate.
 template<int width>
 class Fir_Resampler : public Fir_Resampler_ {
-	BOOST_STATIC_ASSERT( width >= 4 && width % 2 == 0 );
+	static_assert( width >= 4 && width % 2 == 0, "FIR width must be even and have 4 or more points" );
 	short impulses [max_res] [width];
 public:
 	Fir_Resampler() : Fir_Resampler_( width, impulses [0] ) { }

@@ -114,7 +114,7 @@ bool Gb_Cpu::run( blargg_long cycle_count )
 		uint8_t r8_ [8]; // indexed registers (use R8 macro due to endian dependence)
 		uint16_t r16 [4]; // indexed pairs
 	};
-	BOOST_STATIC_ASSERT( sizeof rg == 8 && sizeof rp == 8 );
+	static_assert( sizeof rg == 8 && sizeof rp == 8, "Unhandled word size" );
 	
 	rg = r;
 	unsigned pc = r.pc;

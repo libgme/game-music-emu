@@ -42,7 +42,7 @@ public:
 	#else
 		struct regs_t { uint8_t c, b, e, d, l, h, a, flags; };
 	#endif
-	BOOST_STATIC_ASSERT( sizeof (regs_t) == 8 );
+	static_assert( sizeof (regs_t) == 8, "Invalid registers size, padding issue?" );
 	
 	struct pairs_t { uint16_t bc, de, hl, fa; };
 	

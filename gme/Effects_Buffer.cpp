@@ -32,11 +32,11 @@ using std::max;
 
 const unsigned echo_size = 4096;
 const unsigned echo_mask = echo_size - 1;
-BOOST_STATIC_ASSERT( (echo_size & echo_mask) == 0 ); // must be power of 2
+static_assert( (echo_size & echo_mask) == 0, "echo_size must be a power of 2" );
 
 const unsigned reverb_size = 8192 * 2;
 const unsigned reverb_mask = reverb_size - 1;
-BOOST_STATIC_ASSERT( (reverb_size & reverb_mask) == 0 ); // must be power of 2
+static_assert( (reverb_size & reverb_mask) == 0, "reverb_size must be a power of 2" );
 
 Effects_Buffer::config_t::config_t()
 {
