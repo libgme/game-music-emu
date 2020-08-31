@@ -17,6 +17,7 @@
 	gme_kss_type,\
 	gme_nsf_type,\
 	gme_nsfe_type,\
+	gme_rsn_type,\
 	gme_sap_type,\
 	gme_spc_type,\
 	gme_vgm_type,\
