@@ -12,7 +12,7 @@ class Classic_Emu : public Music_Emu {
 public:
 	Classic_Emu();
 	~Classic_Emu();
-	void set_buffer( Multi_Buffer* );
+	void set_buffer( Multi_Buffer* ) override;
 	blargg_err_t set_multi_channel( bool is_enabled ) override;
 protected:
 	// Services
@@ -26,13 +26,13 @@ protected:
 	virtual void set_voice( int index, Blip_Buffer* center,
 			Blip_Buffer* left, Blip_Buffer* right ) = 0;
 	virtual void update_eq( blip_eq_t const& ) = 0;
-	virtual blargg_err_t start_track_( int track ) = 0;
+	virtual blargg_err_t start_track_( int track ) override;
 	virtual blargg_err_t run_clocks( blip_time_t& time_io, int msec ) = 0;
 protected:
-	blargg_err_t set_sample_rate_( long sample_rate );
-	void mute_voices_( int );
-	void set_equalizer_( equalizer_t const& );
-	blargg_err_t play_( long, sample_t* );
+	blargg_err_t set_sample_rate_( long sample_rate ) override;
+	void mute_voices_( int ) override;
+	void set_equalizer_( equalizer_t const& ) override;
+	blargg_err_t play_( long, sample_t* ) override;
 private:
 	Multi_Buffer* buf;
 	Multi_Buffer* stereo_buffer; // NULL if using custom buffer

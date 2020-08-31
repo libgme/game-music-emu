@@ -37,14 +37,14 @@ int const ram_addr = 0x2000;
 #endif
 
 // status flags
-int const st_n = 0x80;
-int const st_v = 0x40;
-int const st_t = 0x20;
-int const st_b = 0x10;
-int const st_d = 0x08;
-int const st_i = 0x04;
-int const st_z = 0x02;
-int const st_c = 0x01;
+BLARGG_MAYBE_UNUSED int const st_n = 0x80;
+BLARGG_MAYBE_UNUSED int const st_v = 0x40;
+BLARGG_MAYBE_UNUSED int const st_t = 0x20;
+BLARGG_MAYBE_UNUSED int const st_b = 0x10;
+BLARGG_MAYBE_UNUSED int const st_d = 0x08;
+BLARGG_MAYBE_UNUSED int const st_i = 0x04;
+BLARGG_MAYBE_UNUSED int const st_z = 0x02;
+BLARGG_MAYBE_UNUSED int const st_c = 0x01;
 
 void Hes_Cpu::reset()
 {
