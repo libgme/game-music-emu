@@ -147,6 +147,9 @@ void Gbs_Emu::set_voice( int i, Blip_Buffer* c, Blip_Buffer* l, Blip_Buffer* r )
 
 void Gbs_Emu::set_bank( int n )
 {
+	if ((n<1) || (n>31))
+		return;
+
 	blargg_long addr = rom.mask_addr( n * (blargg_long) bank_size );
 	if ( addr == 0 && rom.size() > bank_size )
 	{
