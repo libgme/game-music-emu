@@ -881,7 +881,7 @@ loop:
 
 // Stack
 
-	case 0xF1: // POP FA
+	case 0xF1: // POP AF
 	case 0xC1: // POP BC
 	case 0xD1: // POP DE
 	case 0xE1: // POP HL (common)
@@ -890,7 +890,8 @@ loop:
 		sp = (sp + 2) & 0xFFFF;
 		if ( op != 0xF1 )
 			goto loop;
-		flags = rg.flags & 0xF0;
+		flags = rg.a & 0xF0;
+		rg.a = rg.flags;
 		goto loop;
 	
 	case 0xC5: // PUSH BC
@@ -905,8 +906,8 @@ loop:
 		data = rp.hl;
 		goto push;
 	
-	case 0xF5: // PUSH FA
-		data = (flags << 8) | rg.a;
+	case 0xF5: // PUSH AF
+		data = (rg.a << 8) | flags;
 		goto push;
 
 // Flow control
