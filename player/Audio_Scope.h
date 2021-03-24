@@ -29,7 +29,6 @@ private:
 	typedef unsigned char byte;
 	SDL_Window* window;
 	SDL_Renderer* window_renderer;
-	byte* buf;
 	SDL_Point* scope_lines = nullptr; // lines to be drawn each frame
 	int buf_size;
 	int scope_height;
