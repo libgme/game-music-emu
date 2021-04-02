@@ -208,8 +208,8 @@ blargg_err_t Gbs_Emu::start_track_( int track )
 	RETURN_ERR( Classic_Emu::start_track_( track ) );
 	
 	memset( ram, 0, 0x4000 );
-	memset( ram + 0x4000, 0xFF, 0x1F80 );
-	memset( ram + 0x5F80, 0, sizeof ram - 0x5F80 );
+	memset( ram + 0x4000, 0xFF, 0x1F00 );
+	memset( ram + 0x5F00, 0, sizeof ram - 0x5F00 );
 	ram [hi_page] = 0; // joypad reads back as 0
 	
 	apu.reset();
