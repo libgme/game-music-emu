@@ -106,9 +106,19 @@ int main( int argc, char** argv )
 {
 	init();
 	
+	bool by_mem = false;
+	const char* path = "test.nsf";
+
+	for ( int i = 1; i < argc; ++i )
+	{
+		if ( SDL_strcmp( "-m", argv[i] ) == 0 )
+			by_mem = true;
+		else
+			path = argv[i];
+	}
+
 	// Load file
-	const char* path = (argc > 1 ? argv [argc - 1] : "test.nsf");
-	handle_error( player->load_file( path ) );
+	handle_error( player->load_file( path, by_mem ) );
 	start_track( 1, path );
 	
 	// Main loop
