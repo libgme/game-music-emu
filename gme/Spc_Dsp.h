@@ -50,6 +50,8 @@ public:
 	// If true, prevents channels and global volumes from being phase-negated
 	void disable_surround( bool disable = true );
 
+	void disable_echo( bool disable = true );
+
 // State
 	
 	// Resets DSP and uses supplied values to initialize registers
@@ -138,6 +140,7 @@ private:
 		uint8_t* ram; // 64K shared RAM between DSP and SMP
 		int mute_mask;
 		int surround_threshold;
+		int echo_enable;
 		sample_t* out;
 		sample_t* out_end;
 		sample_t* out_begin;
@@ -203,6 +206,11 @@ inline void Spc_Dsp::write( int addr, int data )
 inline void Spc_Dsp::disable_surround( bool disable )
 {
 	m.surround_threshold = disable ? 0 : -0x4000;
+}
+
+inline void Spc_Dsp::disable_echo( bool disable )
+{
+	m.echo_enable = !disable;
 }
 
 #define SPC_NO_COPY_STATE_FUNCS 1

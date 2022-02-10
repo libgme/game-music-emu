@@ -43,7 +43,7 @@ public:
 	
 	// Prevents channels and global volumes from being phase-negated
 	void disable_surround( bool disable = true );
-	
+
 	static gme_type_t static_type() { return gme_spc_type; }
 	
 public:
@@ -66,6 +66,7 @@ protected:
 	blargg_err_t play_( long, sample_t* );
 	blargg_err_t skip_( long );
 	void mute_voices_( int );
+	void disable_echo_( bool disable );
 	void set_tempo_( double );
 	void enable_accuracy_( bool );
 	byte const* file_data;

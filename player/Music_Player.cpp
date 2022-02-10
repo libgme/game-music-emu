@@ -171,6 +171,13 @@ void Music_Player::set_tempo( double tempo )
 	resume();
 }
 
+void Music_Player::set_echo_disable( bool d )
+{
+	suspend();
+	gme_disable_echo( emu_, d );
+	resume();
+}
+
 void Music_Player::mute_voices( int mask )
 {
 	suspend();

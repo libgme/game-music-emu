@@ -391,6 +391,7 @@ void      gme_ignore_silence ( Music_Emu* me, int disable )         { me->ignore
 void      gme_set_tempo      ( Music_Emu* me, double t )            { me->set_tempo( t ); }
 void      gme_mute_voice     ( Music_Emu* me, int index, int mute ) { me->mute_voice( index, mute != 0 ); }
 void      gme_mute_voices    ( Music_Emu* me, int mask )            { me->mute_voices( mask ); }
+void      gme_disable_echo   ( Music_Emu* me, int disable )         { me->disable_echo( disable ); }
 void      gme_enable_accuracy( Music_Emu* me, int enabled )         { me->enable_accuracy( enabled ); }
 void      gme_clear_playlist ( Music_Emu* me )                      { me->clear_playlist(); }
 int       gme_type_multitrack( gme_type_t t )                       { return t->track_count != 1; }

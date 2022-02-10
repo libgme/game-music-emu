@@ -202,6 +202,17 @@ void Spc_Dsp::run( int clock_count )
 	// Global volume
 	int mvoll = (int8_t) REG(mvoll);
 	int mvolr = (int8_t) REG(mvolr);
+	int evoll = (int8_t) REG(evoll);
+	int evolr = (int8_t) REG(evolr);
+
+	if ( !m.echo_enable)
+	{
+		mvoll = 127;
+		mvolr = 127;
+		evoll = 0;
+		evolr = 0;
+	}
+
 	if ( mvoll * mvolr < m.surround_threshold )
 		mvoll = -mvoll; // eliminate surround
 	
@@ -615,8 +626,8 @@ skip_brr:
 		}
 		
 		// Sound out
-		int l = (main_out_l * mvoll + echo_in_l * (int8_t) REG(evoll)) >> 14;
-		int r = (main_out_r * mvolr + echo_in_r * (int8_t) REG(evolr)) >> 14;
+		int l = (main_out_l * mvoll + echo_in_l * evoll) >> 14;
+		int r = (main_out_r * mvolr + echo_in_r * evolr) >> 14;
 		
 		CLAMP16( l );
 		CLAMP16( r );
@@ -652,6 +663,7 @@ void Spc_Dsp::init( void* ram_64k )
 	m.ram = (uint8_t*) ram_64k;
 	mute_voices( 0 );
 	disable_surround( false );
+	disable_echo( false );
 	set_output( 0, 0 );
 	reset();
 	

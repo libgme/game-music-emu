@@ -159,6 +159,9 @@ BLARGG_EXPORT void gme_mute_voice( Music_Emu*, int index, int mute );
 voices, 0 unmutes them all, 0x01 mutes just the first voice, etc. */
 BLARGG_EXPORT void gme_mute_voices( Music_Emu*, int muting_mask );
 
+/* Disable/Enable echo effect for SPC files */
+BLARGG_EXPORT void gme_disable_echo( Music_Emu*, int disable );
+
 /* Frequency equalizer parameters (see gme.txt) */
 /* Implementers: If modified, also adjust Music_Emu::make_equalizer as needed */
 typedef struct BLARGG_EXPORT gme_equalizer_t

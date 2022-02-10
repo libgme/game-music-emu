@@ -409,6 +409,11 @@ void Spc_Emu::mute_voices_( int m )
 	apu.mute_voices( m );
 }
 
+void Spc_Emu::disable_echo_( bool disable )
+{
+	apu.disable_echo( disable );
+}
+
 blargg_err_t Spc_Emu::load_mem_( byte const* in, long size )
 {
 	assert( offsetof (header_t,unused2 [46]) == header_size );

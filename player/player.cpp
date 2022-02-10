@@ -102,6 +102,7 @@ int main( int argc, char** argv )
 	bool running = true;
 	double stereo_depth = 0.0;
 	bool accurate = false;
+	bool echo_disabled = false;
 	bool fading_out = true;
 	int muting_mask = 0;
 	while ( running )
@@ -177,6 +178,13 @@ int main( int argc, char** argv )
 					if ( stereo_depth > 0.5 )
 						stereo_depth = 0;
 					player->set_stereo_depth( stereo_depth );
+					break;
+
+				case SDL_SCANCODE_D: // toggle echo on/off
+					echo_disabled = !echo_disabled;
+					player->set_echo_disable(echo_disabled);
+					printf( "%s\n", echo_disabled ? "SPC Echo disable" : "SPC echo enable" );
+					fflush(stdout);
 					break;
 				
 				case SDL_SCANCODE_L: // toggle loop
