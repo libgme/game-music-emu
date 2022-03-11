@@ -104,6 +104,10 @@ if (USE_GME_NSF OR USE_GME_NSFE)
                 Nes_Namco_Apu.cpp
                 Nes_Oscs.cpp
                 Nes_Vrc6_Apu.cpp
+                Nes_Fds_Apu.cpp
+                Nes_Vrc7_Apu.cpp
+                ext/emu2413.c
+                ext/panning.c
                 Nsf_Emu.cpp
         )
 endif()
