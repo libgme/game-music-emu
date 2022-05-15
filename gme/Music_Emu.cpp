@@ -137,6 +137,11 @@ void Music_Emu::mute_voices( int mask )
 	mute_voices_( mask );
 }
 
+void Music_Emu::disable_echo( bool disable )
+{
+	disable_echo_( disable );
+}
+
 void Music_Emu::set_tempo( double t )
 {
 	require( sample_rate() ); // sample rate must be set first

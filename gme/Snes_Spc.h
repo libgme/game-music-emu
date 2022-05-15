@@ -62,6 +62,8 @@ public:
 	// If true, prevents channels and global volumes from being phase-negated.
 	// Only supported by fast DSP.
 	void disable_surround( bool disable = true );
+
+	void disable_echo( bool disable = true );
 	
 	// Sets tempo, where tempo_unit = normal, tempo_unit / 2 = half speed, etc.
 	enum { tempo_unit = 0x100 };
@@ -275,6 +277,8 @@ inline void Snes_Spc::write_port( time_t t, int port, int data )
 inline void Snes_Spc::mute_voices( int mask ) { dsp.mute_voices( mask ); }
 	
 inline void Snes_Spc::disable_surround( bool disable ) { dsp.disable_surround( disable ); }
+
+inline void Snes_Spc::disable_echo( bool disable ) { dsp.disable_echo( disable ); }
 
 #if !SPC_NO_COPY_STATE_FUNCS
 inline bool Snes_Spc::check_kon() { return dsp.check_kon(); }

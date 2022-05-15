@@ -93,7 +93,10 @@ public:
 	// Set muting state of all voices at once using a bit mask, where -1 mutes them all,
 	// 0 unmutes them all, 0x01 mutes just the first voice, etc.
 	void mute_voices( int mask );
-	
+
+	// Disables echo effect at SPC files
+	void disable_echo( bool disable );
+
 	// Change overall output amplitude, where 1.0 results in minimal clamping.
 	// Must be called before set_sample_rate().
 	void set_gain( double );
@@ -101,7 +104,7 @@ public:
 	// Request use of custom multichannel buffer. Only supported by "classic" emulators;
 	// on others this has no effect. Should be called only once *before* set_sample_rate().
 	virtual void set_buffer( Multi_Buffer* ) { }
-	
+
 	// Enables/disables accurate emulation options, if any are supported. Might change
 	// equalizer settings.
 	void enable_accuracy( bool enable = true );
@@ -147,6 +150,7 @@ protected:
 	virtual void set_equalizer_( equalizer_t const& ) { }
 	virtual void enable_accuracy_( bool /* enable */ ) { }
 	virtual void mute_voices_( int mask ) = 0;
+	virtual void disable_echo_( bool /* disable */);
 	virtual void set_tempo_( double ) = 0;
 	virtual blargg_err_t start_track_( int ) = 0; // tempo is set before this
 	virtual blargg_err_t play_( long count, sample_t* out ) = 0;
@@ -242,6 +246,8 @@ inline void Music_Emu::set_voice_names( const char* const* names )
 }
 
 inline void Music_Emu::mute_voices_( int ) { }
+
+inline void Music_Emu::disable_echo_( bool ) { }
 
 inline void Music_Emu::set_gain( double g )
 {

@@ -102,6 +102,7 @@ int main( int argc, char** argv )
 	bool running = true;
 	double stereo_depth = 0.0;
 	bool accurate = false;
+	bool echo_disabled = false;
 	bool fading_out = true;
 	int muting_mask = 0;
 	while ( running )
@@ -129,62 +130,70 @@ int main( int argc, char** argv )
 				break;
 			
 			case SDL_KEYDOWN:
-				int key = e.key.keysym.sym;
+				int key = e.key.keysym.scancode;
 				switch ( key )
 				{
-				case SDLK_q:
-				case SDLK_ESCAPE: // quit
+				case SDL_SCANCODE_Q:
+				case SDL_SCANCODE_ESCAPE: // quit
 					running = false;
 					break;
 				
-				case SDLK_LEFT: // prev track
+				case SDL_SCANCODE_LEFT: // prev track
 					if ( !paused && !--track )
 						track = 1;
 					start_track( track, path );
 					break;
 				
-				case SDLK_RIGHT: // next track
+				case SDL_SCANCODE_RIGHT: // next track
 					if ( track < player->track_count() )
 						start_track( ++track, path );
 					break;
 				
-				case SDLK_MINUS: // reduce tempo
+				case SDL_SCANCODE_MINUS: // reduce tempo
 					tempo -= 0.1;
 					if ( tempo < 0.1 )
 						tempo = 0.1;
 					player->set_tempo( tempo );
 					break;
 				
-				case SDLK_EQUALS: // increase tempo
+				case SDL_SCANCODE_EQUALS: // increase tempo
 					tempo += 0.1;
 					if ( tempo > 2.0 )
 						tempo = 2.0;
 					player->set_tempo( tempo );
 					break;
 				
-				case SDLK_SPACE: // toggle pause
+				case SDL_SCANCODE_SPACE: // toggle pause
 					paused = !paused;
 					player->pause( paused );
 					break;
 				
-				case SDLK_a: // toggle accurate emulation
+				case SDL_SCANCODE_A: // toggle accurate emulation
 					accurate = !accurate;
 					player->enable_accuracy( accurate );
 					break;
 				
-				case SDLK_e: // toggle echo
+				case SDL_SCANCODE_E: // toggle echo
 					stereo_depth += 0.2;
 					if ( stereo_depth > 0.5 )
 						stereo_depth = 0;
 					player->set_stereo_depth( stereo_depth );
 					break;
-				
-				case SDLK_l: // toggle loop
-					player->set_fadeout( fading_out = !fading_out );
-					printf( "%s\n", fading_out ? "Will stop at track end" : "Playing forever" );
+
+				case SDL_SCANCODE_D: // toggle echo on/off
+					echo_disabled = !echo_disabled;
+					player->set_echo_disable(echo_disabled);
+					printf( "%s\n", echo_disabled ? "SPC Echo disable" : "SPC echo enable" );
+					fflush(stdout);
 					break;
 				
-				case SDLK_0: // reset tempo and muting
+				case SDL_SCANCODE_L: // toggle loop
+					player->set_fadeout( fading_out = !fading_out );
+					printf( "%s\n", fading_out ? "Will stop at track end" : "Playing forever" );
+					fflush(stdout);
+					break;
+				
+				case SDL_SCANCODE_0: // reset tempo and muting
 					tempo = 1.0;
 					muting_mask = 0;
 					player->set_tempo( tempo );
@@ -192,9 +201,9 @@ int main( int argc, char** argv )
 					break;
 				
 				default:
-					if ( SDLK_1 <= key && key <= SDLK_9 ) // toggle muting
+					if ( SDL_SCANCODE_1 <= key && key <= SDL_SCANCODE_9 ) // toggle muting
 					{
-						muting_mask ^= 1 << (key - SDLK_1);
+						muting_mask ^= 1 << (key - SDL_SCANCODE_1);
 						player->mute_voices( muting_mask );
 					}
 				}
