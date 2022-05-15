@@ -160,6 +160,7 @@ voices, 0 unmutes them all, 0x01 mutes just the first voice, etc. */
 BLARGG_EXPORT void gme_mute_voices( Music_Emu*, int muting_mask );
 
 /* Disable/Enable echo effect for SPC files */
+/* Available since 0.7.0 */
 BLARGG_EXPORT void gme_disable_echo( Music_Emu*, int disable );
 
 /* Frequency equalizer parameters (see gme.txt) */
