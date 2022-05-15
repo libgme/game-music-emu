@@ -5,7 +5,9 @@ Run program with path to a game music file.
 Left/Right  Change track
 Space       Pause/unpause
 E           Normal/slight stereo echo/more stereo echo
+D           Toggle echo processing
 A           Enable/disable accurate emulation
+H           Show help message
 L           Toggle track looping (infinite playback)
 -/=         Adjust tempo
 1-9         Toggle channel on/off
@@ -25,6 +27,19 @@ int const scope_height = 512;
 #include <stdlib.h>
 #include <stdio.h>
 #include "SDL.h"
+
+static const char *usage = R"(
+Left/Right  Change track
+Space       Pause/unpause
+E           Normal/slight stereo echo/more stereo echo
+D           Toggle echo processing
+A           Enable/disable accurate emulation
+H           Show help message
+L           Toggle track looping (infinite playback)
+-/=         Adjust tempo
+1-9         Toggle channel on/off
+0           Reset tempo and turn channels back on */
+)";
 
 void handle_error( const char* );
 
@@ -183,14 +198,14 @@ int main( int argc, char** argv )
 				case SDL_SCANCODE_D: // toggle echo on/off
 					echo_disabled = !echo_disabled;
 					player->set_echo_disable(echo_disabled);
-					printf( "%s\n", echo_disabled ? "SPC Echo disable" : "SPC echo enable" );
-					fflush(stdout);
+					printf( "%s\n", echo_disabled ? "SPC echo is disabled" : "SPC echo is enabled" );
+					fflush( stdout );
 					break;
 				
 				case SDL_SCANCODE_L: // toggle loop
 					player->set_fadeout( fading_out = !fading_out );
 					printf( "%s\n", fading_out ? "Will stop at track end" : "Playing forever" );
-					fflush(stdout);
+					fflush( stdout );
 					break;
 				
 				case SDL_SCANCODE_0: // reset tempo and muting
@@ -198,6 +213,11 @@ int main( int argc, char** argv )
 					muting_mask = 0;
 					player->set_tempo( tempo );
 					player->mute_voices( muting_mask );
+					break;
+
+				case SDL_SCANCODE_H: // help
+					printf( "%s\n", usage );
+					fflush( stdout );
 					break;
 				
 				default:
