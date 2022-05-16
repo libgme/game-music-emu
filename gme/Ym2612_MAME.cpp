@@ -2819,7 +2819,7 @@ static void * ym2612_init(void *param, int clock, int rate,
 	F2612->OPN.ST.clock = clock;
 #if RSM_ENABLE
 	F2612->OPN.ST.rate = 53267;
-	F2612->OPN.ST.rateratio = (INT32)(UINT32)((((UINT64)144 * rate) << RSM_FRAC) / clock);
+	F2612->OPN.ST.rateratio = (INT32)(UINT32)((((UINT64)144 * rate) << RSM_FRAC) / 7670454);
 	F2612->OPN.ST.framecnt = 1 << RSM_FRAC;
 	memset(&(F2612->OPN.ST.cur_sample), 0x00, sizeof(FMSAMPLE) * 2);
 	memset(&(F2612->OPN.ST.prev_sample), 0x00, sizeof(FMSAMPLE) * 2);
