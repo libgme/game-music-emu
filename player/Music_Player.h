@@ -45,6 +45,9 @@ public:
 	
 	// Set tempo, where 0.5 = half speed, 1.0 = normal, 2.0 = double speed
 	void set_tempo( double );
+
+	// Disable echo at SPC files
+	void set_echo_disable( bool );
 	
 	// Set voice muting bitmask
 	void mute_voices( int );

@@ -202,6 +202,17 @@ void Spc_Dsp::run( int clock_count )
 	// Global volume
 	int mvoll = (int8_t) REG(mvoll);
 	int mvolr = (int8_t) REG(mvolr);
+	int evoll = (int8_t) REG(evoll);
+	int evolr = (int8_t) REG(evolr);
+
+	if ( !m.echo_enable)
+	{
+		mvoll = 127;
+		mvolr = 127;
+		evoll = 0;
+		evolr = 0;
+	}
+
 	if ( mvoll * mvolr < m.surround_threshold )
 		mvoll = -mvoll; // eliminate surround
 	
@@ -615,8 +626,8 @@ skip_brr:
 		}
 		
 		// Sound out
-		int l = (main_out_l * mvoll + echo_in_l * (int8_t) REG(evoll)) >> 14;
-		int r = (main_out_r * mvolr + echo_in_r * (int8_t) REG(evolr)) >> 14;
+		int l = (main_out_l * mvoll + echo_in_l * evoll) >> 14;
+		int r = (main_out_r * mvolr + echo_in_r * evolr) >> 14;
 		
 		CLAMP16( l );
 		CLAMP16( r );
@@ -652,16 +663,17 @@ void Spc_Dsp::init( void* ram_64k )
 	m.ram = (uint8_t*) ram_64k;
 	mute_voices( 0 );
 	disable_surround( false );
+	disable_echo( false );
 	set_output( 0, 0 );
 	reset();
 	
+	// be sure this sign-extends
+	static_assert( (int16_t) 0x8000 == -0x8000, "This compiler doesn't sign-extend during integer promotion" );
+
+	// be sure right shift preserves sign
+	static_assert( (-1 >> 1) == -1, "This compiler doesn't preserve sign on right-shift" );
+		
 	#ifndef NDEBUG
-		// be sure this sign-extends
-		assert( (int16_t) 0x8000 == -0x8000 );
-		
-		// be sure right shift preserves sign
-		assert( (-1 >> 1) == -1 );
-		
 		// check clamp macro
 		int i;
 		i = +0x8000; CLAMP16( i ); assert( i == +0x7FFF );

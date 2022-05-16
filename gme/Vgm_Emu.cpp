@@ -324,7 +324,7 @@ void Vgm_Emu::mute_voices_( int mask )
 
 blargg_err_t Vgm_Emu::load_mem_( byte const* new_data, long new_size )
 {
-	assert( offsetof (header_t,unused2 [8]) == header_size );
+	static_assert( offsetof (header_t,unused2 [8]) == header_size, "VGM Header layout incorrect!" );
 	
 	if ( new_size <= header_size )
 		return gme_wrong_file_type;
