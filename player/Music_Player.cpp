@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <ctype.h>
+#include "SDL_rwops.h"
 
 /* Copyright (C) 2005-2010 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -74,11 +75,45 @@ Music_Player::~Music_Player()
 	gme_free_info( track_info_ );
 }
 
-gme_err_t Music_Player::load_file( const char* path )
+gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 {
 	stop();
 	
-	RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
+	if ( by_mem )
+	{
+		printf( "Loading file %s by memory...\n", path );
+		fflush( stdout );
+
+		SDL_RWops *file = SDL_RWFromFile(path, "rb");
+
+		if ( !file )
+			return "Can't load the file";
+
+		size_t fileSize = SDL_RWsize(file);
+		Uint8 *buf = (Uint8 *)SDL_malloc(fileSize);
+
+		if ( !buf )
+			return "Out of memory";
+
+		if ( SDL_RWread(file, buf, 1, fileSize) < fileSize)
+		{
+			SDL_free(buf);
+			SDL_RWclose(file);
+			return "Can't read a file";
+		}
+
+		SDL_RWclose(file);
+
+		const char *ret = gme_open_data( buf, (long)fileSize, &emu_, sample_rate );
+		SDL_free(buf);
+		RETURN_ERR( ret );
+	}
+	else
+	{
+		printf( "Loading file %s by file path...\n", path );
+		fflush( stdout );
+		RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
+	}
 	
 	char m3u_path [256 + 5];
 	strncpy( m3u_path, path, 256 );

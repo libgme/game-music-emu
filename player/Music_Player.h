@@ -12,7 +12,7 @@ public:
 	gme_err_t init( long sample_rate = 44100 );
 	
 	// Load game music file. NULL on success, otherwise error string.
-	gme_err_t load_file( const char* path );
+	gme_err_t load_file( const char* path, bool by_mem );
 	
 	// (Re)start playing track. Tracks are numbered from 0 to track_count() - 1.
 	gme_err_t start_track( int track );
