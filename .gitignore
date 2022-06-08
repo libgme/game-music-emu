@@ -1,5 +1,6 @@
 # Ignore "build" folder
 build/*
+build-*/
 
 # Intellij-based IDE local settings
 .idea/*
