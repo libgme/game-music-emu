@@ -239,8 +239,29 @@ endforeach()
 
 add_library(gme_deps INTERFACE)
 
-## FIXME: Properly find the C++ library !!!
-set(PC_LIBS -lstdc++)
+foreach(LIB ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES})
+    if(IS_ABSOLUTE ${LIB} AND EXISTS ${LIB})
+        list(APPEND IMPLICITS_LIST "${LIB}")
+    elseif(LIB MATCHES "-l:lib.*.a")
+        string(LENGTH ${LIB} LIBLEN)
+        math(EXPR LIBLEN "${LIBLEN}-8")
+        string(SUBSTRING ${LIB} 6 ${LIBLEN} DIRECT_LIB)
+        list(APPEND IMPLICITS_LIST "-l${DIRECT_LIB}")
+    elseif(LIB MATCHES "-l.*")
+        list(APPEND IMPLICITS_LIST "${LIB}")
+    else()
+        list(APPEND IMPLICITS_LIST "-l${LIB}")
+    endif()
+endforeach()
+if(IMPLICITS_LIST)
+    # blacklist of libraries that should not be in Libs.private
+    list(REMOVE_ITEM IMPLICITS_LIST "-lmingwex"
+         "-lmingw32" "-lmoldname" "-lmsvcrt" "-ladvapi32" "-lshell32"
+         "-luser32" "-lkernel32")
+    string(REPLACE ";" " " PC_LIBS "${IMPLICITS_LIST}")
+else()
+    set(PC_LIBS "")
+endif(IMPLICITS_LIST)
 
 if(GME_ZLIB)
     if(ZLIB_FOUND)
