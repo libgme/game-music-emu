@@ -210,7 +210,7 @@ void Gym_Emu::mute_voices_( int mask )
 
 blargg_err_t Gym_Emu::load_mem_( byte const* in, long size )
 {
-	static_assert( offsetof (header_t,packed [4]) == header_size, "GYM Header layout incorrect!" );
+	blaarg_static_assert( offsetof (header_t,packed [4]) == header_size, "GYM Header layout incorrect!" );
 	int offset = 0;
 	RETURN_ERR( check_header( in, size, &offset ) );
 	set_voice_count( 8 );

@@ -330,7 +330,7 @@ blargg_err_t Nsf_Emu::init_sound()
 
 blargg_err_t Nsf_Emu::load_( Data_Reader& in )
 {
-	static_assert( offsetof (header_t,unused [4]) == header_size, "NSF Header layout incorrect!" );
+	blaarg_static_assert( offsetof (header_t,unused [4]) == header_size, "NSF Header layout incorrect!" );
 	RETURN_ERR( rom.load( in, header_size, &header_, 0 ) );
 
 	set_track_count( header_.track_count );
