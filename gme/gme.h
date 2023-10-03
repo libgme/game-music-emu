@@ -4,8 +4,6 @@
 #ifndef GME_H
 #define GME_H
 
-#include "blargg_source.h"
-
 #ifdef __cplusplus
 	extern "C" {
 #endif
@@ -17,6 +15,22 @@ typedef const char* gme_err_t;
 
 /* First parameter of most gme_ functions is a pointer to the Music_Emu */
 typedef struct Music_Emu Music_Emu;
+
+
+/* Setup compiler defines useful for exporting required public API symbols in gme.cpp */
+#ifndef BLARGG_EXPORT
+    #if defined (_WIN32)
+        #if defined(BLARGG_BUILD_DLL)
+            #define BLARGG_EXPORT __declspec(dllexport)
+        #else
+            #define BLARGG_EXPORT /* Leave blank: friendly with both static and shared linking */
+        #endif
+    #elif defined (LIBGME_VISIBILITY) && defined(__cplusplus)
+        #define BLARGG_EXPORT __attribute__((visibility ("default")))
+    #else
+        #define BLARGG_EXPORT
+    #endif
+#endif
 
 
 /******** Basic operations ********/
