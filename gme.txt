@@ -1,7 +1,7 @@
 Game_Music_Emu 0.7.0
 --------------------
 Author     : Shay Green <gblargg@gmail.com>
-Maintainer : Michael Pyne <mpyne@purinchu.net>
+Maintainers: Vitaly Novichkov <admin@wohlnet.ru>, Michael Pyne <mpyne@purinchu.net>
 Website    : https://github.com/libgme/game-music-emu
 Source     : https://github.com/libgme/game-music-emu
 License    : GNU Lesser General Public License (LGPL), see LICENSE.txt

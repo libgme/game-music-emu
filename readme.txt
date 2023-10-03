@@ -40,7 +40,7 @@ License: GNU Lesser General Public License (LGPL)
 Note: When you will use MAME YM2612 emulator, the license of library
 will be GNU General Public License (GPL) v2.0+!
 
-Current Maintainer: Michael Pyne <mpyne@purinchu.net>
+Current Maintainers: Vitaly Novichkov <admin@wohlnet.ru>, Michael Pyne <mpyne@purinchu.net>
 
 Getting Started
 ---------------
