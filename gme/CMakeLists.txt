@@ -201,7 +201,7 @@ endif()
 # Hopefully the API can stay compatible with old versions.
 set_target_properties(gme
     PROPERTIES VERSION ${GME_VERSION}
-               SOVERSION 1)
+               SOVERSION 0)
 
 # macOS framework build
 if(BUILD_FRAMEWORK)

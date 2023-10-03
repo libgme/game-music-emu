@@ -6,7 +6,7 @@ include (CheckCXXCompilerFlag)
 include (CTest)
 
 # When version is changed, also change the one in gme/gme.h to match
-set(GME_VERSION 0.7.0 CACHE INTERNAL "libgme Version")
+set(GME_VERSION 0.6.4 CACHE INTERNAL "libgme Version")
 
 # Default emulators to build (all of them! ;)
 if (NOT DEFINED USE_GME_AY)

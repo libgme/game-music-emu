@@ -1,6 +1,6 @@
 /* Game music emulator library C interface (also usable from C++) */
 
-/* Game_Music_Emu 0.7.0 */
+/* Game_Music_Emu 0.6.4 */
 #ifndef GME_H
 #define GME_H
 
@@ -8,7 +8,7 @@
 	extern "C" {
 #endif
 
-#define GME_VERSION 0x000700 /* 1 byte major, 1 byte minor, 1 byte patch-level */
+#define GME_VERSION 0x000604 /* 1 byte major, 1 byte minor, 1 byte patch-level */
 
 /* Error string returned by library functions, or NULL if no error (success) */
 typedef const char* gme_err_t;
@@ -55,7 +55,12 @@ BLARGG_EXPORT void gme_delete( Music_Emu* );
 
 /* Set time to start fading track out. Once fade ends track_ended() returns true.
 Fade time can be changed while track is playing. */
-BLARGG_EXPORT void gme_set_fade( Music_Emu*, int start_msec, int length_msec );
+BLARGG_EXPORT void gme_set_fade( Music_Emu*, int start_msec );
+
+/** See gme_set_fade.
+ * @since 0.6.4
+ */
+BLARGG_EXPORT void gme_set_fade_msecs( Music_Emu*, int start_msec, int length_msecs );
 
 /**
  * If do_autoload_limit is nonzero, then automatically load track length
@@ -174,7 +179,7 @@ voices, 0 unmutes them all, 0x01 mutes just the first voice, etc. */
 BLARGG_EXPORT void gme_mute_voices( Music_Emu*, int muting_mask );
 
 /* Disable/Enable echo effect for SPC files */
-/* Available since 0.7.0 */
+/* Available since 0.6.4 */
 BLARGG_EXPORT void gme_disable_echo( Music_Emu*, int disable );
 
 /* Frequency equalizer parameters (see gme.txt) */
