@@ -209,7 +209,7 @@ examples assume these variables:
 
 If you're letting the library determine a file's type, you can use
 either gme_open_file() or gme_open_data():
-	
+
 	error = gme_open_file( pathname, &emu );
 	error = gme_open_data( pointer, size, &emu );
 
@@ -227,7 +227,7 @@ create an emulator, you can use the following methods of loading:
 		// code that reads 'count' bytes into 'out' buffer
 		// and return 0 if no error
 	}
-	
+
 	error = gme_load_custom( emu, my_read, file_size, my_data );
 
 
