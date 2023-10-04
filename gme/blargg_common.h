@@ -27,7 +27,7 @@
 	#define STATIC_CAST(T,expr) ((T) (expr))
 #endif
 
-#if !defined(_MSC_VER) || _MSC_VER > 1910
+#if !defined(_MSC_VER) || _MSC_VER >= 1910
 	#define blaarg_static_assert(cond, msg) static_assert(cond, msg)
 #else
 	#define blaarg_static_assert(cond, msg) assert(cond)
