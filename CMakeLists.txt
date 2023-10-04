@@ -77,15 +77,14 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # Check for GCC/Clang "visibility" support.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wextra")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
     # Assume we have visibility support on any compiler that supports C++11
     add_definitions (-DLIBGME_VISIBILITY)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
     # Try to protect against undefined behavior from signed integer overflow
