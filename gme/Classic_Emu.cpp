@@ -25,9 +25,9 @@ Classic_Emu::Classic_Emu()
 	voice_types   = 0;
 	
 	// avoid inconsistency in our duplicated constants
-	static_assert( (int) wave_type  == (int) Multi_Buffer::wave_type, "wave_type inconsistent across two classes using it" );
-	static_assert( (int) noise_type == (int) Multi_Buffer::noise_type, "noise_type inconsistent across two classes using it"  );
-	static_assert( (int) mixed_type == (int) Multi_Buffer::mixed_type, "mixed_type inconsistent across two classes using it"  );
+	blaarg_static_assert( (int) wave_type  == (int) Multi_Buffer::wave_type, "wave_type inconsistent across two classes using it" );
+	blaarg_static_assert( (int) noise_type == (int) Multi_Buffer::noise_type, "noise_type inconsistent across two classes using it"  );
+	blaarg_static_assert( (int) mixed_type == (int) Multi_Buffer::mixed_type, "mixed_type inconsistent across two classes using it"  );
 }
 
 Classic_Emu::~Classic_Emu()

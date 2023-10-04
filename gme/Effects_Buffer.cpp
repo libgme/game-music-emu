@@ -217,7 +217,7 @@ void Effects_Buffer::config( const config_t& cfg )
 			chan_types [i*chan_types_count+2].left   = &bufs [i*max_buf_count+5];
 			chan_types [i*chan_types_count+2].right  = &bufs [i*max_buf_count+6];
 		}
-		static_assert( chan_types_count >= 3, "Need at least three audio channels for effects processing" );
+		blaarg_static_assert( chan_types_count >= 3, "Need at least three audio channels for effects processing" );
 	}
 	else
 	{

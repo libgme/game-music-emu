@@ -107,7 +107,7 @@ extern gme_type_t const gme_gbs_type = &gme_gbs_type_;
 
 blargg_err_t Gbs_Emu::load_( Data_Reader& in )
 {
-	static_assert( offsetof (header_t,copyright [32]) == header_size, "GBS Header layout incorrect!" );
+	blaarg_static_assert( offsetof (header_t,copyright [32]) == header_size, "GBS Header layout incorrect!" );
 	RETURN_ERR( rom.load( in, header_size, &header_, 0 ) );
 	
 	set_track_count( header_.track_count );
