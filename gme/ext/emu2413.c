@@ -55,8 +55,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "mamedef.h"
-#undef INLINE
 #include "emu2413.h"
 #include "panning.h" // Maxim
 
