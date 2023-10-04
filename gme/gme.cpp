@@ -207,7 +207,7 @@ void gme_set_autoload_playback_limit( Music_Emu *emu, int do_autoload_limit )
 	emu->set_autoload_playback_limit( do_autoload_limit != 0 );
 }
 
-int gme_autoload_playback_limit( Music_Emu *const emu )
+int gme_autoload_playback_limit( Music_Emu const* emu )
 {
 	return emu->autoload_playback_limit();
 }
