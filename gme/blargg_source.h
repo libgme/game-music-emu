@@ -70,7 +70,7 @@ typedef unsigned char byte;
         #else
             #define BLARGG_EXPORT /* Leave blank: friendly with both static and shared linking */
         #endif
-    #elif defined (LIBGME_VISIBILITY) && defined(__cplusplus)
+    #elif defined (LIBGME_VISIBILITY)
         #define BLARGG_EXPORT __attribute__((visibility ("default")))
     #else
         #define BLARGG_EXPORT
