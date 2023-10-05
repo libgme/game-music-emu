@@ -21,7 +21,11 @@
 #endif
 #include <windows.h>
 #endif
+#if defined RAR_HDR_UNRAR_H
+#include <unrar.h>
+#elif defined RAR_HDR_DLL_HPP
 #include <dll.hpp>
+#endif
 #ifndef ERAR_SUCCESS
 #define ERAR_SUCCESS 0
 #endif
@@ -345,7 +349,7 @@ struct Rsn_File : Spc_File
 		byte *bp;
 		data.OpenMode = RAR_OM_EXTRACT;
 		rar = RAROpenArchive( &data );
-		RARSetCallback( rar, call_rsn, (intptr_t)&bp );
+		RARSetCallback( rar, call_rsn, (LPARAM)&bp );
 		for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
 		{
 			bp = &temp[0];
@@ -538,7 +542,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 	byte *bp = &rsn[0];
 	data.OpenMode = RAR_OM_EXTRACT;
 	rar = RAROpenArchive( &data );
-	RARSetCallback( rar, call_rsn, (intptr_t)&bp );
+	RARSetCallback( rar, call_rsn, (LPARAM)&bp );
 	for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
 	{
 		RARProcessFile( rar, RAR_TEST, 0, 0 );
