@@ -19,57 +19,7 @@
 
 // BLARGG_BIG_ENDIAN, BLARGG_LITTLE_ENDIAN: Determined automatically, otherwise only
 // one may be #defined to 1. Only needed if something actually depends on byte order.
-#if !defined (BLARGG_BIG_ENDIAN) && !defined (BLARGG_LITTLE_ENDIAN)
-#if defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__)
-	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-		#define BLARGG_LITTLE_ENDIAN 1
-	#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-		#define BLARGG_BIG_ENDIAN 1
-	#endif
-#elif defined(__linux__)
-	#include <endian.h>
-	#if __BYTE_ORDER == __LITTLE_ENDIAN
-		#define BLARGG_LITTLE_ENDIAN 1
-	#elif __BYTE_ORDER == __BIG_ENDIAN
-		#define BLARGG_BIG_ENDIAN 1
-	#endif
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__APPLE__) || \
-	defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-	#include <machine/endian.h>
-	#if BYTE_ORDER == LITTLE_ENDIAN
-		#define BLARGG_LITTLE_ENDIAN 1
-	#elif BYTE_ORDER == BIG_ENDIAN
-		#define BLARGG_BIG_ENDIAN 1
-	#endif
-#elif defined(BLARGG_CPU_X86) || defined(_WIN32)
-	#define BLARGG_LITTLE_ENDIAN 1
-#elif defined(__ARMEB__) || defined(__THUMBEB__) || defined(__AARCH64EB__) || \
-	defined(_MIPSEB) || defined(__MIPSEB) || defined(__MIPSEB__)
-	#define BLARGG_BIG_ENDIAN 1
-#elif defined(__ARMEL__) || defined(__THUMBEL__) || defined(__AARCH64EL__) || \
-	defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
-	#define BLARGG_LITTLE_ENDIAN 1
-#elif defined(__MORPHOS__) || (defined(__amigaos__) && (defined(__NEWLIB__)))
-	#include <machine/endian.h>
-	#if (BYTE_ORDER == LITTLE_ENDIAN)
-		#define BLARGG_LITTLE_ENDIAN 1
-	#elif (BYTE_ORDER == BIG_ENDIAN)
-		#define BLARGG_BIG_ENDIAN 1
-	#endif
-#elif defined(__amigaos__) && defined(__CLIB2__)
-	#include <unistd.h>
-	#if (BYTE_ORDER == LITTLE_ENDIAN)
-		#define BLARGG_LITTLE_ENDIAN 1
-	#elif (BYTE_ORDER == BIG_ENDIAN)
-		#define BLARGG_BIG_ENDIAN 1
-	#endif
-#elif defined(__mc68000__) || defined(__M68K__) || defined(__m68k__) || defined(__MC68K__)
-	#define BLARGG_BIG_ENDIAN 1
-#elif defined(__hppa) || defined(__hppa__)
-	#define BLARGG_BIG_ENDIAN 1
-#endif
-#endif
-
+// BLARGG_BIG_ENDIAN or BLARGG_LITTLE_ENDIAN must be defined by the build system.
 #if !defined(BLARGG_BIG_ENDIAN) && !defined(BLARGG_LITTLE_ENDIAN)
 	#error Unspecified endianness.
 #endif
