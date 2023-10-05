@@ -8,13 +8,27 @@
 #include <algorithm>
 
 #ifdef RARDLL
+#ifndef _WIN32
 #define PASCAL
 #define CALLBACK
+#define UINT unsigned int
 #define LONG long
 #define HANDLE void *
 #define LPARAM intptr_t
-#define UINT __attribute__((unused)) unsigned int
+#else
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+#if defined RAR_HDR_UNRAR_H
+#include <unrar.h>
+#elif defined RAR_HDR_DLL_HPP
 #include <dll.hpp>
+#endif
+#ifndef ERAR_SUCCESS
+#define ERAR_SUCCESS 0
+#endif
 #endif
 
 /* Copyright (C) 2004-2006 Shay Green. This module is free software; you
@@ -286,6 +300,7 @@ extern gme_type_t const gme_spc_type = &gme_spc_type_;
 #ifdef RARDLL
 static int CALLBACK call_rsn(UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2)
 {
+	(void) msg;
 	byte **bp = (byte **)UserData;
 	unsigned char *addr = (unsigned char *)P1;
 	memcpy( *bp, addr, P2 );
@@ -314,7 +329,7 @@ struct Rsn_File : Spc_File
 		int count = 0;
 		unsigned biggest = 0;
 		blargg_vector<byte> temp;
-		HANDLE PASCAL rar = RAROpenArchive( &data );
+		HANDLE rar = RAROpenArchive( &data );
 		struct RARHeaderData head;
 		for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
 		{
@@ -334,7 +349,7 @@ struct Rsn_File : Spc_File
 		byte *bp;
 		data.OpenMode = RAR_OM_EXTRACT;
 		rar = RAROpenArchive( &data );
-		RARSetCallback( rar, call_rsn, (intptr_t)&bp );
+		RARSetCallback( rar, call_rsn, (LPARAM)&bp );
 		for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
 		{
 			bp = &temp[0];
@@ -512,7 +527,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 	// get the file count and unpacked size
 	long pos = 0;
 	int count = 0;
-	HANDLE PASCAL rar = RAROpenArchive( &data );
+	HANDLE rar = RAROpenArchive( &data );
 	struct RARHeaderData head;
 	for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
 	{
@@ -527,7 +542,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 	byte *bp = &rsn[0];
 	data.OpenMode = RAR_OM_EXTRACT;
 	rar = RAROpenArchive( &data );
-	RARSetCallback( rar, call_rsn, (intptr_t)&bp );
+	RARSetCallback( rar, call_rsn, (LPARAM)&bp );
 	for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
 	{
 		RARProcessFile( rar, RAR_TEST, 0, 0 );

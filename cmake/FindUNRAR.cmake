@@ -21,8 +21,18 @@ set(UNRAR_NAMES_DEBUG unrar)
 
 # Try each search configuration.
 foreach(search ${_UNRAR_SEARCHES})
-  find_path(UNRAR_INCLUDE_DIR NAMES dll.hpp ${${search}} PATH_SUFFIXES include unrar)
+  find_path(UNRAR_INCLUDE_DIR NAMES unrar.h ${${search}} PATH_SUFFIXES include unrar)
 endforeach()
+if(UNRAR_INCLUDE_DIR)
+  set(RAR_HDR_UNRAR_H 1)
+else()
+  foreach(search ${_UNRAR_SEARCHES})
+    find_path(UNRAR_INCLUDE_DIR NAMES dll.hpp ${${search}} PATH_SUFFIXES include unrar)
+  endforeach()
+  if(UNRAR_INCLUDE_DIR)
+    set(RAR_HDR_DLL_HPP 1)
+  endif()
+endif()
 
 # Allow UNRAR_LIBRARY to be set manually, as the location of the unrar library
 if(NOT UNRAR_LIBRARY)
