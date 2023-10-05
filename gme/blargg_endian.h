@@ -20,35 +20,61 @@
 // BLARGG_BIG_ENDIAN, BLARGG_LITTLE_ENDIAN: Determined automatically, otherwise only
 // one may be #defined to 1. Only needed if something actually depends on byte order.
 #if !defined (BLARGG_BIG_ENDIAN) && !defined (BLARGG_LITTLE_ENDIAN)
-#ifdef __GLIBC__
-	// GCC handles this for us
+#if defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__)
+	#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+		#define BLARGG_LITTLE_ENDIAN 1
+	#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+		#define BLARGG_BIG_ENDIAN 1
+	#endif
+#elif defined(__linux__)
 	#include <endian.h>
 	#if __BYTE_ORDER == __LITTLE_ENDIAN
 		#define BLARGG_LITTLE_ENDIAN 1
 	#elif __BYTE_ORDER == __BIG_ENDIAN
 		#define BLARGG_BIG_ENDIAN 1
 	#endif
-#else
-
-#if defined (LSB_FIRST) || defined (__LITTLE_ENDIAN__) || BLARGG_CPU_X86 || \
-		(defined (LITTLE_ENDIAN) && LITTLE_ENDIAN+0 != 1234)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__APPLE__) || \
+	defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
+	#include <machine/endian.h>
+	#if BYTE_ORDER == LITTLE_ENDIAN
+		#define BLARGG_LITTLE_ENDIAN 1
+	#elif BYTE_ORDER == BIG_ENDIAN
+		#define BLARGG_BIG_ENDIAN 1
+	#endif
+#elif defined(BLARGG_CPU_X86) || defined(_WIN32)
 	#define BLARGG_LITTLE_ENDIAN 1
-#endif
-
-#if defined (MSB_FIRST)     || defined (__BIG_ENDIAN__) || defined (WORDS_BIGENDIAN) || \
-	defined (__sparc__)     ||  BLARGG_CPU_POWERPC || \
-	(defined (BIG_ENDIAN) && BIG_ENDIAN+0 != 4321)
+#elif defined(__ARMEB__) || defined(__THUMBEB__) || defined(__AARCH64EB__) || \
+	defined(_MIPSEB) || defined(__MIPSEB) || defined(__MIPSEB__)
 	#define BLARGG_BIG_ENDIAN 1
-#elif !defined (__mips__)
-	// No endian specified; assume little-endian, since it's most common
+#elif defined(__ARMEL__) || defined(__THUMBEL__) || defined(__AARCH64EL__) || \
+	defined(_MIPSEL) || defined(__MIPSEL) || defined(__MIPSEL__)
 	#define BLARGG_LITTLE_ENDIAN 1
-#endif
+#elif defined(__MORPHOS__) || (defined(__amigaos__) && (defined(__NEWLIB__)))
+	#include <machine/endian.h>
+	#if (BYTE_ORDER == LITTLE_ENDIAN)
+		#define BLARGG_LITTLE_ENDIAN 1
+	#elif (BYTE_ORDER == BIG_ENDIAN)
+		#define BLARGG_BIG_ENDIAN 1
+	#endif
+#elif defined(__amigaos__) && defined(__CLIB2__)
+	#include <unistd.h>
+	#if (BYTE_ORDER == LITTLE_ENDIAN)
+		#define BLARGG_LITTLE_ENDIAN 1
+	#elif (BYTE_ORDER == BIG_ENDIAN)
+		#define BLARGG_BIG_ENDIAN 1
+	#endif
+#elif defined(__mc68000__) || defined(__M68K__) || defined(__m68k__) || defined(__MC68K__)
+	#define BLARGG_BIG_ENDIAN 1
+#elif defined(__hppa) || defined(__hppa__)
+	#define BLARGG_BIG_ENDIAN 1
 #endif
 #endif
 
-#if BLARGG_LITTLE_ENDIAN && BLARGG_BIG_ENDIAN
-	#undef BLARGG_LITTLE_ENDIAN
-	#undef BLARGG_BIG_ENDIAN
+#if !defined(BLARGG_BIG_ENDIAN) && !defined(BLARGG_LITTLE_ENDIAN)
+	#error Unspecified endianness.
+#endif
+#if defined(BLARGG_BIG_ENDIAN) && defined(BLARGG_LITTLE_ENDIAN)
+	#error BLARGG_LITTLE_ENDIAN and BLARGG_BIG_ENDIAN are both defined.
 #endif
 
 inline void blargg_verify_byte_order()
