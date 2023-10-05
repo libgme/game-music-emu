@@ -181,10 +181,15 @@ else()
     message("ZLib library not found, disabling support for compressed formats such as VGZ")
 endif()
 
-if(USE_GME_SPC)
+if(USE_GME_SPC AND GME_UNRAR_RSN)
     if(UNRAR_FOUND)
         message(" ** unRAR library located, the RSN file format will be supported")
         target_compile_definitions(gme PRIVATE -DRARDLL)
+        if(RAR_HDR_UNRAR_H)
+            target_compile_definitions(gme PRIVATE -DRAR_HDR_UNRAR_H)
+        elseif(RAR_HDR_DLL_HPP)
+            target_compile_definitions(gme PRIVATE -DRAR_HDR_DLL_HPP)
+        endif()
         target_include_directories(gme PRIVATE ${UNRAR_INCLUDE_DIRS})
         target_link_libraries(gme ${UNRAR_LIBRARIES})
         # Is not to be installed though
@@ -201,7 +206,7 @@ endif()
 # Hopefully the API can stay compatible with old versions.
 set_target_properties(gme
     PROPERTIES VERSION ${GME_VERSION}
-               SOVERSION 1)
+               SOVERSION 0)
 
 # macOS framework build
 if(BUILD_FRAMEWORK)

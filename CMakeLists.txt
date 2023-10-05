@@ -2,11 +2,12 @@
 project(libgme)
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+include (TestBigEndian)
 include (CheckCXXCompilerFlag)
 include (CTest)
 
 # When version is changed, also change the one in gme/gme.h to match
-set(GME_VERSION 0.7.0 CACHE INTERNAL "libgme Version")
+set(GME_VERSION 0.6.4 CACHE INTERNAL "libgme Version")
 
 # Default emulators to build (all of them! ;)
 if (NOT DEFINED USE_GME_AY)
@@ -45,6 +46,10 @@ if (NOT DEFINED USE_GME_SPC)
     SET(USE_GME_SPC 1 CACHE BOOL "Enable SNES SPC music emulation")
 endif()
 
+if (NOT DEFINED GME_UNRAR_RSN)
+    option(GME_UNRAR_RSN "Enable SPC RSN format (optional, requires UnRAR library)" ON)
+endif()
+
 if (NOT DEFINED GME_SPC_ISOLATED_ECHO_BUFFER)
     option(GME_SPC_ISOLATED_ECHO_BUFFER "Enable isolated echo buffer on SPC emulator to allow correct playing of \"dodgy\" SPC files made for various ROM hacks ran on ZSNES" OFF)
 endif()
@@ -69,23 +74,33 @@ option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ON)
 option(BUILD_FRAMEWORK "Build framework instead of dylib (on macOS)" OFF)
 
 
+test_big_endian(WORDS_BIGENDIAN)
+if(WORDS_BIGENDIAN)
+    add_definitions(-DBLARGG_BIG_ENDIAN=1)
+else()
+    add_definitions(-DBLARGG_LITTLE_ENDIAN=1)
+endif()
+
 # static builds need to find static zlib (and static forms of other needed
 # libraries.  Ensure CMake looks only for static libs if we're doing a static
 # build.  See https://stackoverflow.com/a/44738756
 if(NOT BUILD_SHARED_LIBS)
+  if(MSVC)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+  else()
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  endif()
 endif()
 
 # Check for GCC/Clang "visibility" support.
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    OR
-    CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -W -Wextra")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
     # Assume we have visibility support on any compiler that supports C++11
     add_definitions (-DLIBGME_VISIBILITY)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -fvisibility-inlines-hidden")
 
     # Try to protect against undefined behavior from signed integer overflow
@@ -96,7 +111,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     if (USE_GME_SPC)
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_HOME_DIRECTORY}/cmake")
         find_package(UNRAR QUIET)
-        if (UNRAR_FOUND)
+        if (UNRAR_FOUND AND NOT WIN32)
             # POSIX Threading for unRAR
             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         endif()

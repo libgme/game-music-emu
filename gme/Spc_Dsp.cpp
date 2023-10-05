@@ -668,10 +668,10 @@ void Spc_Dsp::init( void* ram_64k )
 	reset();
 	
 	// be sure this sign-extends
-	static_assert( (int16_t) 0x8000 == -0x8000, "This compiler doesn't sign-extend during integer promotion" );
+	blaarg_static_assert( (int16_t) 0x8000 == -0x8000, "This compiler doesn't sign-extend during integer promotion" );
 
 	// be sure right shift preserves sign
-	static_assert( (-1 >> 1) == -1, "This compiler doesn't preserve sign on right-shift" );
+	blaarg_static_assert( (-1 >> 1) == -1, "This compiler doesn't preserve sign on right-shift" );
 		
 	#ifndef NDEBUG
 		// check clamp macro

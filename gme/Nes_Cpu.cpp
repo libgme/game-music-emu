@@ -78,7 +78,7 @@ void Nes_Cpu::reset( void const* unmapped_page )
 	end_time_ = future_nes_time;
 	error_count_ = 0;
 	
-	static_assert( page_size == 0x800, "NES set to use unhandled page size" ); // assumes this
+	blaarg_static_assert( page_size == 0x800, "NES set to use unhandled page size" ); // assumes this
 	set_code_page( page_count, unmapped_page );
 	map_code( 0x2000, 0xE000, unmapped_page, true );
 	map_code( 0x0000, 0x2000, low_mem, true );

@@ -207,7 +207,7 @@ void gme_set_autoload_playback_limit( Music_Emu *emu, int do_autoload_limit )
 	emu->set_autoload_playback_limit( do_autoload_limit != 0 );
 }
 
-int gme_autoload_playback_limit( Music_Emu *const emu )
+int gme_autoload_playback_limit( Music_Emu const* emu )
 {
 	return emu->autoload_playback_limit();
 }
@@ -380,7 +380,8 @@ void      gme_set_user_cleanup(Music_Emu* me, gme_user_cleanup_t func ) { me->se
 
 gme_err_t gme_start_track    ( Music_Emu* me, int index )           { return me->start_track( index ); }
 gme_err_t gme_play           ( Music_Emu* me, int n, short* p )     { return me->play( n, p ); }
-void      gme_set_fade       ( Music_Emu* me, int start_msec, int fade_msec ) { me->set_fade( start_msec, fade_msec ); }
+void      gme_set_fade       ( Music_Emu* me, int start_msec )      { me->set_fade( start_msec ); }
+void      gme_set_fade_msecs ( Music_Emu* me, int start_msec, int fade_msec ) { me->set_fade( start_msec, fade_msec ); }
 int       gme_track_ended    ( Music_Emu const* me )                { return me->track_ended(); }
 int       gme_tell           ( Music_Emu const* me )                { return me->tell(); }
 int       gme_tell_samples   ( Music_Emu const* me )                { return me->tell_samples(); }
