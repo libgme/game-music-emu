@@ -23,9 +23,9 @@ typedef struct Music_Emu Music_Emu;
         #if defined(BLARGG_BUILD_DLL)
             #define BLARGG_EXPORT __declspec(dllexport)
         #else
-            #define BLARGG_EXPORT /* Leave blank: friendly with both static and shared linking */
+            #define BLARGG_EXPORT /* Leave blank: friendly with both static and shared linking. */
         #endif
-    #elif defined (LIBGME_VISIBILITY) && defined(__cplusplus)
+    #elif defined (LIBGME_VISIBILITY)
         #define BLARGG_EXPORT __attribute__((visibility ("default")))
     #else
         #define BLARGG_EXPORT
