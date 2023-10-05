@@ -217,7 +217,7 @@ blargg_err_t Snes_Spc::load_spc( void const* data, long size )
 	spc_file_t const* const spc = (spc_file_t const*) data;
 	
 	// be sure compiler didn't insert any padding into fle_t
-	static_assert( sizeof (spc_file_t) == spc_min_file_size + 0x80, "SPC File header layout incorrect!" );
+	blaarg_static_assert( sizeof (spc_file_t) == spc_min_file_size + 0x80, "SPC File header layout incorrect!" );
 	
 	// Check signature and file size
 	if ( size < signature_size || memcmp( spc, signature, 27 ) )

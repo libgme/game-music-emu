@@ -96,7 +96,7 @@ struct nsfe_info_t
 blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 {
 	int const nsfe_info_size = 16;
-	static_assert( offsetof (nsfe_info_t,unused [6]) == nsfe_info_size, "NSFE Info header layout incorrect!" );
+	blaarg_static_assert( offsetof (nsfe_info_t,unused [6]) == nsfe_info_size, "NSFE Info header layout incorrect!" );
 	
 	// check header
 	byte signature [4];

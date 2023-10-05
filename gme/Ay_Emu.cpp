@@ -128,8 +128,8 @@ extern gme_type_t const gme_ay_type = &gme_ay_type_;
 
 blargg_err_t Ay_Emu::load_mem_( byte const* in, long size )
 {
-	static_assert( offsetof (header_t,track_info [2]) == header_size, "AY Header layout incorrect!" );
-	
+	blaarg_static_assert( offsetof (header_t,track_info [2]) == header_size, "AY Header layout incorrect!" );
+
 	RETURN_ERR( parse_header( in, size, &file ) );
 	set_track_count( file.header->max_track + 1 );
 	

@@ -416,7 +416,7 @@ void Spc_Emu::disable_echo_( bool disable )
 
 blargg_err_t Spc_Emu::load_mem_( byte const* in, long size )
 {
-	static_assert( offsetof (header_t,unused2 [46]) == header_size, "SPC Header layout incorrect!" );
+	blaarg_static_assert( offsetof (header_t,unused2 [46]) == header_size, "SPC Header layout incorrect!" );
 	file_data = in;
 	file_size = size;
 	set_voice_count( Snes_Spc::voice_count );

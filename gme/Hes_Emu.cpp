@@ -119,7 +119,7 @@ struct Hes_File : Gme_Info_
 	
 	blargg_err_t load_( Data_Reader& in )
 	{
-		static_assert( offsetof (header_t,fields) == Hes_Emu::header_size + 0x20, "HES header layout is incorrect!" );
+		blaarg_static_assert( offsetof (header_t,fields) == Hes_Emu::header_size + 0x20, "HES header layout is incorrect!" );
 		blargg_err_t err = in.read( &h, sizeof h );
 		if ( err )
 			return (err == in.eof_error ? gme_wrong_file_type : err);
@@ -144,7 +144,7 @@ extern gme_type_t const gme_hes_type = &gme_hes_type_;
 
 blargg_err_t Hes_Emu::load_( Data_Reader& in )
 {
-	static_assert( offsetof (header_t,unused [4]) == header_size, "HES header layout is incorrect!" );
+	blaarg_static_assert( offsetof (header_t,unused [4]) == header_size, "HES header layout is incorrect!" );
 	RETURN_ERR( rom.load( in, header_size, &header_, unmapped ) );
 	
 	RETURN_ERR( check_hes_header( header_.tag ) );
