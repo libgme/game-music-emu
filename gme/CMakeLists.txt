@@ -181,7 +181,7 @@ else()
     message("ZLib library not found, disabling support for compressed formats such as VGZ")
 endif()
 
-if(USE_GME_SPC)
+if(USE_GME_SPC AND GME_UNRAR_RSN)
     if(UNRAR_FOUND)
         message(" ** unRAR library located, the RSN file format will be supported")
         target_compile_definitions(gme PRIVATE -DRARDLL)

@@ -46,6 +46,10 @@ if (NOT DEFINED USE_GME_SPC)
     SET(USE_GME_SPC 1 CACHE BOOL "Enable SNES SPC music emulation")
 endif()
 
+if (NOT DEFINED GME_UNRAR_RSN)
+    option(GME_UNRAR_RSN "Enable SPC RSN format (optional, requires UnRAR library)" ON)
+endif()
+
 if (NOT DEFINED GME_SPC_ISOLATED_ECHO_BUFFER)
     option(GME_SPC_ISOLATED_ECHO_BUFFER "Enable isolated echo buffer on SPC emulator to allow correct playing of \"dodgy\" SPC files made for various ROM hacks ran on ZSNES" OFF)
 endif()
