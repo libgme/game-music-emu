@@ -9,7 +9,7 @@ FILE_LIST	:= $(wildcard $(LOCAL_PATH)/gme/*.cpp)
 LOCAL_SRC_FILES := $(FILE_LIST:$(LOCAL_PATH)/%=%)
 LOCAL_CPPFLAGS := -Wall -W -Wextra -std=c++11 -O2 -DBLARGG_BUILD_DLL \
 	-DLIBGME_VISIBILITY -fvisibility=hidden -fvisibility-inlines-hidden \
-	-fwrapv -DVGM_YM2612_GENS
+	-fwrapv -DVGM_YM2612_GENS -DBLARGG_LITTLE_ENDIAN=1
 LOCAL_SANITIZE := undefined
 LOCAL_CPP_FEATURES := exceptions
 

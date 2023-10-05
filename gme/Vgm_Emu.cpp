@@ -30,6 +30,8 @@ using std::max;
 Vgm_Emu::Vgm_Emu()
 {
 	disable_oversampling_ = false;
+	psg_dual = false;
+	psg_t6w28 = false;
 	psg_rate   = 0;
 	set_type( gme_vgm_type );
 	

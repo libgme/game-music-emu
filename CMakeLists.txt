@@ -2,6 +2,7 @@
 project(libgme)
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
+include (TestBigEndian)
 include (CheckCXXCompilerFlag)
 include (CTest)
 
@@ -68,6 +69,13 @@ option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" OFF)
 
 option(BUILD_FRAMEWORK "Build framework instead of dylib (on macOS)" OFF)
 
+
+test_big_endian(WORDS_BIGENDIAN)
+if(WORDS_BIGENDIAN)
+    add_definitions(-DBLARGG_BIG_ENDIAN=1)
+else()
+    add_definitions(-DBLARGG_LITTLE_ENDIAN=1)
+endif()
 
 # static builds need to find static zlib (and static forms of other needed
 # libraries.  Ensure CMake looks only for static libs if we're doing a static
