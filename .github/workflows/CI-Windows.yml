@@ -29,9 +29,9 @@ jobs:
     - name: Install SDL2
       shell: powershell
       run: |
-        Invoke-WebRequest -Uri "https://www.libsdl.org/release/SDL2-devel-2.26.5-VC.zip" -OutFile "SDL2-devel-2.26.5-VC.zip"
-        Expand-Archive -Path SDL2-devel-2.26.5-VC.zip
-        echo "SDL2_DIR=$(pwd)\SDL2-devel-2.26.5-VC\SDL2-2.26.5\" >>${env:GITHUB_ENV}
+        Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.4/SDL2-devel-2.28.4-VC.zip" -OutFile "SDL2-devel-2.28.4-VC.zip"
+        Expand-Archive -Path SDL2-devel-2.28.4-VC.zip
+        echo "SDL2_DIR=$(pwd)\SDL2-devel-2.28.4-VC\SDL2-2.28.4\" >>${env:GITHUB_ENV}
     - name: Build
       run: |
         mkdir build
