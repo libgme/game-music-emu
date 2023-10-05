@@ -1,0 +1,39 @@
+name: CI MinGW
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    name: Linux (${{ matrix.configuration }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        include:
+          - generator: MSYS Makefiles
+            os: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          git
+          base-devel
+          mingw-w64-x86_64-toolchain
+          mingw-w64-x86_64-cmake
+          mingw-w64-x86_64-SDL2
+    - uses: actions/checkout@v3
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} ..
+        cmake --build .
