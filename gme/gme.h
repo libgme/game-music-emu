@@ -123,7 +123,7 @@ BLARGG_EXPORT gme_err_t gme_track_info( Music_Emu const*, gme_info_t** out, int 
 /* Frees track information */
 BLARGG_EXPORT void gme_free_info( gme_info_t* );
 
-struct BLARGG_EXPORT gme_info_t
+struct gme_info_t
 {
 	/* times in milliseconds; -1 if unknown */
 	int length;			/* total length, if file specifies it */
@@ -185,7 +185,7 @@ BLARGG_EXPORT void gme_disable_echo( Music_Emu*, int disable );
 
 /* Frequency equalizer parameters (see gme.txt) */
 /* Implementers: If modified, also adjust Music_Emu::make_equalizer as needed */
-typedef struct BLARGG_EXPORT gme_equalizer_t
+typedef struct gme_equalizer_t
 {
 	double treble; /* -50.0 = muffled, 0 = flat, +5.0 = extra-crisp */
 	double bass;   /* 1 = full bass, 90 = average, 16000 = almost no bass */
