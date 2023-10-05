@@ -1,6 +1,6 @@
 # CMake project definition file.
+cmake_minimum_required(VERSION 3.0...3.5 FATAL_ERROR)
 project(libgme)
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 include (TestBigEndian)
 include (CheckCXXCompilerFlag)
