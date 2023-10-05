@@ -81,7 +81,11 @@ endif()
 # libraries.  Ensure CMake looks only for static libs if we're doing a static
 # build.  See https://stackoverflow.com/a/44738756
 if(NOT BUILD_SHARED_LIBS)
+  if(MSVC)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+  else()
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  endif()
 endif()
 
 # Check for GCC/Clang "visibility" support.
@@ -103,7 +107,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     if (USE_GME_SPC)
         list(APPEND CMAKE_MODULE_PATH "${CMAKE_HOME_DIRECTORY}/cmake")
         find_package(UNRAR QUIET)
-        if (UNRAR_FOUND)
+        if (UNRAR_FOUND AND NOT WIN32)
             # POSIX Threading for unRAR
             set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
         endif()
