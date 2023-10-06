@@ -300,11 +300,11 @@ extern gme_type_t const gme_spc_type = &gme_spc_type_;
 #ifdef RARDLL
 static int CALLBACK call_rsn(UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2)
 {
-	(void) msg;
 	byte **bp = (byte **)UserData;
 	unsigned char *addr = (unsigned char *)P1;
 	memcpy( *bp, addr, P2 );
 	*bp += P2;
+	(void) msg;
 	return 0;
 }
 #endif
@@ -318,17 +318,14 @@ struct Rsn_File : Spc_File
 	blargg_err_t load_archive( const char* path )
 	{
 	#ifdef RARDLL
-		struct RAROpenArchiveData data = {
-			.ArcName = (char *)path,
-			.OpenMode = RAR_OM_LIST, .OpenResult = 0,
-			.CmtBuf = 0, .CmtBufSize = 0, .CmtSize = 0, .CmtState = 0
-		};
+		struct RAROpenArchiveData data = { NULL, RAR_OM_LIST, 0, NULL, 0, 0, 0 };
 
 		// get the size of all unpacked headers combined
 		long pos = 0;
 		int count = 0;
 		unsigned biggest = 0;
 		blargg_vector<byte> temp;
+		data.ArcName = (char *)path;
 		HANDLE rar = RAROpenArchive( &data );
 		struct RARHeaderData head;
 		for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
@@ -518,15 +515,12 @@ blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 blargg_err_t Rsn_Emu::load_archive( const char* path )
 {
 #ifdef RARDLL
-	struct RAROpenArchiveData data = {
-		.ArcName = (char *)path,
-		.OpenMode = RAR_OM_LIST, .OpenResult = 0,
-		.CmtBuf = 0, .CmtBufSize = 0, .CmtSize = 0, .CmtState = 0
-	};
+	struct RAROpenArchiveData data = { NULL, RAR_OM_LIST, 0, NULL, 0, 0, 0 };
 
 	// get the file count and unpacked size
 	long pos = 0;
 	int count = 0;
+	data.ArcName = (char *)path;
 	HANDLE rar = RAROpenArchive( &data );
 	struct RARHeaderData head;
 	for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
