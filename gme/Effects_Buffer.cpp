@@ -383,11 +383,11 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
 		
 		if ( (int16_t) cs0 != cs0 )
 			cs0 = 0x7FFF - (cs0 >> 24);
-		((uint32_t*) out) [i*2+0] = ((uint16_t) cs0) | (uint16_t(cs0) << 16);
+		((uint32_t*) out) [i] = ((uint16_t) cs0) | (uint16_t(cs0) << 16);
 		
 		if ( (int16_t) cs1 != cs1 )
 			cs1 = 0x7FFF - (cs1 >> 24);
-		((uint32_t*) out) [i*2+1] = ((uint16_t) cs1) | (uint16_t(cs1) << 16);
+		((uint32_t*) out) [i+max_voices] = ((uint16_t) cs1) | (uint16_t(cs1) << 16);
 		out += max_voices*4;
 	}
 	
