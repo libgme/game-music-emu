@@ -395,14 +395,10 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
 	{
 		int s = BLIP_READER_READ( c );
 		BLIP_READER_NEXT( c, bass );
+		if ( (int16_t) s != s )
+			s = 0x7FFF - (s >> 24);
 		out [i*2+0] = s;
 		out [i*2+1] = s;
-		if ( (int16_t) s != s )
-		{
-			s = 0x7FFF - (s >> 24);
-			out [i*2+0] = s;
-			out [i*2+1] = s;
-		}
 	}
 	
 	BLIP_READER_END( c, bufs [i*max_buf_count+0] );
