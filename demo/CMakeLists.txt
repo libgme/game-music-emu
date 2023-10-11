@@ -28,6 +28,10 @@ add_custom_command(TARGET demo_mem
 
 target_link_libraries(demo_mem gme)
 
+
+add_executable(demo_multi Wave_Writer.cpp basics_multi.c)
+target_link_libraries(demo_multi gme)
+
 #
 # Testing
 #
