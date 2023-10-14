@@ -59,7 +59,7 @@ gme_type_t const* gme_type_list()
 	#endif
 	#ifdef USE_GME_SPC
 	            gme_spc_type,
-				gme_rsn_type,
+	            gme_rsn_type,
 	#endif
 	#ifdef USE_GME_VGM
 	            gme_vgm_type,
