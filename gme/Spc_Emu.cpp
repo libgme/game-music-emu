@@ -298,14 +298,72 @@ extern gme_type_t const gme_spc_type = &gme_spc_type_;
 
 
 #ifdef RARDLL
-static int CALLBACK call_rsn(UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2)
+static int CALLBACK call_rsn( UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2 )
 {
 	byte **bp = (byte **)UserData;
-	unsigned char *addr = (unsigned char *)P1;
+	byte *addr = (byte *)P1;
 	memcpy( *bp, addr, P2 );
 	*bp += P2;
 	(void) msg;
 	return 0;
+}
+
+// unpack an rsn archive and index its tracks relative to a buffer.
+static int rsn_unpack( const char *path,
+                       blargg_vector<byte> &buf,
+                       blargg_vector<byte *> &tracks,
+                       bool info_only = false )
+{
+	unsigned pos = 0;
+	unsigned count = 0;
+	RARHeaderData head = {};
+	RAROpenArchiveData data = {};
+	data.ArcName = (char *)path;
+
+	// reserve space for the unpacked size and file count.
+	data.OpenMode = RAR_OM_LIST;
+	HANDLE rar = RAROpenArchive( &data );
+	for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++, pos += head.UnpSize )
+		RARProcessFile( rar, RAR_SKIP, 0, 0 );
+	RARCloseArchive( rar );
+
+	buf.resize( pos );
+	tracks.resize( count + 1 ); // + 1 to determine the size of the last track
+
+	// copy to buffer and index tracks by buffer position.
+	const long min_size = Snes_Spc::spc_min_file_size;
+	byte *bp = &buf[0];
+	data.OpenMode = RAR_OM_EXTRACT;
+	rar = RAROpenArchive( &data );
+	RARSetCallback( rar, call_rsn, (LPARAM)&bp );
+	for ( pos = 0, count = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
+	{
+		RARProcessFile( rar, -1, 0, 0 );
+		if ( !check_spc_header( &buf[pos] ) && head.UnpSize >= min_size )
+		{
+			tracks[count++] = &buf[pos];
+			if ( info_only )
+			{
+				long xid6_size = head.UnpSize - spc_size;
+				if ( xid6_size > 0 )
+				{
+					memcpy( &buf[pos + head_size], &buf[pos + spc_size], xid6_size );
+					pos += xid6_size;
+				}
+				pos += head_size;
+			}
+			else
+				pos += head.UnpSize;
+		}
+		bp = &buf[pos];
+	}
+	RARCloseArchive( rar );
+
+	// trim any excess reserved space
+	buf.resize( pos );
+	tracks.resize( count + 1 );
+	tracks[count] = bp;
+	return count;
 }
 #endif
 
@@ -318,56 +376,7 @@ struct Rsn_File : Spc_File
 	blargg_err_t load_archive( const char* path )
 	{
 	#ifdef RARDLL
-		struct RAROpenArchiveData data = { NULL, RAR_OM_LIST, 0, NULL, 0, 0, 0 };
-
-		// get the size of all unpacked headers combined
-		long pos = 0;
-		int count = 0;
-		unsigned biggest = 0;
-		blargg_vector<byte> temp;
-		data.ArcName = (char *)path;
-		HANDLE rar = RAROpenArchive( &data );
-		struct RARHeaderData head;
-		for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
-		{
-			RARProcessFile( rar, RAR_SKIP, 0, 0 );
-			long xid6_size = head.UnpSize - spc_size;
-			if ( xid6_size > 0 )
-				pos += xid6_size;
-			pos += head_size;
-			biggest = max( biggest, head.UnpSize );
-		}
-		xid6.resize( pos );
-		spc.resize( count );
-		temp.resize( biggest );
-		RARCloseArchive( rar );
-
-		// copy the headers/xid6 and index them
-		byte *bp;
-		data.OpenMode = RAR_OM_EXTRACT;
-		rar = RAROpenArchive( &data );
-		RARSetCallback( rar, call_rsn, (LPARAM)&bp );
-		for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
-		{
-			bp = &temp[0];
-			RARProcessFile( rar, RAR_TEST, 0, 0 );
-			if ( !check_spc_header( bp - head.UnpSize ) )
-			{
-				spc[count++] = &xid6[pos];
-				memcpy( &xid6[pos], &temp[0], head_size );
-				pos += head_size;
-				long xid6_size = head.UnpSize - spc_size;
-				if ( xid6_size > 0 )
-				{
-					memcpy( &xid6[pos], &temp[spc_size], xid6_size );
-					pos += xid6_size;
-				}
-			}
-		}
-		spc[count] = &xid6[pos];
-		set_track_count( count );
-		RARCloseArchive( rar );
-
+		set_track_count( rsn_unpack( path, xid6, spc, true ) );
 		return 0;
 	#else
 		(void) path;
@@ -515,39 +524,7 @@ blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 blargg_err_t Rsn_Emu::load_archive( const char* path )
 {
 #ifdef RARDLL
-	struct RAROpenArchiveData data = { NULL, RAR_OM_LIST, 0, NULL, 0, 0, 0 };
-
-	// get the file count and unpacked size
-	long pos = 0;
-	int count = 0;
-	data.ArcName = (char *)path;
-	HANDLE rar = RAROpenArchive( &data );
-	struct RARHeaderData head;
-	for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
-	{
-		RARProcessFile( rar, RAR_SKIP, 0, 0 );
-		pos += head.UnpSize;
-	}
-	rsn.resize( pos );
-	spc.resize( count );
-	RARCloseArchive( rar );
-
-	// copy the stream and index the tracks
-	byte *bp = &rsn[0];
-	data.OpenMode = RAR_OM_EXTRACT;
-	rar = RAROpenArchive( &data );
-	RARSetCallback( rar, call_rsn, (LPARAM)&bp );
-	for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
-	{
-		RARProcessFile( rar, RAR_TEST, 0, 0 );
-		if ( !check_spc_header( bp - head.UnpSize ) )
-			spc[count++] = &rsn[pos];
-		pos += head.UnpSize;
-	}
-	spc[count] = &rsn[pos];
-	set_track_count( count );
-	RARCloseArchive( rar );
-
+	set_track_count( rsn_unpack( path, rsn, spc ) );
 	return 0;
 #else
 	(void) path;
