@@ -47,7 +47,7 @@ Getting Started
 Build a program consisting of demo/basics.c, demo/Wave_Writer.cpp, and
 all source files in gme/.
 
-Or, if you have CMake 2.6 or later, execute at a command prompt (from the
+Or, if you have CMake 3.3 or later, execute at a command prompt (from the
 extracted source directory):
 
     mkdir build
