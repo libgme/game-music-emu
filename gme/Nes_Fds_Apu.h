@@ -76,6 +76,9 @@ inline void Nes_Fds_Apu::volume( double v )
 
 inline void Nes_Fds_Apu::osc_output( int i, Blip_Buffer* buf )
 {
+#ifdef NDEBUG
+	(void) i;
+#endif
 	assert( (unsigned) i < osc_count );
 	output_ = buf;
 }

@@ -109,16 +109,6 @@ public:
 	const bool false = 0;
 #endif
 
-#if defined(__has_cpp_attribute)
-# if __has_cpp_attribute(maybe_unused)
-#  define BLARGG_MAYBE_UNUSED [[maybe_unused]]
-# endif
-#endif
-
-#ifndef BLARGG_MAYBE_UNUSED
-# define BLARGG_MAYBE_UNUSED
-#endif
-
 // blargg_long/blargg_ulong = at least 32 bits, int if it's big enough
 
 #if INT_MAX < 0x7FFFFFFF || LONG_MAX == 0x7FFFFFFF
