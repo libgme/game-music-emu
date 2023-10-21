@@ -7,16 +7,17 @@ set(player_SRCS Audio_Scope.cpp
                 player.cpp)
 
 if(SDL2_FOUND)
-    message(" ** SDL 2 library located, player demo is available to be built in the /player directory")
-
-    include_directories(${SDL2_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}
-        "${CMAKE_HOME_DIRECTORY}" "${CMAKE_HOME_DIRECTORY}/gme"
-        "${CMAKE_BINARY_DIR}/gme")
+    message(STATUS "SDL2 library located, player demo is available to be built in the /player directory")
 
     add_executable(gme_player ${player_SRCS})
-    target_link_libraries(gme_player ${SDL2_LIBRARIES} gme)
-
+    target_include_directories(gme_player PRIVATE
+        ${SDL2_INCLUDE_DIRS}
+        ${PROJECT_SOURCE_DIR}/gme
+    )
+    set_property(TARGET gme_player PROPERTY CXX_STANDARD_REQUIRED ON)
+    set_property(TARGET gme_player PROPERTY CXX_STANDARD 11)
+    target_link_libraries(gme_player PRIVATE ${SDL2_LIBRARIES} gme::gme)
     # Is not to be installed though
 else()
-    message("SDL library not found, disabling player demo build")
+    message(STATUS "** SDL library not found, disabling player demo build")
 endif()
