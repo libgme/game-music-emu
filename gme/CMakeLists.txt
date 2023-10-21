@@ -213,12 +213,16 @@ set(PC_LIBS -lstdc++)
 
 if(NOT MSVC)
     # Link with -no-undefined, if available
-    cmake_push_check_state()
-    set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
-    check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
-    cmake_pop_check_state()
-    if(LINKER_SUPPORTS_NO_UNDEFINED)
+    if(APPLE)
+      set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
+    else()
+      cmake_push_check_state()
+      set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
+      check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
+      cmake_pop_check_state()
+      if(LINKER_SUPPORTS_NO_UNDEFINED)
         set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
+      endif()
     endif()
 
     # Link to libm, if necessary
