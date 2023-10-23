@@ -39,7 +39,7 @@ jobs:
         cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} ..
         cmake --build .
         cmake --build . --target demo
-        cmake --build . --target mem
+        cmake --build . --target demo_mem
         cmake --build . --target demo_multi
         cmake --build . --target gme_player
     - name: Build Static
@@ -49,6 +49,6 @@ jobs:
         cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DBUILD_SHARED_LIBS=OFF ..
         cmake --build .
         cmake --build . --target demo
-        cmake --build . --target mem
+        cmake --build . --target demo_mem
         cmake --build . --target demo_multi
         cmake --build . --target gme_player
