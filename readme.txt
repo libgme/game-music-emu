@@ -34,13 +34,13 @@ several architectures, Mac OS, MorphOS, Xbox, PlayStation Portable,
 GP2X, and Nintendo DS.
 
 Author : Shay Green <gblargg@gmail.com>
-Website: https://bitbucket.org/mpyne/game-music-emu/wiki/Home
+Website: https://github.com/libgme/game-music-emu/wiki
 License: GNU Lesser General Public License (LGPL)
 
 Note: When you will use MAME YM2612 emulator, the license of library
 will be GNU General Public License (GPL) v2.0+!
 
-Current Maintainer: Michael Pyne <mpyne@purinchu.net>
+Current Maintainers: Vitaly Novichkov <admin@wohlnet.ru>, Michael Pyne <mpyne@purinchu.net>
 
 Getting Started
 ---------------
