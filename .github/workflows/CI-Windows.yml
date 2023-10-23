@@ -32,9 +32,23 @@ jobs:
         Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.4/SDL2-devel-2.28.4-VC.zip" -OutFile "SDL2-devel-2.28.4-VC.zip"
         Expand-Archive -Path SDL2-devel-2.28.4-VC.zip
         echo "SDL2_DIR=$(pwd)\SDL2-devel-2.28.4-VC\SDL2-2.28.4\" >>${env:GITHUB_ENV}
-    - name: Build
+    - name: Build Shared
       run: |
         mkdir build
         cd build
         cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} ..
         cmake --build .
+        cmake --build . --target demo
+        cmake --build . --target mem
+        cmake --build . --target demo_multi
+        cmake --build . --target gme_player
+    - name: Build Static
+      run: |
+        mkdir build-static
+        cd build-static
+        cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DBUILD_SHARED_LIBS=OFF ..
+        cmake --build .
+        cmake --build . --target demo
+        cmake --build . --target mem
+        cmake --build . --target demo_multi
+        cmake --build . --target gme_player

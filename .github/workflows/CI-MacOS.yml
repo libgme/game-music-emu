@@ -28,9 +28,23 @@ jobs:
         brew update
         brew upgrade || true
         brew install sdl2
-    - name: Build
+    - name: Build Shared
       run: |
         mkdir build
         cd build
         cmake -G ${{ matrix.generator }} -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} ..
         cmake --build .
+        cmake --build . --target demo
+        cmake --build . --target mem
+        cmake --build . --target demo_multi
+        cmake --build . --target gme_player
+    - name: Build Static
+      run: |
+        mkdir build-static
+        cd build-static
+        cmake -G ${{ matrix.generator }} -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DBUILD_SHARED_LIBS=OFF ..
+        cmake --build .
+        cmake --build . --target demo
+        cmake --build . --target mem
+        cmake --build . --target demo_multi
+        cmake --build . --target gme_player
