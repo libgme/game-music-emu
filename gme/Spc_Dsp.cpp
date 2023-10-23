@@ -658,6 +658,11 @@ void Spc_Dsp::mute_voices( int mask )
 	}
 }
 
+Spc_Dsp::Spc_Dsp()
+{
+	memset(&m, 0, sizeof(state_t));
+}
+
 void Spc_Dsp::init( void* ram_64k )
 {
 	m.ram = (uint8_t*) ram_64k;

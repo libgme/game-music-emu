@@ -8,6 +8,7 @@
 
 struct Spc_Dsp {
 public:
+	Spc_Dsp();
 // Setup
 	
 	// Initializes DSP and has it use the 64K RAM provided
