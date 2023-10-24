@@ -285,6 +285,56 @@ else()
   message(STATUS "Zlib-Compressed formats excluded")
 endif()
 
+# Extract symbols from gme.exports
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/gme.exports" gme_exports_strings)
+set(gme_exports)
+foreach(gme_export_string ${gme_exports_strings})
+    string(STRIP "${gme_export_string}" gme_export_string)
+    string(SUBSTRING "${gme_export_string}" 0 1 gme_export_first_char)
+    if(gme_export_string AND NOT gme_export_first_char STREQUAL "#")
+        list(APPEND gme_exports ${gme_export_string})
+    endif()
+endforeach()
+
+# Add a version script to hide the c++ STL
+if(APPLE)
+    set(gme_syms "")
+    foreach(gme_export ${gme_exports})
+        set(gme_syms "${gme_syms}_${gme_export}\n")
+    endforeach()
+
+    # Use an intermediate 'gme_generated.sym' file to avoid a relink every time CMake runs
+    set(temporary_sym_file "${CMAKE_CURRENT_BINARY_DIR}/gme_generated.sym")
+    set(generated_sym_file "${CMAKE_CURRENT_BINARY_DIR}/gme.sym")
+    file(WRITE "${temporary_sym_file}" "${gme_syms}")
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${temporary_sym_file}" "${generated_sym_file}")
+
+    set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
+    set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
+elseif(UNIX)
+    set(gme_syms "{\n  global:\n")
+    foreach(gme_export ${gme_exports})
+        set(gme_syms "${gme_syms}    ${gme_export};\n")
+    endforeach()
+    set(gme_syms "${gme_syms}  local: *;\n};\n")
+
+    # Use an intermediate 'gme_generated.sym' file to avoid a relink every time CMake runs
+    set(temporary_sym_file "${CMAKE_CURRENT_BINARY_DIR}/gme_generated.sym")
+    set(generated_sym_file "${CMAKE_CURRENT_BINARY_DIR}/gme.sym")
+    file(WRITE "${temporary_sym_file}" "${gme_syms}")
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${temporary_sym_file}" "${generated_sym_file}")
+
+    cmake_push_check_state()
+    set(CMAKE_REQUIRED_FLAGS "-Wl,-version-script='${generated_sym_file}'")
+    check_cxx_source_compiles("int main() { return 0;}" LINKER_SUPPORTS_VERSION_SCRIPT)
+    cmake_pop_check_state()
+
+    if(LINKER_SUPPORTS_VERSION_SCRIPT)
+        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
+        set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
+    endif()
+endif()
+
 # The version is the release.  The "soversion" is the API version.  As long
 # as only build fixes are performed (i.e. no backwards-incompatible changes
 # to the API), the SOVERSION should be the same even when bumping up VERSION.
