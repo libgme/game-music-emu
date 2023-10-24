@@ -184,14 +184,8 @@ set_property(TARGET gme PROPERTY CXX_VISIBILITY_PRESET "hidden")
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_definitions(gme PRIVATE LIBGME_VISIBILITY)
 endif()
-
-# On some platforms we may need to change headers or whatnot based on whether
-# we're building the library or merely using the library. The following is
-# only defined when building the library to allow us to tell which is which.
-if(BUILD_SHARED_LIBS)
+if(WIN32)
     set_property(TARGET gme PROPERTY DEFINE_SYMBOL BLARGG_BUILD_DLL)
-else()
-    target_compile_definitions(gme PRIVATE -DBLARGG_BUILD_DLL)
 endif()
 
 target_compile_definitions(gme PRIVATE GEN_TYPES_H)
