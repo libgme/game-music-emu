@@ -363,7 +363,18 @@ install(TARGETS gme LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 
 # Run during cmake phase, so this is available during make
 configure_file(gme_types.h.in gen_types.h @ONLY)
-string(JOIN " " PC_LIBS ${PC_LIBS})
+
+set(TMP_PC_LIBS "")
+foreach(PC_LIB ${PC_LIBS})
+    if(NOT "${TMP_PC_LIBS}" STREQUAL "")
+	set(TMP_PC_LIBS "${TMP_PC_LIBS} ${PC_LIB}")
+    else()
+	set(TMP_PC_LIBS "${PC_LIB}")
+    endif()
+endforeach()
+set(PC_LIBS "${TMP_PC_LIBS}")
+unset(TMP_PC_LIBS)
+
 configure_file(libgme.pc.in libgme.pc @ONLY)
 
 install(FILES ${EXPORTED_HEADERS} DESTINATION include/gme)
