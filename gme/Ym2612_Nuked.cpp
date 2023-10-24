@@ -1839,7 +1839,7 @@ const char *Ym2612_Nuked_Emu::set_rate(double sample_rate, double clock_rate)
 void Ym2612_Nuked_Emu::reset()
 {
 	Ym2612_NukedImpl::ym3438_t *chip_r = reinterpret_cast<Ym2612_NukedImpl::ym3438_t*>(impl);
-	if ( !chip_r ) Ym2612_NukedImpl::OPN2_Reset( chip_r, static_cast<Bit32u>(prev_sample_rate), static_cast<Bit32u>(prev_clock_rate) );
+	if ( chip_r ) Ym2612_NukedImpl::OPN2_Reset( chip_r, static_cast<Bit32u>(prev_sample_rate), static_cast<Bit32u>(prev_clock_rate) );
 }
 
 void Ym2612_Nuked_Emu::mute_voices(int mask)
