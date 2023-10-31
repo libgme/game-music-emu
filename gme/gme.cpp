@@ -190,13 +190,16 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
 
-	// optimization: avoids seeking/re-reading header
-	Remaining_Reader rem( header, header_size, &in );
-	gme_err_t err = emu->load( rem );
-	in.close();
-
+	gme_err_t err;
 	if ( emu->is_archive )
 		err = emu->load_archive( path );
+	else
+	{
+		// optimization: avoids seeking/re-reading header
+		Remaining_Reader rem( header, header_size, &in );
+		err = emu->load( rem );
+	}
+	in.close();
 
 	if ( err )
 		delete emu;

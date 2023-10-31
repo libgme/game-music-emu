@@ -267,8 +267,6 @@ struct Spc_File : Gme_Info_
 	blargg_err_t load_( Data_Reader& in )
 	{
 		long file_size = in.remain();
-		if ( is_archive )
-			return 0;
 		if ( file_size < Snes_Spc::spc_min_file_size )
 			return gme_wrong_file_type;
 		RETURN_ERR( in.read( &header, head_size ) );
