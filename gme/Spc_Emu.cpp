@@ -371,7 +371,7 @@ struct Rsn_File : Spc_File
 
 	Rsn_File() : Spc_File( gme_rsn_type ) { is_archive = true; }
 
-	blargg_err_t load_archive( const char* path )
+	blargg_err_t load_archive_( const char* path )
 	{
 	#ifdef RARDLL
 		set_track_count( rsn_unpack( path, xid6, spc, true ) );
@@ -519,7 +519,7 @@ blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 	return 0;
 }
 
-blargg_err_t Rsn_Emu::load_archive( const char* path )
+blargg_err_t Rsn_Emu::load_archive_( const char* path )
 {
 #ifdef RARDLL
 	set_track_count( rsn_unpack( path, rsn, spc ) );

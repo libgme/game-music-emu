@@ -113,7 +113,7 @@ public:
 	void set_user_cleanup( gme_user_cleanup_t func ) { user_cleanup_ = func; }
 
 	bool is_archive = false;
-	virtual blargg_err_t load_archive( const char* ) { return gme_wrong_file_type; }
+	blargg_err_t load_archive( const char* );
 
 public:
 	// deprecated
@@ -134,6 +134,7 @@ protected:
 	virtual void unload();  // called before loading file and if loading fails
 	virtual blargg_err_t load_( Data_Reader& ); // default loads then calls load_mem_()
 	virtual blargg_err_t load_mem_( byte const* data, long size ); // use data in memory
+	virtual blargg_err_t load_archive_( const char* ) { return gme_wrong_file_type; }
 	virtual blargg_err_t track_info_( track_info_t* out, int track ) const = 0;
 	virtual void pre_load();
 	virtual void post_load_();

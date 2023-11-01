@@ -106,6 +106,12 @@ blargg_err_t Gme_File::load_file( const char* path )
 	return post_load( load_( in ) );
 }
 
+blargg_err_t Gme_File::load_archive( const char* path )
+{
+	pre_load();
+	return post_load( load_archive_( path ) );
+}
+
 blargg_err_t Gme_File::load_remaining_( void const* h, long s, Data_Reader& in )
 {
 	Remaining_Reader rem( h, s, &in );
