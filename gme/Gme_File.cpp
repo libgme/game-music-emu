@@ -98,6 +98,8 @@ blargg_err_t Gme_File::load( Data_Reader& in )
 
 blargg_err_t Gme_File::load_file( const char* path )
 {
+	if ( is_archive )
+		return load_archive( path );
 	pre_load();
 	GME_FILE_READER in;
 	RETURN_ERR( in.open( path ) );
