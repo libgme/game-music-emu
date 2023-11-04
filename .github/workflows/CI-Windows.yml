@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Windows (${{ matrix.configuration }})
+    name: MSVC (${{ matrix.configuration }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
