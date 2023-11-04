@@ -2,6 +2,8 @@
 
 // Based on Gens 2.10 ym2612.c
 
+#ifdef VGM_YM2612_GENS
+
 #include "Ym2612_GENS.h"
 
 #include <assert.h>
@@ -1317,3 +1319,5 @@ void Ym2612_GENS_Impl::run( int pair_count, Ym2612_GENS_Emu::sample_t* out )
 }
 
 void Ym2612_GENS_Emu::run( int pair_count, sample_t* out ) { impl->run( pair_count, out ); }
+
+#endif /* VGM_YM2612_GENS */

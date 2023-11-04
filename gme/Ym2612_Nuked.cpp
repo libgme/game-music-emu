@@ -2,6 +2,8 @@
 
 // Based on Nuked OPN2 ym3438.c and ym3438.h
 
+#ifdef VGM_YM2612_NUKED
+
 #include "Ym2612_Nuked.h"
 
 /*
@@ -1870,3 +1872,5 @@ void Ym2612_Nuked_Emu::run(int pair_count, Ym2612_Nuked_Emu::sample_t *out)
 	if ( !chip_r ) return;
 	Ym2612_NukedImpl::OPN2_GenerateStreamMix(chip_r, out, pair_count);
 }
+
+#endif /* VGM_YM2612_NUKED */
