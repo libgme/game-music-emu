@@ -2,6 +2,8 @@
 
 // Based on Mame YM2612 ym2612.c
 
+#ifdef VGM_YM2612_MAME
+
 #include "Ym2612_MAME.h"
 
 /*
@@ -3107,3 +3109,5 @@ void Ym2612_MAME_Emu::run(int pair_count, Ym2612_MAME_Emu::sample_t *out)
 	(void) &Ym2612_MameImpl::TimerBOver; // squelch clang warning, which appears to be from a config choice
 	if ( impl ) Ym2612_MameImpl::ym2612_generate( impl, out, pair_count, 1);
 }
+
+#endif /* VGM_YM2612_MAME */
