@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Linux (${{ matrix.configuration }})
+    name: MinGW-w64 (${{ matrix.configuration }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
