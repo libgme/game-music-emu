@@ -183,9 +183,9 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 		header_size = sizeof header;
 		RETURN_ERR( in.read( header, sizeof header ) );
 		file_type = gme_identify_extension( gme_identify_header( header ) );
+		if ( !file_type )
+			return gme_wrong_file_type;
 	}
-	if ( !file_type )
-		return gme_wrong_file_type;
 
 	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
