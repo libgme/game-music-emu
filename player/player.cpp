@@ -30,6 +30,7 @@ int const scope_height = 512;
 
 static const char *usage = R"(
 Left/Right  Change track
+Up/Down     Seek to one second forward/backward (if possible)
 Space       Pause/unpause
 E           Normal/slight stereo echo/more stereo echo
 D           Toggle echo processing
@@ -120,7 +121,7 @@ int main( int argc, char** argv )
 	// Load file
 	handle_error( player->load_file( path, by_mem ) );
 	start_track( 1, path );
-	
+
 	// Main loop
 	int track = 1;
 	double tempo = 1.0;
@@ -134,7 +135,7 @@ int main( int argc, char** argv )
 	{
 		// Update scope
 		scope->draw( scope_buf, scope_width, 2 );
-		
+
 		// Automatically go to next track when current one ends
 		if ( player->track_ended() )
 		{
@@ -143,7 +144,7 @@ int main( int argc, char** argv )
 			else
 				player->pause( paused = true );
 		}
-		
+
 		// Handle keyboard input
 		SDL_Event e;
 		while ( SDL_PollEvent( &e ) )
@@ -153,7 +154,7 @@ int main( int argc, char** argv )
 			case SDL_QUIT:
 				running = false;
 				break;
-			
+
 			case SDL_KEYDOWN:
 				int key = e.key.keysym.scancode;
 				switch ( key )
@@ -162,42 +163,42 @@ int main( int argc, char** argv )
 				case SDL_SCANCODE_ESCAPE: // quit
 					running = false;
 					break;
-				
+
 				case SDL_SCANCODE_LEFT: // prev track
 					if ( !paused && !--track )
 						track = 1;
 					start_track( track, path );
 					break;
-				
+
 				case SDL_SCANCODE_RIGHT: // next track
 					if ( track < player->track_count() )
 						start_track( ++track, path );
 					break;
-				
+
 				case SDL_SCANCODE_MINUS: // reduce tempo
 					tempo -= 0.1;
 					if ( tempo < 0.1 )
 						tempo = 0.1;
 					player->set_tempo( tempo );
 					break;
-				
+
 				case SDL_SCANCODE_EQUALS: // increase tempo
 					tempo += 0.1;
 					if ( tempo > 2.0 )
 						tempo = 2.0;
 					player->set_tempo( tempo );
 					break;
-				
+
 				case SDL_SCANCODE_SPACE: // toggle pause
 					paused = !paused;
 					player->pause( paused );
 					break;
-				
+
 				case SDL_SCANCODE_A: // toggle accurate emulation
 					accurate = !accurate;
 					player->enable_accuracy( accurate );
 					break;
-				
+
 				case SDL_SCANCODE_E: // toggle echo
 					stereo_depth += 0.2;
 					if ( stereo_depth > 0.5 )
@@ -217,7 +218,7 @@ int main( int argc, char** argv )
 					printf( "%s\n", fading_out ? "Will stop at track end" : "Playing forever" );
 					fflush( stdout );
 					break;
-				
+
 				case SDL_SCANCODE_0: // reset tempo and muting
 					tempo = 1.0;
 					muting_mask = 0;
@@ -225,11 +226,19 @@ int main( int argc, char** argv )
 					player->mute_voices( muting_mask );
 					break;
 
+				case SDL_SCANCODE_DOWN: // Seek back
+					player->seek_backward();
+					break;
+
+				case SDL_SCANCODE_UP: // Seek forward
+					player->seek_forward();
+					break;
+
 				case SDL_SCANCODE_H: // help
 					printf( "%s\n", usage );
 					fflush( stdout );
 					break;
-				
+
 				default:
 					if ( SDL_SCANCODE_1 <= key && key <= SDL_SCANCODE_9 ) // toggle muting
 					{
@@ -242,7 +251,7 @@ int main( int argc, char** argv )
 
 		SDL_Delay( 1000 / 100 ); // Sets 'frame rate'
 	}
-	
+
 	// Cleanup
 	delete player;
 	delete scope;
@@ -259,7 +268,7 @@ void handle_error( const char* error )
 		sprintf( str, "Error: %s", error );
 		fprintf( stderr, "%s\n", str );
 		scope->set_caption( str );
-		
+
 		// wait for keyboard or mouse activity
 		SDL_Event e;
 		do

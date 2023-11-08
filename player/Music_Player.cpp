@@ -221,6 +221,24 @@ void Music_Player::mute_voices( int mask )
 	resume();
 }
 
+void Music_Player::seek_forward()
+{
+	suspend();
+	int pos = gme_tell( emu_ );
+	if ( pos > 0 )
+		gme_seek( emu_, pos + 1000 );
+	resume();
+}
+
+void Music_Player::seek_backward()
+{
+	suspend();
+	int pos = gme_tell( emu_ );
+	if ( pos > 0 )
+		gme_seek( emu_, pos - 1000 );
+	resume();
+}
+
 void Music_Player::set_fadeout( bool fade )
 {
 	gme_set_fade_msecs( emu_, fade ? track_info_->length : -1, 8000 );

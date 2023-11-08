@@ -52,6 +52,12 @@ public:
 	// Set voice muting bitmask
 	void mute_voices( int );
 
+	// Move forward to 1 second
+	void seek_forward();
+
+	// Move back to 1 second
+	void seek_backward();
+
 	// Toggle whether fadeout is used or not. If used, stops at track length,
 	// if not used, loop forever
 	void set_fadeout( bool do_fade );
