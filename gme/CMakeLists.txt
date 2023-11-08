@@ -2,16 +2,32 @@
 # This is not 100% accurate (Fir_Resampler for instance) but
 # you'll be OK.
 set(libgme_SRCS Blip_Buffer.cpp
+                Blip_Buffer.h
                 Classic_Emu.cpp
+                Classic_Emu.h
                 Data_Reader.cpp
+                Data_Reader.h
                 Dual_Resampler.cpp
+                Dual_Resampler.h
                 Effects_Buffer.cpp
+                Effects_Buffer.h
                 Fir_Resampler.cpp
+                Fir_Resampler.h
                 gme.cpp
+                gme.h
+                gme_types.h
                 Gme_File.cpp
+                Gme_File.h
                 M3u_Playlist.cpp
+                M3u_Playlist.h
                 Multi_Buffer.cpp
+                Multi_Buffer.h
                 Music_Emu.cpp
+                Music_Emu.h
+                blargg_common.h
+                blargg_config.h
+                blargg_endian.h
+                blargg_source.h
                 )
 
 # static builds need to find static zlib (and static forms of other needed
@@ -37,6 +53,7 @@ endif()
 if(USE_GME_AY OR USE_GME_KSS)
     list(APPEND libgme_SRCS
                 Ay_Apu.cpp
+                Ay_Apu.h
         )
 endif()
 
@@ -46,18 +63,21 @@ if(USE_GME_VGM OR USE_GME_GYM)
         add_definitions(-DVGM_YM2612_NUKED)
         list(APPEND libgme_SRCS
                     Ym2612_Nuked.cpp
+                    Ym2612_Nuked.h
             )
         message(STATUS "VGM/GYM: Nuked OPN2 emulator will be used")
     elseif(GME_YM2612_EMU STREQUAL "MAME")
         add_definitions(-DVGM_YM2612_MAME)
         list(APPEND libgme_SRCS
                     Ym2612_MAME.cpp
+                    Ym2612_MAME.h
             )
         message(STATUS "VGM/GYM: MAME YM2612 emulator will be used")
     else()
         add_definitions(-DVGM_YM2612_GENS)
         list(APPEND libgme_SRCS
                     Ym2612_GENS.cpp
+                    Ym2612_GENS.h
             )
         message(STATUS "VGM/GYM: GENS 2.10 emulator will be used")
     endif()
@@ -67,6 +87,7 @@ endif()
 if(USE_GME_VGM OR USE_GME_GYM OR USE_GME_KSS)
     list(APPEND libgme_SRCS
                 Sms_Apu.cpp
+                Sms_Apu.h
         )
 endif()
 
@@ -74,16 +95,23 @@ if(USE_GME_AY)
     list(APPEND libgme_SRCS
               # Ay_Apu.cpp included earlier
                 Ay_Cpu.cpp
+                Ay_Cpu.h
                 Ay_Emu.cpp
+                Ay_Emu.h
         )
 endif()
 
 if(USE_GME_GBS)
     list(APPEND libgme_SRCS
                 Gb_Apu.cpp
+                Gb_Apu.h
                 Gb_Cpu.cpp
+                Gb_Cpu.h
                 Gb_Oscs.cpp
+                Gb_Oscs.h
                 Gbs_Emu.cpp
+                Gbs_Emu.h
+                gb_cpu_io.h
         )
 endif()
 
@@ -92,14 +120,19 @@ if(USE_GME_GYM)
               # Sms_Apu.cpp included earlier
               # Ym2612_Emu.cpp included earlier
                 Gym_Emu.cpp
+                Gym_Emu.h
         )
 endif()
 
 if(USE_GME_HES)
     list(APPEND libgme_SRCS
                 Hes_Apu.cpp
+                Hes_Apu.h
                 Hes_Cpu.cpp
+                Hes_Cpu.h
                 Hes_Emu.cpp
+                Hes_Emu.h
+                hes_cpu_io.h
         )
 endif()
 
@@ -108,30 +141,48 @@ if(USE_GME_KSS)
               # Ay_Apu.cpp included earlier
               # Sms_Apu.cpp included earlier
                 Kss_Cpu.cpp
+                Kss_Cpu.h
                 Kss_Emu.cpp
+                Kss_Emu.h
                 Kss_Scc_Apu.cpp
+                Kss_Scc_Apu.h
         )
 endif()
 
 if(USE_GME_NSF OR USE_GME_NSFE)
     list(APPEND libgme_SRCS
                 Nes_Apu.cpp
+                Nes_Apu.h
                 Nes_Cpu.cpp
+                Nes_Cpu.h
                 Nes_Fme7_Apu.cpp
+                Nes_Fme7_Apu.h
                 Nes_Namco_Apu.cpp
+                Nes_Namco_Apu.h
                 Nes_Oscs.cpp
+                Nes_Oscs.h
                 Nes_Vrc6_Apu.cpp
+                Nes_Vrc6_Apu.h
                 Nes_Fds_Apu.cpp
+                Nes_Fds_Apu.h
                 Nes_Vrc7_Apu.cpp
+                Nes_Vrc7_Apu.h
                 ext/emu2413.c
+                ext/emu2413.h
                 ext/panning.c
+                ext/panning.h
+                ext/emutypes.h
+                ext/2413tone.h
+                ext/vrc7tone.h
                 Nsf_Emu.cpp
+                Nsf_Emu.h
         )
 endif()
 
 if(USE_GME_NSFE)
     list(APPEND libgme_SRCS
                 Nsfe_Emu.cpp
+                Nsfe_Emu.h
         )
 endif()
 
@@ -140,16 +191,22 @@ if(USE_GME_SAP)
                 Sap_Apu.cpp
                 Sap_Cpu.cpp
                 Sap_Emu.cpp
+                sap_cpu_io.h
         )
 endif()
 
 if(USE_GME_SPC)
     list(APPEND libgme_SRCS
                 Snes_Spc.cpp
+                Snes_Spc.h
                 Spc_Cpu.cpp
+                Spc_Cpu.h
                 Spc_Dsp.cpp
+                Spc_Dsp.h
                 Spc_Emu.cpp
+                Spc_Emu.h
                 Spc_Filter.cpp
+                Spc_Filter.h
         )
     if(GME_SPC_ISOLATED_ECHO_BUFFER)
         add_definitions(-DSPC_ISOLATED_ECHO_BUFFER)
@@ -161,8 +218,11 @@ if(USE_GME_VGM)
               # Sms_Apu.cpp included earlier
               # Ym2612_Emu.cpp included earlier
                 Vgm_Emu.cpp
+                Vgm_Emu.h
                 Vgm_Emu_Impl.cpp
+                Vgm_Emu_Impl.h
                 Ym2413_Emu.cpp
+                Ym2413_Emu.h
         )
 endif()
 
