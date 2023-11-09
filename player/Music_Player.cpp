@@ -136,13 +136,13 @@ gme_err_t Music_Player::start_track( int track )
 {
 	if ( emu_ )
 	{
-		gme_free_info( track_info_ );
-		track_info_ = NULL;
-		RETURN_ERR( gme_track_info( emu_, &track_info_, track ) );
-	
 		// Sound must not be running when operating on emulator
 		sound_stop();
 		RETURN_ERR( gme_start_track( emu_, track ) );
+		
+		gme_free_info( track_info_ );
+		track_info_ = nullptr;
+		RETURN_ERR( gme_track_info( emu_, &track_info_, track ) );
 		
 		// Calculate track length
 		if ( track_info_->length <= 0 )

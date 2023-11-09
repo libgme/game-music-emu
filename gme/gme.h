@@ -286,6 +286,12 @@ BLARGG_EXPORT gme_err_t gme_load_file( Music_Emu*, const char path [] );
 /* Load music file from memory into emulator. Makes a copy of data passed. */
 BLARGG_EXPORT gme_err_t gme_load_data( Music_Emu*, void const* data, long size );
 
+/* Load multiple single-track music files from memory into emulator.
+ * @since 0.6.4
+ */
+BLARGG_EXPORT gme_err_t gme_load_tracks( Music_Emu* me,
+                                         void const* data, long* sizes, int count );
+
 /* Load music file using custom data reader function that will be called to
 read file data. Most emulators load the entire file in one read call. */
 typedef gme_err_t (*gme_reader_t)( void* your_data, void* out, int count );
