@@ -61,3 +61,4 @@ gme_vgz_type
 gme_disable_echo
 gme_set_fade_msecs
 gme_load_tracks
+gme_fixed_track_count
