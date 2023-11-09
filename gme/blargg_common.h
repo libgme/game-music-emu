@@ -44,7 +44,7 @@ class blargg_vector {
 	T* begin_;
 	size_t size_;
 public:
-	blargg_vector() : begin_( 0 ), size_( 0 ) { }
+	blargg_vector() : begin_( nullptr ), size_( 0 ) { }
 	~blargg_vector() { free( begin_ ); }
 	size_t size() const { return size_; }
 	T* begin() const { return begin_; }
@@ -56,7 +56,7 @@ public:
 			return "Out of memory";
 		begin_ = (T*) p;
 		size_ = n;
-		return 0;
+		return nullptr;
 	}
 	void clear() { free( begin_ ); begin_ = nullptr; size_ = 0; }
 	T& operator [] ( size_t n ) const

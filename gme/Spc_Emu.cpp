@@ -122,7 +122,7 @@ static void get_spc_xid6( byte const* begin, long size, track_info_t* out )
 		}
 		
 		// handle specific block types
-		char* field = 0;
+		char* field = nullptr;
 		switch ( id )
 		{
 			case 0x01: field = out->song;    break;
@@ -240,20 +240,20 @@ static void get_spc_info( Spc_Emu::header_t const& h, byte const* xid6, long xid
 blargg_err_t Spc_Emu::track_info_( track_info_t* out, int ) const
 {
 	get_spc_info( header(), trailer(), trailer_size(), out );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Rsn_Emu::track_info_( track_info_t* out, int track ) const
 {
 	get_spc_info( header( track ), trailer( track ), trailer_size( track ), out );
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_spc_header( void const* header )
 {
 	if ( memcmp( header, "SNES-SPC700 Sound File Data", 27 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Spc_File : Gme_Info_
@@ -268,7 +268,7 @@ struct Spc_File : Gme_Info_
 	{
 		long file_size = in.remain();
 		if ( is_archive )
-			return 0;
+			return nullptr;
 		if ( file_size < Snes_Spc::spc_min_file_size )
 			return gme_wrong_file_type;
 		RETURN_ERR( in.read( &header, head_size ) );
@@ -280,13 +280,13 @@ struct Spc_File : Gme_Info_
 			RETURN_ERR( in.skip( spc_size - head_size ) );
 			RETURN_ERR( in.read( xid6.begin(), xid6.size() ) );
 		}
-		return 0;
+		return nullptr;
 	}
 	
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		get_spc_info( header, xid6.begin(), xid6.size(), out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -318,7 +318,7 @@ struct Rsn_File : Spc_File
 	blargg_err_t load_archive( const char* path )
 	{
 	#ifdef RARDLL
-		struct RAROpenArchiveData data = { NULL, RAR_OM_LIST, 0, NULL, 0, 0, 0 };
+		struct RAROpenArchiveData data = { nullptr, RAR_OM_LIST, 0, nullptr, 0, 0, 0 };
 
 		// get the size of all unpacked headers combined
 		long pos = 0;
@@ -330,7 +330,7 @@ struct Rsn_File : Spc_File
 		struct RARHeaderData head;
 		for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
 		{
-			RARProcessFile( rar, RAR_SKIP, 0, 0 );
+			RARProcessFile( rar, RAR_SKIP, nullptr, nullptr );
 			long xid6_size = head.UnpSize - spc_size;
 			if ( xid6_size > 0 )
 				pos += xid6_size;
@@ -350,7 +350,7 @@ struct Rsn_File : Spc_File
 		for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
 		{
 			bp = &temp[0];
-			RARProcessFile( rar, RAR_TEST, 0, 0 );
+			RARProcessFile( rar, RAR_TEST, nullptr, nullptr );
 			if ( !check_spc_header( bp - head.UnpSize ) )
 			{
 				spc[count++] = &xid6[pos];
@@ -368,7 +368,7 @@ struct Rsn_File : Spc_File
 		set_track_count( count );
 		RARCloseArchive( rar );
 
-		return 0;
+		return nullptr;
 	#else
 		(void) path;
 		return gme_wrong_file_type;
@@ -384,7 +384,7 @@ struct Rsn_File : Spc_File
 			*(Spc_Emu::header_t const*) spc[track],
 			spc[track] + head_size, xid6_size, out
 		);
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -406,7 +406,7 @@ blargg_err_t Spc_Emu::set_sample_rate_( long sample_rate )
 		RETURN_ERR( resampler.buffer_size( native_sample_rate / 20 * 2 ) );
 		resampler.time_ratio( (double) native_sample_rate / sample_rate, 0.9965 );
 	}
-	return 0;
+	return nullptr;
 }
 
 void Spc_Emu::enable_accuracy_( bool b )
@@ -433,7 +433,7 @@ blargg_err_t Spc_Emu::load_mem_( byte const* in, long size )
 	file_size = size;
 	set_voice_count( Snes_Spc::voice_count );
 	if ( is_archive )
-		return 0;
+		return nullptr;
 	if ( size < Snes_Spc::spc_min_file_size )
 		return gme_wrong_file_type;
 	return check_spc_header( in );
@@ -460,14 +460,14 @@ blargg_err_t Spc_Emu::start_track_( int track )
 	// Set a default track length, need a non-zero fadeout
 	if ( autoload_playback_limit() && ( spc_info.length > 0 ) )
 		set_fade ( spc_info.length, 50 );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Spc_Emu::play_and_filter( long count, sample_t out [] )
 {
 	RETURN_ERR( apu.play( count, out ) );
 	filter.run( out, count );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Spc_Emu::skip_( long count )
@@ -509,13 +509,13 @@ blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 		}
 	}
 	check( remain == 0 );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Rsn_Emu::load_archive( const char* path )
 {
 #ifdef RARDLL
-	struct RAROpenArchiveData data = { NULL, RAR_OM_LIST, 0, NULL, 0, 0, 0 };
+	struct RAROpenArchiveData data = { nullptr, RAR_OM_LIST, 0, nullptr, 0, 0, 0 };
 
 	// get the file count and unpacked size
 	long pos = 0;
@@ -525,7 +525,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 	struct RARHeaderData head;
 	for ( ; RARReadHeader( rar, &head ) == ERAR_SUCCESS; count++ )
 	{
-		RARProcessFile( rar, RAR_SKIP, 0, 0 );
+		RARProcessFile( rar, RAR_SKIP, nullptr, nullptr );
 		pos += head.UnpSize;
 	}
 	rsn.resize( pos );
@@ -539,7 +539,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 	RARSetCallback( rar, call_rsn, (LPARAM)&bp );
 	for ( count = 0, pos = 0; RARReadHeader( rar, &head ) == ERAR_SUCCESS; )
 	{
-		RARProcessFile( rar, RAR_TEST, 0, 0 );
+		RARProcessFile( rar, RAR_TEST, nullptr, nullptr );
 		if ( !check_spc_header( bp - head.UnpSize ) )
 			spc[count++] = &rsn[pos];
 		pos += head.UnpSize;
@@ -548,7 +548,7 @@ blargg_err_t Rsn_Emu::load_archive( const char* path )
 	set_track_count( count );
 	RARCloseArchive( rar );
 
-	return 0;
+	return nullptr;
 #else
 	(void) path;
 	return gme_wrong_file_type;
