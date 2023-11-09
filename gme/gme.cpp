@@ -273,6 +273,11 @@ gme_err_t gme_load_data( Music_Emu* me, void const* data, long size )
 	return me->load( in );
 }
 
+gme_err_t gme_load_tracks( Music_Emu* me, void const* data, long* sizes, int count )
+{
+	return me->load_tracks( data, sizes, count );
+}
+
 gme_err_t gme_load_custom( Music_Emu* me, gme_reader_t func, long size, void* data )
 {
 	Callback_Reader in( func, size, data );
