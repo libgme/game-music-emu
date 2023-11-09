@@ -292,6 +292,11 @@ BLARGG_EXPORT gme_err_t gme_load_data( Music_Emu*, void const* data, long size )
 BLARGG_EXPORT gme_err_t gme_load_tracks( Music_Emu* me,
                                          void const* data, long* sizes, int count );
 
+/* Return the fixed track count of an emu file type
+ * @since 0.6.4
+ */
+BLARGG_EXPORT int gme_fixed_track_count( gme_type_t );
+
 /* Load music file using custom data reader function that will be called to
 read file data. Most emulators load the entire file in one read call. */
 typedef gme_err_t (*gme_reader_t)( void* your_data, void* out, int count );
