@@ -112,9 +112,6 @@ public:
 	// clear it. Passes user_data to cleanup function.
 	void set_user_cleanup( gme_user_cleanup_t func ) { user_cleanup_ = func; }
 
-	bool is_archive = false;
-	virtual blargg_err_t load_archive( const char* ) { return gme_wrong_file_type; }
-
 public:
 	// deprecated
 	int error_count() const; // use warning()

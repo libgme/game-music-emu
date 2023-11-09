@@ -45,10 +45,6 @@ if(GME_ZLIB)
     find_package(ZLIB QUIET)
 endif()
 
-if (USE_GME_SPC AND GME_UNRAR)
-    find_package(UNRAR QUIET)
-endif()
-
 # Ay_Apu is very popular around here
 if(USE_GME_AY OR USE_GME_KSS)
     list(APPEND libgme_SRCS
@@ -306,29 +302,6 @@ if(NOT MSVC)
             list(APPEND PC_LIBS -lm) # for libgme.pc
         endif()
     endif()
-endif()
-
-if(USE_GME_SPC AND GME_UNRAR)
-  if(UNRAR_FOUND)
-      message(STATUS "UnRAR library located, the RSN file format will be supported")
-      target_compile_definitions(gme PRIVATE RARDLL)
-      if(RAR_HDR_UNRAR_H)
-          target_compile_definitions(gme PRIVATE RAR_HDR_UNRAR_H)
-      elseif(RAR_HDR_DLL_HPP)
-          target_compile_definitions(gme PRIVATE RAR_HDR_DLL_HPP)
-      endif()
-      target_include_directories(gme PRIVATE ${UNRAR_INCLUDE_DIRS})
-      target_link_libraries(gme PRIVATE ${UNRAR_LIBRARIES})
-      # Is not to be installed though
-      list(APPEND PC_LIBS -lunrar) # for libgme.pc
-      if (NOT WIN32) # POSIX Threading for unRAR
-          target_compile_options(gme PRIVATE -pthread)
-      endif()
-  else()
-      message(STATUS "** UnRAR library not found, disabling support for the RSN file format")
-  endif()
-else()
-  message(STATUS "RSN file format excluded")
 endif()
 
 if(GME_ZLIB)

@@ -55,8 +55,7 @@ public:
 	long trailer_size() const;
 
 public:
-	Spc_Emu( gme_type_t );
-	Spc_Emu() : Spc_Emu( gme_spc_type ) {}
+	Spc_Emu();
 	~Spc_Emu();
 protected:
 	blargg_err_t load_mem_( byte const*, long );
@@ -69,9 +68,9 @@ protected:
 	void disable_echo_( bool disable );
 	void set_tempo_( double );
 	void enable_accuracy_( bool );
+private:
 	byte const* file_data;
 	long        file_size;
-private:
 	Fir_Resampler<24> resampler;
 	SPC_Filter filter;
 	Snes_Spc apu;
@@ -80,21 +79,5 @@ private:
 };
 
 inline void Spc_Emu::disable_surround( bool b ) { apu.disable_surround( b ); }
-
-class Rsn_Emu : public Spc_Emu {
-public:
-	Rsn_Emu() : Spc_Emu( gme_rsn_type ) { is_archive = true; }
-	~Rsn_Emu();
-	blargg_err_t load_archive( const char* );
-	header_t const& header( int track ) const { return *(header_t const*) spc[track]; }
-	byte const* trailer( int ) const; // use track_info()
-	long trailer_size( int ) const;
-protected:
-	blargg_err_t track_info_( track_info_t*, int ) const;
-	blargg_err_t start_track_( int );
-private:
-	blargg_vector<byte> rsn;
-	blargg_vector<byte*> spc;
-};
 
 #endif
