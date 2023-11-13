@@ -5,6 +5,8 @@
 include_directories(${CMAKE_SOURCE_DIR}/gme ${CMAKE_SOURCE_DIR})
 link_directories(${CMAKE_BINARY_DIR}/gme)
 
+set (CMAKE_C_STANDARD 99)
+
 add_executable(demo Wave_Writer.cpp basics.c)
 
 # Add command to copy build file over.
