@@ -5,38 +5,21 @@ on: [push, pull_request]
 jobs:
   build:
     name: MSVC (${{ matrix.configuration }})
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     strategy:
       matrix:
         configuration: [Debug, Release]
-        include:
-          - generator: Visual Studio 17 2022
-            os: windows-latest
-    env:
-      VS_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\
-      MSBUILD_PATH: C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\
 
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
       run: |
-          choco install -y --no-progress cmake --install-arguments="ADD_CMAKE_TO_PATH=System"
-          choco install -y --no-progress visualstudio2022community
-    - name: Install SDL2
-      shell: powershell
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.4/SDL2-devel-2.28.4-VC.zip" -OutFile "SDL2-devel-2.28.4-VC.zip"
-        Expand-Archive -Path SDL2-devel-2.28.4-VC.zip
-        echo "SDL2_DIR=$(pwd)\SDL2-devel-2.28.4-VC\SDL2-2.28.4\" >>${env:GITHUB_ENV}
+          vcpkg install sdl2 zlib
     - name: Build Shared
       run: |
-        mkdir build
-        cd build
-        cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} ..
-        cmake --build .
+        cmake -B build -DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+        cmake --build build/
     - name: Build Static
       run: |
-        mkdir build-static
-        cd build-static
-        cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DBUILD_SHARED_LIBS=OFF ..
-        cmake --build .
+        cmake -B build-static -DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DBUILD_SHARED_LIBS=OFF
+        cmake --build build-static/
