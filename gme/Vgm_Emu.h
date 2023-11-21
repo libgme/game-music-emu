@@ -56,7 +56,7 @@ public:
 	using Music_Emu::load;
 	blargg_err_t load( header_t const& h, Data_Reader& in ) // use Remaining_Reader
 			{ return load_remaining_( &h, sizeof h, in ); }
-	byte const* gd3_data( int* size_out = 0 ) const; // use track_info()
+	byte const* gd3_data( int* size_out = nullptr ) const; // use track_info()
 
 public:
 	Vgm_Emu();

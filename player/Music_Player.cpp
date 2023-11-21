@@ -43,10 +43,10 @@ static void sound_cleanup();
 
 Music_Player::Music_Player()
 {
-	emu_        = 0;
-	scope_buf   = 0;
+	emu_        = nullptr;
+	scope_buf   = nullptr;
 	paused      = false;
-	track_info_ = NULL;
+	track_info_ = nullptr;
 }
 
 gme_err_t Music_Player::init( long rate )
@@ -65,7 +65,7 @@ void Music_Player::stop()
 {
 	sound_stop();
 	gme_delete( emu_ );
-	emu_ = NULL;
+	emu_ = nullptr;
 }
 
 Music_Player::~Music_Player()
@@ -124,7 +124,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 	strcpy( p, ".m3u" );
 	if ( gme_load_m3u( emu_, m3u_path ) ) { } // ignore error
 	
-	return 0;
+	return nullptr;
 }
 
 int Music_Player::track_count() const
@@ -137,7 +137,7 @@ gme_err_t Music_Player::start_track( int track )
 	if ( emu_ )
 	{
 		gme_free_info( track_info_ );
-		track_info_ = NULL;
+		track_info_ = nullptr;
 		RETURN_ERR( gme_track_info( emu_, &track_info_, track ) );
 	
 		// Sound must not be running when operating on emulator
@@ -156,7 +156,7 @@ gme_err_t Music_Player::start_track( int track )
 		paused = false;
 		sound_start();
 	}
-	return 0;
+	return nullptr;
 }
 
 void Music_Player::pause( int b )
@@ -281,7 +281,7 @@ static const char* sound_init( long sample_rate, int buf_size,
 	as.channels = 2;
 	as.callback = sdl_callback;
 	as.samples  = buf_size;
-	if ( SDL_OpenAudio( &as, 0 ) < 0 )
+	if ( SDL_OpenAudio( &as, nullptr ) < 0 )
 	{
 		const char* err = SDL_GetError();
 		if ( !err )
@@ -289,7 +289,7 @@ static const char* sound_init( long sample_rate, int buf_size,
 		return err;
 	}
 	
-	return 0;
+	return nullptr;
 }
 
 static void sound_start()
