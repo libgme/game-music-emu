@@ -61,6 +61,11 @@ blargg_err_t Gme_File::load_( Data_Reader& in )
 {
 	RETURN_ERR( file_data.resize( in.remain() ) );
 	RETURN_ERR( in.read( file_data.begin(), file_data.size() ) );
+	if ( type()->track_count == 1 )
+	{
+		RETURN_ERR( tracks.resize( 2 ) );
+		tracks[0] = 0, tracks[1] = file_data.size();
+	}
 	return load_mem_( file_data.begin(), file_data.size() );
 }
 
@@ -88,6 +93,22 @@ blargg_err_t Gme_File::load_mem( void const* in, long size )
 {
 	pre_load();
 	return post_load( load_mem_( (byte const*) in, size ) );
+}
+
+blargg_err_t Gme_File::load_tracks( void const* in, long* sizes, int count )
+{
+	pre_load();
+	if ( type()->track_count != 1 )
+		return "File type must have a fixed track count of 1";
+	set_track_count( count );
+	RETURN_ERR( tracks.resize( count + 1 ) );
+	long size = 0;
+	for ( int i = 0; i < count; size += sizes[i++] )
+		tracks[i] = size;
+	tracks[count] = size;
+	RETURN_ERR( file_data.resize( size ) );
+	memcpy( file_data.begin(), in, size );
+	return post_load( load_mem_( file_data.begin(), tracks[1] ) );
 }
 
 blargg_err_t Gme_File::load( Data_Reader& in )

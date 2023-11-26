@@ -76,6 +76,10 @@ public:
 	// must not free it until you're done with the file.
 	blargg_err_t load_mem( void const* data, long size );
 
+	// Load from multiple files already read into memory.
+	// Should only be used for file types with a fixed track count of 1.
+	blargg_err_t load_tracks( void const* in, long* sizes, int count );
+
 	// Load an m3u playlist. Must be done after loading main music file.
 	blargg_err_t load_m3u( const char* path );
 	blargg_err_t load_m3u( Data_Reader& in );
@@ -112,9 +116,6 @@ public:
 	// clear it. Passes user_data to cleanup function.
 	void set_user_cleanup( gme_user_cleanup_t func ) { user_cleanup_ = func; }
 
-	bool is_archive = false;
-	virtual blargg_err_t load_archive( const char* ) { return gme_wrong_file_type; }
-
 public:
 	// deprecated
 	int error_count() const; // use warning()
@@ -129,6 +130,9 @@ protected:
 	void set_warning( const char* s )   { warning_ = s; }
 	void set_type( gme_type_t t )       { type_ = t; }
 	blargg_err_t load_remaining_( void const* header, long header_size, Data_Reader& remaining );
+
+	const byte* track_pos( int i ) { return &file_data[tracks[i]]; }
+	long track_size( int i ) { return tracks[i + 1] - tracks[i]; }
 
 	// Overridable
 	virtual void unload();  // called before loading file and if loading fails
@@ -155,6 +159,7 @@ private:
 	M3u_Playlist playlist;
 	char playlist_warning [64];
 	blargg_vector<byte> file_data; // only if loaded into memory using default load
+	blargg_vector<long> tracks;    // file start indexes of `file_data`
 
 	blargg_err_t load_m3u_( blargg_err_t );
 	blargg_err_t post_load( blargg_err_t err );

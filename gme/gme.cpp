@@ -59,7 +59,6 @@ gme_type_t const* gme_type_list()
 	#endif
 	#ifdef USE_GME_SPC
 	            gme_spc_type,
-				gme_rsn_type,
 	#endif
 	#ifdef USE_GME_VGM
 	            gme_vgm_type,
@@ -86,7 +85,6 @@ const char* gme_identify_header( void const* header )
 		case BLARGG_4CHAR('N','S','F','E'):  return "NSFE";
 		case BLARGG_4CHAR('S','A','P',0x0D): return "SAP";
 		case BLARGG_4CHAR('S','N','E','S'):  return "SPC";
-		case BLARGG_4CHAR('R','a','r','!'):  return "RSN";
 		case BLARGG_4CHAR('V','g','m',' '):  return "VGM";
 	}
 	if (get_be16(header) == BLARGG_2CHAR(0x1F, 0x8B))
@@ -183,9 +181,9 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 		header_size = sizeof header;
 		RETURN_ERR( in.read( header, sizeof header ) );
 		file_type = gme_identify_extension( gme_identify_header( header ) );
+		if ( !file_type )
+			return gme_wrong_file_type;
 	}
-	if ( !file_type )
-		return gme_wrong_file_type;
 
 	Music_Emu* emu = gme_new_emu( file_type, sample_rate );
 	CHECK_ALLOC( emu );
@@ -194,9 +192,6 @@ gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 	Remaining_Reader rem( header, header_size, &in );
 	gme_err_t err = emu->load( rem );
 	in.close();
-
-	if ( emu->is_archive )
-		err = emu->load_archive( path );
 
 	if ( err )
 		delete emu;
@@ -276,6 +271,17 @@ gme_err_t gme_load_data( Music_Emu* me, void const* data, long size )
 {
 	Mem_File_Reader in( data, size );
 	return me->load( in );
+}
+
+gme_err_t gme_load_tracks( Music_Emu* me, void const* data, long* sizes, int count )
+{
+	return me->load_tracks( data, sizes, count );
+}
+
+int gme_fixed_track_count( gme_type_t t )
+{
+	assert( t );
+	return t->track_count;
 }
 
 gme_err_t gme_load_custom( Music_Emu* me, gme_reader_t func, long size, void* data )

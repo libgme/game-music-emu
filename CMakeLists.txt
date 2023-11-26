@@ -34,7 +34,6 @@ option(USE_GME_VGM "Enable Sega VGM/VGZ music emulation" ON)
 
 option(GME_SPC_ISOLATED_ECHO_BUFFER "Enable isolated echo buffer on SPC emulator to allow correct playing of \"dodgy\" SPC files made for various ROM hacks ran on ZSNES" OFF)
 option(GME_ZLIB "Enable GME to support compressed sound formats" ON)
-option(GME_UNRAR "Enable SPC RSN format (optional, requires **non-free** UnRAR library)" OFF)
 
 set(GME_YM2612_EMU "Nuked" CACHE STRING "Which YM2612 emulator to use: \"Nuked\" (LGPLv2.1+), \"MAME\" (GPLv2+), or \"GENS\" (LGPLv2.1+)")
 set(GME_YM2612_EMU_CHOICES "Nuked;MAME;GENS")

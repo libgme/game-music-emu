@@ -149,10 +149,10 @@ protected:
 	virtual blargg_err_t set_sample_rate_( long sample_rate ) = 0;
 	virtual void set_equalizer_( equalizer_t const& ) { }
 	virtual void enable_accuracy_( bool /* enable */ ) { }
-	virtual void mute_voices_( int mask ) = 0;
+	virtual void mute_voices_( int mask );
 	virtual void disable_echo_( bool /* disable */);
-	virtual void set_tempo_( double ) = 0;
-	virtual blargg_err_t start_track_( int ) = 0; // tempo is set before this
+	virtual void set_tempo_( double );
+	virtual blargg_err_t start_track_( int ); // tempo is set before this
 	virtual blargg_err_t play_( long count, sample_t* out ) = 0;
 	virtual blargg_err_t skip_( long count );
 protected:
@@ -237,7 +237,12 @@ inline void Music_Emu::enable_accuracy( bool b )    { enable_accuracy_( b ); }
 inline void Music_Emu::set_tempo_( double t )       { tempo_ = t; }
 inline void Music_Emu::remute_voices()              { mute_voices( mute_mask_ ); }
 inline void Music_Emu::ignore_silence( bool b )     { ignore_silence_ = b; }
-inline blargg_err_t Music_Emu::start_track_( int )  { return 0; }
+inline blargg_err_t Music_Emu::start_track_( int track )
+{
+	if ( type()->track_count == 1 )
+		return load_mem_( track_pos( track ), track_size( track ) );
+	return 0;
+}
 
 inline void Music_Emu::set_voice_names( const char* const* names )
 {
