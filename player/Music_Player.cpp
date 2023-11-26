@@ -5,6 +5,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "SDL_rwops.h"
+#include "Archive_Reader.h"
 
 /* Copyright (C) 2005-2010 by Shay Green. Permission is hereby granted, free of
 charge, to any person obtaining a copy of this software module and associated
@@ -41,6 +42,22 @@ static void sound_start();
 static void sound_stop();
 static void sound_cleanup();
 
+struct arc_type_t {
+	long header;
+	Archive_Reader* (*new_arc)();
+};
+
+#ifdef RARDLL
+static Archive_Reader* new_rar_reader() { return BLARGG_NEW Rar_Reader; }
+#endif
+
+const arc_type_t arcs[] = {
+#ifdef RARDLL
+	{ BLARGG_4CHAR('R','a','r','!'), &new_rar_reader },
+#endif
+	{ 0, nullptr }
+};
+
 Music_Player::Music_Player()
 {
 	emu_        = 0;
@@ -73,6 +90,23 @@ Music_Player::~Music_Player()
 	stop();
 	sound_cleanup();
 	gme_free_info( track_info_ );
+}
+
+// check if file is an archive
+const arc_type_t* identify_archive( const char* path )
+{
+	long header;
+	char h[4];
+	FILE *in = fopen( path, "rb" );
+	if ( !in )
+		return nullptr;
+	fread( h, 1, sizeof h, in );
+	fclose( in );
+	header = BLARGG_4CHAR( h[0], h[1], h[2], h[3] );
+	for ( const arc_type_t* arc = arcs; arc->header; arc++ )
+		if ( arc->header == header )
+			return arc;
+	return nullptr;
 }
 
 gme_err_t Music_Player::load_file(const char* path , bool by_mem)
@@ -112,7 +146,47 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 	{
 		printf( "Loading file %s by file path...\n", path );
 		fflush( stdout );
-		RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
+
+		const arc_type_t* arc = identify_archive( path );
+		if ( arc )
+		{
+			Archive_Reader* ptr = arc->new_arc();
+			if ( !ptr )
+				return "Failed to create archive reader";
+			Archive_Reader& in = *ptr;
+			blargg_vector<long> sizes;
+			blargg_vector<uint8_t> buf;
+			RETURN_ERR( in.open( path ) );
+			RETURN_ERR( sizes.resize( in.count() ) );
+			RETURN_ERR( buf.resize( in.size() ) );
+
+			int n = 0;
+			uint8_t *bp = buf.begin();
+			gme_type_t emu_type = nullptr;
+			while( in.next_entry() )
+			{ // copy data and file sizes
+				gme_type_t t;
+				RETURN_ERR( in.read( bp ) );
+				if ( (t = gme_identify_extension( in.entry_name() ))
+				&& gme_fixed_track_count( t ) == 1 )
+				{
+					if ( !emu_type )
+						emu_type = t;
+					if ( t == emu_type )
+						bp += (sizes[n++] = in.entry_size());
+				}
+			}
+			delete ptr;
+
+			if ( !emu_type )
+				return gme_wrong_file_type;
+			emu_ = gme_new_emu( emu_type, sample_rate );
+			if ( !emu_ )
+				return "Out of memory";
+			RETURN_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
+		}
+		else
+			RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
 	}
 	
 	char m3u_path [256 + 5];
