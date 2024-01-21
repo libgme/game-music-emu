@@ -1,6 +1,7 @@
 // Band-limited sound synthesis buffer
 
 // Blip_Buffer 0.4.1
+
 #ifndef BLIP_BUFFER_H
 #define BLIP_BUFFER_H
 
@@ -233,9 +234,9 @@ public:
 #endif
 
 	// disable broken defaulted constructors, Blip_Synth_ isn't safe to move/copy
-	Blip_Synth<quality, range>           (const Blip_Synth<quality, range>  &) = delete;
-	Blip_Synth<quality, range>           (      Blip_Synth<quality, range> &&) = delete;
-	Blip_Synth<quality, range>& operator=(const Blip_Synth<quality, range> &)  = delete;
+	Blip_Synth           (const Blip_Synth  &) = delete;
+	Blip_Synth           (      Blip_Synth &&) = delete;
+	Blip_Synth& operator=(const Blip_Synth  &) = delete;
 };
 
 // Low-pass equalization parameters
