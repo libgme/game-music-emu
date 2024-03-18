@@ -261,7 +261,10 @@ endif()
 # Try to protect against undefined behavior from signed integer overflow
 # This has caused miscompilation of code already and there are other
 # potential uses; see https://bitbucket.org/mpyne/game-music-emu/issues/18/
-target_compile_options(gme PRIVATE -fwrapv)
+#                    (https://github.com/libgme/game-music-emu/issues/20 )
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(gme PRIVATE -fwrapv)
+endif()
 
 target_include_directories(gme
     PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"  # For gen_types.h
