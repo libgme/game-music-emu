@@ -72,7 +72,8 @@ public:
 	#define BLARGG_DISABLE_NOTHROW \
 		void* operator new ( size_t s ) noexcept { return malloc( s ); }\
 		void* operator new ( size_t s, const std::nothrow_t& ) noexcept { return malloc( s ); }\
-		void operator delete ( void* p ) noexcept { free( p ); }
+		void operator delete ( void* p ) noexcept { free( p ); }\
+		void operator delete ( void* p, const std::nothrow_t&) noexcept { free( p ); }
 #endif
 
 // Use to force disable exceptions for a specific allocation no matter what class
