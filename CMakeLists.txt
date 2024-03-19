@@ -58,6 +58,7 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 test_big_endian(WORDS_BIGENDIAN)
 
 if(MSVC)
+    string(REGEX REPLACE "/W[3|4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
     add_compile_options(/W2)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -W -Wextra)
