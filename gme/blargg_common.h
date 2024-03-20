@@ -125,6 +125,13 @@ public:
 
 // int8_t etc.
 
+// Apply minus sign to unsigned type and prevent the warning being shown
+	template<typename T>
+	inline T uMinus(T in)
+	{
+		return ~(in - 1);
+	}
+
 // TODO: Add CMake check for this, although I'd likely just point affected
 // persons to a real compiler...
 #if 1 || defined (HAVE_STDINT_H)

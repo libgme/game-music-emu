@@ -1079,7 +1079,7 @@ possibly_out_of_time:
 			blargg_ulong sum = temp + (flags & C01);
 			flags = ~data >> 2 & N02;
 			if ( flags )
-				sum = -sum;
+				sum = uMinus(sum);
 			sum += rp.hl;
 			temp ^= rp.hl;
 			temp ^= sum;
