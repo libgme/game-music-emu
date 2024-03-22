@@ -356,7 +356,7 @@ static void ym2612_setoptions(UINT8 Flags);
 #endif
 
 
-static stream_sample_t *DUMMYBUF = NULL;
+static stream_sample_t *DUMMYBUF = nullptr;
 
 /* shared function building option */
 #define BUILD_OPN (BUILD_YM2203||BUILD_YM2608||BUILD_YM2610||BUILD_YM2610B||BUILD_YM2612||BUILD_YM3438)
@@ -1334,7 +1334,7 @@ INLINE void setup_connection( FM_OPN *OPN, FM_CH *CH, int ch )
 		/*    +----C1----+     */
 		/* M1-+-MEM---M2-+-OUT */
 		/*    +----C2----+     */
-		*om1 = 0;	/* special mark */
+		*om1 = nullptr;	/* special mark */
 		*oc1 = carrier;
 		*om2 = carrier;
 		*memc= &OPN->m2;
@@ -2720,7 +2720,7 @@ void ym2612_generate_one_native(void *chip, FMSAMPLE buffer[])
 	/* timer A control */
 	/* INTERNAL_TIMER_A( &OPN->ST , cch[2] ) */
 	{
-		if( OPN->ST.TAC &&  (OPN->ST.timer_handler==0) )
+		if( OPN->ST.TAC &&  (OPN->ST.timer_handler == nullptr) )
 			if( (OPN->ST.TAC -= (int)(OPN->ST.freqbase*4096)) <= 0 )
 			{
 				TimerAOver( &OPN->ST );
@@ -2803,13 +2803,13 @@ static void * ym2612_init(void *param, int clock, int rate,
 	YM2612 *F2612;
 
 	if (clock <= 0 || rate <= 0)
-		return NULL; /* Forbid zero clock and sample rate */
+		return nullptr; /* Forbid zero clock and sample rate */
 
 	/* allocate extend state space */
 	/* F2612 = auto_alloc_clear(device->machine, YM2612); */
 	F2612 = (YM2612 *)malloc(sizeof(YM2612));
-	if (F2612 == NULL)
-		return NULL;
+	if (F2612 == nullptr)
+		return nullptr;
 	memset(F2612, 0x00, sizeof(YM2612));
 	/* allocate total level table (128kb space) */
 	init_tables();
@@ -3064,7 +3064,7 @@ static void ym2612_setoptions(UINT8 Flags)
 } // Ym2612_MameImpl
 
 
-Ym2612_MAME_Emu::Ym2612_MAME_Emu() { impl = 0; }
+Ym2612_MAME_Emu::Ym2612_MAME_Emu() { impl = nullptr; }
 
 Ym2612_MAME_Emu::~Ym2612_MAME_Emu()
 {
@@ -3074,10 +3074,10 @@ Ym2612_MAME_Emu::~Ym2612_MAME_Emu()
 const char *Ym2612_MAME_Emu::set_rate(double sample_rate, double clock_rate)
 {
 	if ( impl ) Ym2612_MameImpl::ym2612_shutdown( impl );
-	impl = Ym2612_MameImpl::ym2612_init( NULL, static_cast<int>(clock_rate), static_cast<int>(sample_rate), NULL, NULL );
+	impl = Ym2612_MameImpl::ym2612_init( nullptr, static_cast<int>(clock_rate), static_cast<int>(sample_rate), nullptr, nullptr );
 	if ( !impl )
 		return "Out of memory";
-	return 0;
+	return nullptr;
 }
 
 void Ym2612_MAME_Emu::reset()

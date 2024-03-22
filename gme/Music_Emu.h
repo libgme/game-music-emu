@@ -237,7 +237,7 @@ inline void Music_Emu::enable_accuracy( bool b )    { enable_accuracy_( b ); }
 inline void Music_Emu::set_tempo_( double t )       { tempo_ = t; }
 inline void Music_Emu::remute_voices()              { mute_voices( mute_mask_ ); }
 inline void Music_Emu::ignore_silence( bool b )     { ignore_silence_ = b; }
-inline blargg_err_t Music_Emu::start_track_( int )  { return 0; }
+inline blargg_err_t Music_Emu::start_track_( int )  { return nullptr; }
 
 inline void Music_Emu::set_voice_names( const char* const* names )
 {
