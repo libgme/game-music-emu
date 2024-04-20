@@ -17,7 +17,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-int const max_frequency = 12000; // pure waves above this frequency are silenced
+static int const max_frequency = 12000; // pure waves above this frequency are silenced
 
 static void gen_poly( blargg_ulong mask, int count, byte* out )
 {
@@ -39,11 +39,11 @@ static void gen_poly( blargg_ulong mask, int count, byte* out )
 }
 
 // poly5
-int const poly5_len = (1 <<  5) - 1;
-blargg_ulong const poly5_mask = (1UL << poly5_len) - 1;
-blargg_ulong const poly5 = 0x167C6EA1;
+static int const poly5_len = (1 <<  5) - 1;
+static blargg_ulong const poly5_mask = (1UL << poly5_len) - 1;
+static blargg_ulong const poly5 = 0x167C6EA1;
 
-inline blargg_ulong run_poly5( blargg_ulong in, int shift )
+static inline blargg_ulong run_poly5( blargg_ulong in, int shift )
 {
 	return (in << shift & poly5_mask) | (in >> (poly5_len - shift));
 }

@@ -53,14 +53,16 @@ inline void Nes_Cpu::set_code_page( int i, void const* p )
 	state->code_map [i] = (uint8_t const*) p - PAGE_OFFSET( i * page_size );
 }
 
-int const st_n = 0x80;
-int const st_v = 0x40;
-int const st_r = 0x20;
-int const st_b = 0x10;
-int const st_d = 0x08;
-int const st_i = 0x04;
-int const st_z = 0x02;
-int const st_c = 0x01;
+enum {
+    st_n = 0x80,
+    st_v = 0x40,
+    st_r = 0x20,
+    st_b = 0x10,
+    st_d = 0x08,
+    st_i = 0x04,
+    st_z = 0x02,
+    st_c = 0x01
+};
 
 void Nes_Cpu::reset( void const* unmapped_page )
 {

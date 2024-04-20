@@ -17,7 +17,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include <string.h>
 
-int const fract_range = 65536;
+static int const fract_range = 65536;
 
 void Nes_Fds_Apu::reset()
 {

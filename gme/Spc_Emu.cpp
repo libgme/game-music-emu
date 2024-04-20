@@ -41,8 +41,8 @@ Spc_Emu::~Spc_Emu() { }
 
 // Track info
 
-long const spc_size = Snes_Spc::spc_file_size;
-long const head_size = Spc_Emu::header_size;
+static long const spc_size = Snes_Spc::spc_file_size;
+static long const head_size = Spc_Emu::header_size;
 
 byte const* Spc_Emu::trailer() const { return &file_data [min( file_size, spc_size )]; }
 

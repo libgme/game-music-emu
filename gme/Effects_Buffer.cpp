@@ -30,12 +30,12 @@ using std::max;
 #define TO_FIXED( f )   fixed_t ((f) * (1L << 15) + 0.5)
 #define FMUL( x, y )    (((x) * (y)) >> 15)
 
-const unsigned echo_size = 4096;
-const unsigned echo_mask = echo_size - 1;
+static const unsigned echo_size = 4096;
+static const unsigned echo_mask = echo_size - 1;
 static_assert( (echo_size & echo_mask) == 0, "echo_size must be a power of 2" );
 
-const unsigned reverb_size = 8192 * 2;
-const unsigned reverb_mask = reverb_size - 1;
+static const unsigned reverb_size = 8192 * 2;
+static const unsigned reverb_mask = reverb_size - 1;
 static_assert( (reverb_size & reverb_mask) == 0, "reverb_size must be a power of 2" );
 
 Effects_Buffer::config_t::config_t()

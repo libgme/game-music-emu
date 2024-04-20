@@ -19,10 +19,10 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-int const silence_max = 6; // seconds
-int const silence_threshold = 0x10;
-long const fade_block_size = 512;
-int const fade_shift = 8; // fade ends with gain at 1.0 / (1 << fade_shift)
+static int const silence_max = 6; // seconds
+static int const silence_threshold = 0x10;
+static long const fade_block_size = 512;
+static int const fade_shift = 8; // fade ends with gain at 1.0 / (1 << fade_shift)
 
 using std::min;
 using std::max;
@@ -458,3 +458,4 @@ void         Gme_Info_::mute_voices_( int )                 { check( false ); }
 void         Gme_Info_::set_tempo_( double )                { }
 blargg_err_t Gme_Info_::start_track_( int )                 { return "Use full emulator for playback"; }
 blargg_err_t Gme_Info_::play_( long, sample_t* )            { return "Use full emulator for playback"; }
+

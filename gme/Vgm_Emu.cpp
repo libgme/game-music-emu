@@ -20,9 +20,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-double const fm_gain = 3.0; // FM emulators are internally quieter to avoid 16-bit overflow
-double const rolloff = 0.990;
-double const oversample_factor = 1.0;
+static double const fm_gain = 3.0; // FM emulators are internally quieter to avoid 16-bit overflow
+static double const rolloff = 0.990;
+static double const oversample_factor = 1.0;
 
 using std::min;
 using std::max;
@@ -90,7 +90,7 @@ static void parse_gd3( byte const* in, byte const* end, track_info_t* out )
 	in = get_gd3_str ( in, end, out->comment );
 }
 
-int const gd3_header_size = 12;
+static int const gd3_header_size = 12;
 
 static long check_gd3_header( byte const* h, long remain )
 {

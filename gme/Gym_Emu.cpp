@@ -18,12 +18,12 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-double const min_tempo = 0.25;
-double const oversample_factor = 5 / 3.0;
-double const fm_gain = 3.0;
+static double const min_tempo = 0.25;
+static double const oversample_factor = 5 / 3.0;
+static double const fm_gain = 3.0;
 
-const long base_clock = 53700300;
-const long clock_rate = base_clock / 15;
+static const long base_clock = 53700300;
+static const long clock_rate = base_clock / 15;
 
 Gym_Emu::Gym_Emu()
 {

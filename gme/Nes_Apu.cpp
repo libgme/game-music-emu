@@ -15,7 +15,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-int const amp_range = 15;
+static int const amp_range = 15;
 
 Nes_Apu::Nes_Apu() :
 	square1( &square_synth ),

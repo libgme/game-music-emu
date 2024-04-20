@@ -19,12 +19,12 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-int const timer_mask  = 0x04;
-int const vdp_mask    = 0x02;
-int const i_flag_mask = 0x04;
-int const unmapped    = 0xFF;
+static int const timer_mask  = 0x04;
+static int const vdp_mask    = 0x02;
+static int const i_flag_mask = 0x04;
+static int const unmapped    = 0xFF;
 
-long const period_60hz = 262 * 455L; // scanlines * clocks per scanline
+static long const period_60hz = 262 * 455L; // scanlines * clocks per scanline
 
 using std::min;
 using std::max;

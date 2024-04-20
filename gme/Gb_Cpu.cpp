@@ -84,10 +84,11 @@ void Gb_Cpu::map_code( gb_addr_t start, unsigned size, void* data )
 #define READ_FAST( addr, out )  CPU_READ_FAST( this, (addr), s.remain, out )
 #define READ_PROG( addr )       (s.code_map [(addr) >> page_shift] [PAGE_OFFSET( addr )])
 
-unsigned const z_flag = 0x80;
-unsigned const n_flag = 0x40;
-unsigned const h_flag = 0x20;
-unsigned const c_flag = 0x10;
+
+static unsigned const z_flag = 0x80;
+static unsigned const n_flag = 0x40;
+static unsigned const h_flag = 0x20;
+static unsigned const c_flag = 0x10;
 
 bool Gb_Cpu::run( blargg_long cycle_count )
 {
