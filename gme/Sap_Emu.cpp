@@ -19,7 +19,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-long const base_scanline_period = 114;
+static long const base_scanline_period = 114;
 
 using std::min;
 using std::max;

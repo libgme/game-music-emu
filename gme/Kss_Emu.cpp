@@ -19,8 +19,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-long const clock_rate = 3579545;
-int const osc_count = Ay_Apu::osc_count + Scc_Apu::osc_count;
+static long const clock_rate = 3579545;
+static int const osc_count = Ay_Apu::osc_count + Scc_Apu::osc_count;
 
 using std::min;
 using std::max;

@@ -41,15 +41,17 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #include "blargg_source.h"
 
 // flags, named with hex value for clarity
-int const S80 = 0x80;
-int const Z40 = 0x40;
-int const F20 = 0x20;
-int const H10 = 0x10;
-int const F08 = 0x08;
-int const V04 = 0x04;
-int const P04 = 0x04;
-int const N02 = 0x02;
-int const C01 = 0x01;
+enum {
+    S80 = 0x80,
+    Z40 = 0x40,
+    F20 = 0x20,
+    H10 = 0x10,
+    F08 = 0x08,
+    V04 = 0x04,
+    P04 = 0x04,
+    N02 = 0x02,
+    C01 = 0x01
+};
 
 #define SZ28P( n )  szpc [n]
 #define SZ28PC( n ) szpc [n]
@@ -485,7 +487,6 @@ possibly_out_of_time:
 	}
 	
 // ADD HL,rp
-	
 	case 0x39: // ADD HL,SP
 		data = sp;
 		goto add_hl_data;
@@ -1345,7 +1346,6 @@ possibly_out_of_time:
 	#define SET_IXY( in ) if ( opcode == 0xDD ) ix = in; else iy = in;
 	
 	// ADD/ADC/SUB/SBC
-	
 		case 0x96: // SUB (IXY+disp)
 		case 0x86: // ADD (IXY+disp)
 			flags &= ~C01; // FALLTHRU
@@ -1387,7 +1387,7 @@ possibly_out_of_time:
 		case 0x09: // ADD IXY,BC
 		case 0x19: // ADD IXY,DE
 			temp = R16( data, 4, 0x09 );
-		add_ixy_data: {
+		    add_ixy_data: {
 			blargg_ulong sum = ixy + temp;
 			temp ^= ixy;
 			ixy = (uint16_t) sum;
@@ -1396,7 +1396,7 @@ possibly_out_of_time:
 					(sum >> 8 & (F20 | F08)) |
 					((temp ^ sum) >> 8 & H10);
 			goto set_ixy;
-		}
+		    }
 		}
 	
 	// AND
@@ -1654,7 +1654,6 @@ possibly_out_of_time:
 		}
 	
 	// Misc
-		
 		case 0xE9: // JP (IXY)
 			pc = ixy;
 			goto loop;

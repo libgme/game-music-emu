@@ -38,15 +38,17 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #include "blargg_source.h"
 
 // flags, named with hex value for clarity
-int const S80 = 0x80;
-int const Z40 = 0x40;
-int const F20 = 0x20;
-int const H10 = 0x10;
-int const F08 = 0x08;
-int const V04 = 0x04;
-int const P04 = 0x04;
-int const N02 = 0x02;
-int const C01 = 0x01;
+enum {
+    S80 = 0x80,
+    Z40 = 0x40,
+    F20 = 0x20,
+    H10 = 0x10,
+    F08 = 0x08,
+    V04 = 0x04,
+    P04 = 0x04,
+    N02 = 0x02,
+    C01 = 0x01
+};
 
 #define SZ28P( n )  szpc [n]
 #define SZ28PC( n ) szpc [n]

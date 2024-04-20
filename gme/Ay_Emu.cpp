@@ -20,11 +20,11 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-long const spectrum_clock = 3546900;
-long const cpc_clock      = 2000000;
+static long const spectrum_clock = 3546900;
+static long const cpc_clock      = 2000000;
 
-unsigned const ram_start = 0x4000;
-int const osc_count = Ay_Apu::osc_count + 1;
+static unsigned const ram_start = 0x4000;
+static int const osc_count = Ay_Apu::osc_count + 1;
 
 using std::min;
 using std::max;

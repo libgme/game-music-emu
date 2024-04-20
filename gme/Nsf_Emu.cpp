@@ -29,14 +29,14 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-int const vrc6_flag  = 0x01;
-int const vrc7_flag  = 0x02;
-int const fds_flag   = 0x04;
-int const mmc5_flag  = 0x08;
-int const namco_flag = 0x10;
-int const fme7_flag  = 0x20;
+static int const vrc6_flag  = 0x01;
+static int const vrc7_flag  = 0x02;
+static int const fds_flag   = 0x04;
+static int const mmc5_flag  = 0x08;
+static int const namco_flag = 0x10;
+static int const fme7_flag  = 0x20;
 
-long const clock_divisor = 12;
+static long const clock_divisor = 12;
 
 using std::min;
 using std::max;

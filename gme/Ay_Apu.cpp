@@ -22,9 +22,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 // Tones above this frequency are treated as disabled tone at half volume.
 // Power of two is more efficient (avoids division).
-unsigned const inaudible_freq = 16384;
+static unsigned const inaudible_freq = 16384;
 
-int const period_factor = 16;
+static int const period_factor = 16;
 
 static byte const amp_table [16] =
 {
@@ -158,8 +158,8 @@ void Ay_Apu::write_data_( int addr, int data )
 	// TODO: same as above for envelope timer, and it also has a divide by two after it
 }
 
-int const noise_off = 0x08;
-int const tone_off  = 0x01;
+static int const noise_off = 0x08;
+static int const tone_off  = 0x01;
 
 void Ay_Apu::run_until( blip_time_t final_end_time )
 {

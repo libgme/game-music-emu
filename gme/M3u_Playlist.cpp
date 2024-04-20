@@ -60,8 +60,6 @@ gme_err_t gme_load_m3u_data( Music_Emu* me, const void* data, long size )
 	return me->load_m3u( in );
 }
 
-
-
 static char* skip_white( char* in )
 {
 	while ( *in == ' ' )
@@ -69,7 +67,7 @@ static char* skip_white( char* in )
 	return in;
 }
 
-inline unsigned from_dec( unsigned n ) { return n - '0'; }
+static inline unsigned from_dec( unsigned n ) { return n - '0'; }
 
 static char* parse_filename( char* in, M3u_Playlist::entry_t& entry )
 {
@@ -176,7 +174,7 @@ static char* parse_int( char* in, int* out, int* result )
 }
 
 // Returns 16 or greater if not hex
-inline int from_hex_char( int h )
+static inline int from_hex_char( int h )
 {
 	h -= 0x30;
 	if ( (unsigned) h > 9 )

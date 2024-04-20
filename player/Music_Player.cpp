@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 // Number of audio buffers per second. Adjust if you encounter audio skipping.
 // Note that this sets the floor on how often you'll see changes to the audio
 // scope
-const int fill_rate = 80;
+static const int fill_rate = 80;
 
 // Simple sound driver using SDL
 typedef void (*sound_callback_t)( void* data, short* out, int count );
@@ -51,7 +51,7 @@ struct arc_type_t {
 static Archive_Reader* new_rar_reader() { return BLARGG_NEW Rar_Reader; }
 #endif
 
-const arc_type_t arcs[] = {
+static const arc_type_t arcs[] = {
 #ifdef RARDLL
 	{ BLARGG_4CHAR('R','a','r','!'), &new_rar_reader },
 #endif

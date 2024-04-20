@@ -46,7 +46,7 @@ enum {
 	ym2612_dac_port     = 0x2A
 };
 
-inline int command_len( int command )
+static inline int command_len( int command )
 {
 	switch ( command >> 4 )
 	{
@@ -95,7 +95,7 @@ inline int Ym_Emu<Emu>::run_until( int time )
 	}
 	return true;
 }
-	
+
 inline Vgm_Emu_Impl::fm_time_t Vgm_Emu_Impl::to_fm_time( vgm_time_t t ) const
 {
 	return (t * fm_time_factor + fm_time_offset) >> fm_time_bits;

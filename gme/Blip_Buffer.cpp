@@ -23,7 +23,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 	#include BLARGG_ENABLE_OPTIMIZER
 #endif
 
-int const silent_buf_size = 1; // size used for Silent_Blip_Buffer
+static int const silent_buf_size = 1; // size used for Silent_Blip_Buffer
 
 Blip_Buffer::Blip_Buffer()
 {

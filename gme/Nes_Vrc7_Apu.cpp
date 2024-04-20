@@ -13,7 +13,7 @@ static unsigned char vrc7_inst[(16 + 3) * 8] =
 #include "ext/vrc7tone.h"
 };
 
-int const period = 36; // NES CPU clocks per FM clock
+static int const period = 36; // NES CPU clocks per FM clock
 
 Nes_Vrc7_Apu::Nes_Vrc7_Apu()
 {

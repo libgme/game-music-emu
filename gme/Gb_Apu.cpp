@@ -18,8 +18,8 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-unsigned const vol_reg    = 0xFF24;
-unsigned const status_reg = 0xFF26;
+static unsigned const vol_reg    = 0xFF24;
+static unsigned const status_reg = 0xFF26;
 
 using std::min;
 using std::max;

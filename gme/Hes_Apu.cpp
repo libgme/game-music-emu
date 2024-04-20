@@ -17,7 +17,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #include "blargg_source.h"
 
-bool const center_waves = true; // reduces asymmetry and clamping when starting notes
+static bool const center_waves = true; // reduces asymmetry and clamping when starting notes
 
 Hes_Apu::Hes_Apu()
 {
@@ -160,7 +160,6 @@ void Hes_Osc::run_until( synth_t& synth_, blip_time_t end_time )
 						//if ( !(volume_0 | volume_1) )
 						//  debug_printf( "Used period 0\n" );
 					}
-					
 					// maintain phase when silent
 					blargg_long count = (end_time - time + period - 1) / period;
 					phase += count; // phase will be masked below
@@ -288,14 +287,14 @@ void Hes_Apu::write_data( blip_time_t time, int addr, int data )
 			}
 			break;
 		
-		 case 0x807:
-		 	if ( &osc >= &oscs [4] )
-		 		osc.noise = data;
-		 	break;
-		 
-		 case 0x809:
-		 	if ( !(data & 0x80) && (data & 0x03) != 0 )
-		 		debug_printf( "HES LFO not supported\n" );
+		case 0x807:
+			if ( &osc >= &oscs [4] )
+				osc.noise = data;
+			break;
+		
+		case 0x809:
+			if ( !(data & 0x80) && (data & 0x03) != 0 )
+				debug_printf( "HES LFO not supported\n" );
 		}
 	}
 }
