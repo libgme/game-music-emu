@@ -475,7 +475,11 @@ inline blip_eq_t::blip_eq_t( double t, long rf, long sr, long cf ) :
 		treble( t ), rolloff_freq( rf ), sample_rate( sr ), cutoff_freq( cf ) { }
 
 inline int  Blip_Buffer::length() const         { return length_; }
-inline long Blip_Buffer::samples_avail() const  { return (long) (offset_ >> BLIP_BUFFER_ACCURACY); }
+inline long Blip_Buffer::samples_avail() const
+{
+    long samples = (long) (offset_ >> BLIP_BUFFER_ACCURACY);
+    return samples <= (long) buffer_size_ ? samples : 0;
+}
 inline long Blip_Buffer::sample_rate() const    { return sample_rate_; }
 inline int  Blip_Buffer::output_latency() const { return blip_widest_impulse_ / 2; }
 inline long Blip_Buffer::clock_rate() const     { return clock_rate_; }

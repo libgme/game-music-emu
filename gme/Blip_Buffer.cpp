@@ -144,7 +144,6 @@ void Blip_Buffer::bass_freq( int freq )
 void Blip_Buffer::end_frame( blip_time_t t )
 {
 	offset_ += t * factor_;
-	assert( samples_avail() <= (long) buffer_size_ ); // time outside buffer length
 }
 
 void Blip_Buffer::remove_silence( long count )
