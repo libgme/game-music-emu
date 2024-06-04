@@ -20,6 +20,12 @@ set(GME_VERSION_MINOR "${CMAKE_MATCH_2}")
 set(GME_VERSION_PATCH "${CMAKE_MATCH_3}")
 set(GME_VERSION "${GME_VERSION_MAJOR}.${GME_VERSION_MINOR}.${GME_VERSION_PATCH}")
 
+if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}")
+    set(GME_IS_ROOT TRUE)
+else()
+    set(GME_IS_ROOT FALSE)
+endif()
+
 # Default emulators to build (all of them! ;)
 option(USE_GME_AY "Enable support for Spectrum ZX music emulation" ON)
 option(USE_GME_GBS "Enable support for Game Boy music emulation" ON)
@@ -44,15 +50,22 @@ if(USE_GME_NSFE AND NOT USE_GME_NSF)
     set(USE_GME_NSF 1 CACHE BOOL "Enable NES NSF music emulation" FORCE)
 endif()
 
-option(BUILD_SHARED_LIBS "Build shared library (set to OFF for static library)" ON)
-option(BUILD_FRAMEWORK "Build framework instead of dylib on macOS" OFF)
+if(DEFINED BUILD_SHARED_LIBS)
+    set(GME_BUILD_SHARED_DEFAULT ${BUILD_SHARED_LIBS})
+else()
+    set(GME_BUILD_SHARED_DEFAULT ON)
+endif()
 
-option(ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" OFF)
+option(GME_BUILD_SHARED "Build shared library (set to OFF for static library)" ${GME_BUILD_SHARED_DEFAULT})
+option(GME_BUILD_FRAMEWORK "Build framework instead of dylib on macOS" ${BUILD_FRAMEWORK})
 
+option(GME_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ${ENABLE_UBSAN})
+option(GME_BUILD_TESTING "Build demo tests" ${BUILD_TESTING})
+option(GME_BUILD_EXAMPLES "Add example project build rules" ${GME_IS_ROOT})
 
-set (CMAKE_CXX_STANDARD  11)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
-set (CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 test_big_endian(WORDS_BIGENDIAN)
 
@@ -65,9 +78,9 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 # Check for GCC/Clang "visibility" support.
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND ENABLE_UBSAN)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND GME_ENABLE_UBSAN)
     # GCC needs -static-libubsan
-    if(NOT BUILD_SHARED_LIBS AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(NOT GME_BUILD_SHARED AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -static-libubsan")
     else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
@@ -77,6 +90,9 @@ endif()
 # Shared library defined here
 add_subdirectory(gme)
 
-# EXCLUDE_FROM_ALL adds build rules but keeps it out of default build
-add_subdirectory(player EXCLUDE_FROM_ALL)
-add_subdirectory(demo EXCLUDE_FROM_ALL)
+# Add example project build rules
+if (GME_BUILD_EXAMPLES)
+    # EXCLUDE_FROM_ALL adds build rules but keeps it out of default build
+    add_subdirectory(player EXCLUDE_FROM_ALL)
+    add_subdirectory(demo EXCLUDE_FROM_ALL)
+endif()

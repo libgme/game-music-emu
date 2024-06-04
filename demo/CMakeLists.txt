@@ -38,7 +38,7 @@ target_link_libraries(demo_multi gme)
 # Testing
 #
 
-if(BUILD_TESTING)
+if(GME_BUILD_TESTING)
     add_test(NAME sanity_test_NSF
         COMMAND demo)
     add_test(NAME check_proper_NSF_output
