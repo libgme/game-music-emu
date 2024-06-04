@@ -50,7 +50,13 @@ if(USE_GME_NSFE AND NOT USE_GME_NSF)
     set(USE_GME_NSF 1 CACHE BOOL "Enable NES NSF music emulation" FORCE)
 endif()
 
-option(GME_BUILD_SHARED "Build shared library (set to OFF for static library)" ${BUILD_SHARED_LIBS})
+if(DEFINED BUILD_SHARED_LIBS)
+  set(GME_BUILD_SHARED_DEFAULT ${BUILD_SHARED_LIBS})
+else()
+  set(GME_BUILD_SHARED_DEFAULT ON)
+endif()
+
+option(GME_BUILD_SHARED "Build shared library (set to OFF for static library)" ${GME_BUILD_SHARED_DEFAULT})
 option(GME_BUILD_FRAMEWORK "Build framework instead of dylib on macOS" ${BUILD_FRAMEWORK})
 
 option(GME_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ${ENABLE_UBSAN})
