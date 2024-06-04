@@ -1,19 +1,19 @@
 # Add library to be compiled.
 if(GME_BUILD_SHARED)
-  # Shared build.
-  add_library(gme SHARED)
+    # Shared build.
+    add_library(gme SHARED)
 else()
-  # Static build.
-  add_library(gme STATIC)
+    # Static build.
+    add_library(gme STATIC)
 
-  # Static builds need to find static zlib (and static forms of other needed
-  # libraries.  Ensure CMake looks only for static libs if we're doing a static
-  # build.  See https://stackoverflow.com/a/44738756
-  if(MSVC)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
-  else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  endif()
+    # Static builds need to find static zlib (and static forms of other needed
+    # libraries.  Ensure CMake looks only for static libs if we're doing a static
+    # build.  See https://stackoverflow.com/a/44738756
+    if(MSVC)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    endif()
 endif()
 
 if(GME_ZLIB)
@@ -282,15 +282,15 @@ set(PC_LIBS -lstdc++)
 if(NOT MSVC)
     # Link with -no-undefined, if available
     if(APPLE)
-      set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
+        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
     else()
-      cmake_push_check_state()
-      set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
-      check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
-      cmake_pop_check_state()
-      if(LINKER_SUPPORTS_NO_UNDEFINED)
-        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
-      endif()
+        cmake_push_check_state()
+        set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
+            check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
+        cmake_pop_check_state()
+        if(LINKER_SUPPORTS_NO_UNDEFINED)
+            set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
+        endif()
     endif()
 
     # Link to libm, if necessary
@@ -316,17 +316,17 @@ if(NOT MSVC)
 endif()
 
 if(GME_ZLIB)
-  if(ZLIB_FOUND)
-      message(STATUS "ZLib library located, compressed file formats will be supported")
-      target_compile_definitions(gme PRIVATE HAVE_ZLIB_H)
-      target_link_libraries(gme PRIVATE ZLIB::ZLIB)
-      # Is not to be installed though
-      list(APPEND PC_LIBS -lz) # for libgme.pc
-  else()
-      message(STATUS "** ZLib library not found, disabling support for compressed formats such as VGZ")
-  endif()
+    if(ZLIB_FOUND)
+        message(STATUS "ZLib library located, compressed file formats will be supported")
+        target_compile_definitions(gme PRIVATE HAVE_ZLIB_H)
+        target_link_libraries(gme PRIVATE ZLIB::ZLIB)
+        # Is not to be installed though
+        list(APPEND PC_LIBS -lz) # for libgme.pc
+    else()
+        message(STATUS "** ZLib library not found, disabling support for compressed formats such as VGZ")
+    endif()
 else()
-  message(STATUS "Zlib-Compressed formats excluded")
+    message(STATUS "Zlib-Compressed formats excluded")
 endif()
 
 # Extract symbols from gme.exports
@@ -411,9 +411,9 @@ configure_file(gme_types.h.in gen_types.h @ONLY)
 set(TMP_PC_LIBS "")
 foreach(PC_LIB ${PC_LIBS})
     if(NOT "${TMP_PC_LIBS}" STREQUAL "")
-	set(TMP_PC_LIBS "${TMP_PC_LIBS} ${PC_LIB}")
+	   set(TMP_PC_LIBS "${TMP_PC_LIBS} ${PC_LIB}")
     else()
-	set(TMP_PC_LIBS "${PC_LIB}")
+	   set(TMP_PC_LIBS "${PC_LIB}")
     endif()
 endforeach()
 set(PC_LIBS "${TMP_PC_LIBS}")

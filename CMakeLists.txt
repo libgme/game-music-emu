@@ -1,5 +1,5 @@
 # CMake project definition file.
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.3...3.5)
 project(libgme)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -51,9 +51,9 @@ if(USE_GME_NSFE AND NOT USE_GME_NSF)
 endif()
 
 if(DEFINED BUILD_SHARED_LIBS)
-  set(GME_BUILD_SHARED_DEFAULT ${BUILD_SHARED_LIBS})
+    set(GME_BUILD_SHARED_DEFAULT ${BUILD_SHARED_LIBS})
 else()
-  set(GME_BUILD_SHARED_DEFAULT ON)
+    set(GME_BUILD_SHARED_DEFAULT ON)
 endif()
 
 option(GME_BUILD_SHARED "Build shared library (set to OFF for static library)" ${GME_BUILD_SHARED_DEFAULT})
@@ -63,9 +63,9 @@ option(GME_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ${E
 option(GME_BUILD_TESTING "Build demo tests" ${BUILD_TESTING})
 option(GME_BUILD_EXAMPLES "Add example project build rules" ${GME_IS_ROOT})
 
-set (CMAKE_CXX_STANDARD  11)
-set (CMAKE_CXX_STANDARD_REQUIRED ON)
-set (CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 test_big_endian(WORDS_BIGENDIAN)
 
