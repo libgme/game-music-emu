@@ -1,3 +1,27 @@
+# Add library to be compiled.
+if(GME_BUILD_SHARED)
+  # Shared build.
+  add_library(gme SHARED)
+else()
+  # Static build.
+  add_library(gme STATIC)
+
+  # Static builds need to find static zlib (and static forms of other needed
+  # libraries.  Ensure CMake looks only for static libs if we're doing a static
+  # build.  See https://stackoverflow.com/a/44738756
+  if(MSVC)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+  else()
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  endif()
+endif()
+
+if(GME_ZLIB)
+    find_package(ZLIB QUIET)
+endif()
+
+add_library(gme::gme ALIAS gme)
+
 # List of source files required by libgme and any emulators
 # This is not 100% accurate (Fir_Resampler for instance) but
 # you'll be OK.
@@ -29,21 +53,6 @@ set(libgme_SRCS Blip_Buffer.cpp
                 blargg_endian.h
                 blargg_source.h
                 )
-
-# static builds need to find static zlib (and static forms of other needed
-# libraries.  Ensure CMake looks only for static libs if we're doing a static
-# build.  See https://stackoverflow.com/a/44738756
-if(NOT BUILD_SHARED_LIBS)
-  if(MSVC)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
-  else()
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  endif()
-endif()
-
-if(GME_ZLIB)
-    find_package(ZLIB QUIET)
-endif()
 
 # Ay_Apu is very popular around here
 if(USE_GME_AY OR USE_GME_KSS)
@@ -227,13 +236,12 @@ set (EXPORTED_HEADERS gme.h)
 
 # while building a macOS framework, exported headers must be in the source
 # list, or the header files aren't copied to the bundle.
-if(BUILD_FRAMEWORK)
+if(GME_BUILD_FRAMEWORK)
     set(libgme_SRCS ${libgme_SRCS} ${EXPORTED_HEADERS})
 endif()
 
-# Add library to be compiled.
-add_library(gme ${libgme_SRCS})
-add_library(gme::gme ALIAS gme)
+# Add sources to library.
+target_sources(gme PRIVATE ${libgme_SRCS})
 
 set_property(TARGET gme PROPERTY C_VISIBILITY_PRESET "hidden")
 set_property(TARGET gme PROPERTY VISIBILITY_INLINES_HIDDEN TRUE)
@@ -381,7 +389,7 @@ set_target_properties(gme
                SOVERSION 0)
 
 # macOS framework build
-if(BUILD_FRAMEWORK)
+if(GME_BUILD_FRAMEWORK)
     set_target_properties(gme
         PROPERTIES FRAMEWORK TRUE
                    FRAMEWORK_VERSION A
