@@ -242,11 +242,54 @@ elseif(UNIX)
     cmake_pop_check_state()
 endif()
 
+# Link Flags
+set(LINK_FLAGS "")
+set(LINK_DEPENDS "")
+if(NOT MSVC)
+    # Link with -no-undefined, if available
+    if(APPLE)
+        list(APPEND LINK_FLAGS -Wl -undefined error -exported_symbols_list \'${generated_sym_file}\')
+        list(APPEND LINK_DEPENDS "${generated_sym_file}")
+    else()
+        if (UNIX AND LINKER_SUPPORTS_VERSION_SCRIPT)
+            list(APPEND LINK_FLAGS -Wl -version-script=\'${generated_sym_file}\')
+            list(APPEND LINK_DEPENDS "${generated_sym_file}")
+        endif()
+
+        cmake_push_check_state()
+        set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
+        check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
+        cmake_pop_check_state()
+
+        if(LINKER_SUPPORTS_NO_UNDEFINED)
+            list(APPEND LINK_FLAGS -Wl -no-undefined)
+        endif()
+    endif()
+
+    # Link to libm, if necessary
+    check_cxx_source_compiles("
+        #include <math.h>
+        int main(int argc, char** argv) {
+            return (int) pow(argc, 2.5);
+        }" LIBM_NOT_NEEDED)
+    if(NOT LIBM_NOT_NEEDED)
+        cmake_push_check_state()
+        set(CMAKE_REQUIRED_LIBRARIES "-lm")
+        check_cxx_source_compiles("
+            #include <math.h>
+            int main(int argc, char** argv) {
+                return (int) pow(argc, 2.5);
+            }" HAVE_LIBM)
+        cmake_pop_check_state()
+    endif()
+endif()
+
 # while building a macOS framework, exported headers must be in the source
 # list, or the header files aren't copied to the bundle.
 if(GME_BUILD_FRAMEWORK)
     set(libgme_SRCS ${libgme_SRCS} ${EXPORTED_HEADERS})
 endif()
+
 
 if(GME_BUILD_SHARED)
     # Shared build.
@@ -262,7 +305,7 @@ if(GME_BUILD_SHARED)
     ## FIXME: Properly find the C++ library !!!
     set(PC_LIBS -lstdc++)
 
-    # Zlib
+    # Libraries
     if(GME_ZLIB)
         find_package(ZLIB QUIET)
     endif()
@@ -281,6 +324,11 @@ if(GME_BUILD_SHARED)
         message(STATUS "Zlib-Compressed formats excluded")
     endif()
 
+    if(HAVE_LIBM)
+        target_link_libraries(gme PRIVATE -lm)
+        list(APPEND PC_LIBS -lm) # for libgme.pc
+    endif()
+
     # The version is the release.  The "soversion" is the API version.  As long
     # as only build fixes are performed (i.e. no backwards-incompatible changes
     # to the API), the SOVERSION should be the same even when bumping up VERSION.
@@ -296,16 +344,6 @@ if(GME_BUILD_SHARED)
     set_property(TARGET gme PROPERTY VISIBILITY_INLINES_HIDDEN TRUE)
     set_property(TARGET gme PROPERTY CXX_VISIBILITY_PRESET "hidden")
 
-    if (APPLE)
-        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
-        set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
-    elseif(UNIX)
-        if(LINKER_SUPPORTS_VERSION_SCRIPT)
-            set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
-            set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
-        endif()
-    endif()
-
     # macOS framework build
     if(GME_BUILD_FRAMEWORK)
         set_target_properties(gme
@@ -318,15 +356,8 @@ if(GME_BUILD_SHARED)
     endif()
 
     # Link flags
-    if (APPLE)
-        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
-        set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
-    elseif(UNIX)
-        if(LINKER_SUPPORTS_VERSION_SCRIPT)
-            set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
-            set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
-        endif()
-    endif()
+    set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS ${LINK_FLAGS})
+    set_property(TARGET gme APPEND_STRING PROPERTY LINK_DEPENDS ${LINK_DEPENDS})
 
     # Compile definitions
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -352,43 +383,7 @@ if(GME_BUILD_SHARED)
         target_compile_options(gme PRIVATE -fwrapv)
     endif()
 
-    if(NOT MSVC)
-        # Link with -no-undefined, if available
-        if(APPLE)
-            set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
-        else()
-            cmake_push_check_state()
-            set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
-            check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
-            cmake_pop_check_state()
-            if(LINKER_SUPPORTS_NO_UNDEFINED)
-                set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
-            endif()
-        endif()
-
-        # Link to libm, if necessary
-        check_cxx_source_compiles("
-        #include <math.h>
-        int main(int argc, char** argv) {
-            return (int) pow(argc, 2.5);
-        }" LIBM_NOT_NEEDED)
-        if(NOT LIBM_NOT_NEEDED)
-            cmake_push_check_state()
-            set(CMAKE_REQUIRED_LIBRARIES "-lm")
-            check_cxx_source_compiles("
-            #include <math.h>
-            int main(int argc, char** argv) {
-                return (int) pow(argc, 2.5);
-            }" HAVE_LIBM)
-            cmake_pop_check_state()
-            if(HAVE_LIBM)
-                target_link_libraries(gme PRIVATE -lm)
-                list(APPEND PC_LIBS -lm) # for libgme.pc
-            endif()
-        endif()
-    endif()
-
-    # pkg-config
+    # Configure pkg-config file
     set(TMP_PC_LIBS "")
     foreach(PC_LIB ${PC_LIBS})
         if(NOT "${TMP_PC_LIBS}" STREQUAL "")
@@ -402,10 +397,13 @@ if(GME_BUILD_SHARED)
 
     configure_file(libgme.pc.in libgme.pc @ONLY)
 
+    # Install
     install(TARGETS gme LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}  # DLL platforms
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}  # DLL platforms
         FRAMEWORK DESTINATION /Library/Frameworks)   # macOS framework
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 endif()
 
 
@@ -423,6 +421,7 @@ if (GME_BUILD_STATIC)
     ## FIXME: Properly find the C++ library !!!
     set(PC_LIBS -lstdc++)
 
+    # Libraries
     # Static builds need to find static zlib (and static forms of other needed
     # libraries.  Ensure CMake looks only for static libs if we're doing a static
     # build.  See https://stackoverflow.com/a/44738756
@@ -432,7 +431,6 @@ if (GME_BUILD_STATIC)
         set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     endif()
 
-    # Zlib
     if(GME_ZLIB)
         find_package(ZLIB QUIET)
     endif()
@@ -451,6 +449,11 @@ if (GME_BUILD_STATIC)
         message(STATUS "Zlib-Compressed formats excluded")
     endif()
 
+    if(HAVE_LIBM)
+        target_link_libraries(gme-static PRIVATE -lm)
+        list(APPEND PC_LIBS -lm) # for libgme.pc
+    endif()
+
     # Version
     set_target_properties(gme-static
         PROPERTIES VERSION ${GME_VERSION})
@@ -467,15 +470,8 @@ if (GME_BUILD_STATIC)
     endif()
 
     # Link flags
-    if (APPLE)
-        set_property(TARGET gme-static APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
-        set_property(TARGET gme-static APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
-    elseif(UNIX)
-        if(LINKER_SUPPORTS_VERSION_SCRIPT)
-            set_property(TARGET gme-static APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
-            set_property(TARGET gme-static APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
-        endif()
-    endif()
+    set_property(TARGET gme-static APPEND_STRING PROPERTY LINK_FLAGS ${LINK_FLAGS})
+    set_property(TARGET gme-static APPEND_STRING PROPERTY LINK_DEPENDS ${LINK_DEPENDS})
 
     # Compile definitions
     if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -501,43 +497,7 @@ if (GME_BUILD_STATIC)
         target_compile_options(gme-static PRIVATE -fwrapv)
     endif()
 
-    if(NOT MSVC)
-        # Link with -no-undefined, if available
-        if(APPLE)
-            set_property(TARGET gme-static APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
-        else()
-            cmake_push_check_state()
-            set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
-            check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
-            cmake_pop_check_state()
-            if(LINKER_SUPPORTS_NO_UNDEFINED)
-                set_property(TARGET gme-static APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
-            endif()
-        endif()
-
-        # Link to libm, if necessary
-        check_cxx_source_compiles("
-        #include <math.h>
-        int main(int argc, char** argv) {
-            return (int) pow(argc, 2.5);
-        }" LIBM_NOT_NEEDED)
-        if(NOT LIBM_NOT_NEEDED)
-            cmake_push_check_state()
-            set(CMAKE_REQUIRED_LIBRARIES "-lm")
-            check_cxx_source_compiles("
-            #include <math.h>
-            int main(int argc, char** argv) {
-                return (int) pow(argc, 2.5);
-            }" HAVE_LIBM)
-            cmake_pop_check_state()
-            if(HAVE_LIBM)
-                target_link_libraries(gme-static PRIVATE -lm)
-                list(APPEND PC_LIBS -lm) # for libgme.pc
-            endif()
-        endif()
-    endif()
-
-    # pkg-config
+    # Configure pkg-config file
     set(TMP_PC_LIBS "")
     foreach(PC_LIB ${PC_LIBS})
         if(NOT "${TMP_PC_LIBS}" STREQUAL "")
@@ -575,7 +535,5 @@ endforeach()
 
 # Run during cmake phase, so this is available during make
 configure_file(gme_types.h.in gen_types.h @ONLY)
-
-
 
 install(FILES ${EXPORTED_HEADERS} DESTINATION include/gme)
