@@ -56,7 +56,8 @@ else()
     set(GME_BUILD_SHARED_DEFAULT ON)
 endif()
 
-option(GME_BUILD_SHARED "Build shared library (set to OFF for static library)" ${GME_BUILD_SHARED_DEFAULT})
+option(GME_BUILD_SHARED "Build shared library gme::gme" ${GME_BUILD_SHARED_DEFAULT})
+option(GME_BUILD_STATIC "Build shared library gme::gme-static" OFF)
 option(GME_BUILD_FRAMEWORK "Build framework instead of dylib on macOS" ${BUILD_FRAMEWORK})
 
 option(GME_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ${ENABLE_UBSAN})
