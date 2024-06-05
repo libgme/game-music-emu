@@ -283,6 +283,8 @@ if(NOT MSVC)
         cmake_pop_check_state()
     endif()
 endif()
+string(JOIN "," LINK_FLAGS ${LINK_FLAGS})
+string(JOIN "," LINK_DEPENDS ${LINK_DEPENDS})
 
 # while building a macOS framework, exported headers must be in the source
 # list, or the header files aren't copied to the bundle.
@@ -437,7 +439,7 @@ if (GME_BUILD_STATIC)
 
     if(GME_ZLIB)
         if(ZLIB_FOUND)
-            message(STATUS "ZLib static library located ${ZLIB_LIBRARIES}, compressed file formats will be supported")
+            message(STATUS "ZLib static library located, compressed file formats will be supported")
             target_compile_definitions(gme-static PRIVATE HAVE_ZLIB_H)
             target_link_libraries(gme-static PRIVATE ZLIB::ZLIB)
             # Is not to be installed though
