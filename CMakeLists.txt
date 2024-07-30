@@ -77,6 +77,15 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -W -Wextra)
 endif()
 
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
+
+# Enable debug asserts when build type is debug
+if(CMAKE_BUILD_TYPE_LOWER STREQUAL "debug")
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        add_definitions(-D_GLIBCXX_DEBUG=1 -D_GLIBCXX_ASSERTIONS=1)
+    endif()
+endif()
+
 # Check for GCC/Clang "visibility" support.
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND GME_ENABLE_UBSAN)
     # GCC needs -static-libubsan
