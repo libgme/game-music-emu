@@ -188,6 +188,8 @@ int Fir_Resampler_::skip_input( long count )
 {
 	int remain = write_pos - buf.begin();
 	int max_count = remain - width_ * stereo;
+	if ( max_count < 0 )
+		max_count = 0;
 	if ( count > max_count )
 		count = max_count;
 	
