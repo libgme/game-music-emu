@@ -10,7 +10,7 @@ struct Spc_Dsp {
 public:
 	Spc_Dsp();
 // Setup
-	
+
 	// Initializes DSP and has it use the 64K RAM provided
 	void init( void* ram_64k );
 
@@ -25,13 +25,13 @@ public:
 	int sample_count() const;
 
 // Emulation
-	
+
 	// Resets DSP to power-on state
 	void reset();
 
 	// Emulates pressing reset switch on SNES
 	void soft_reset();
-	
+
 	// Reads/writes DSP registers. For accuracy, you must first call spc_run_dsp()
 	// to catch the DSP up to present.
 	int  read ( int addr ) const;
@@ -54,7 +54,7 @@ public:
 	void disable_echo( bool disable = true );
 
 // State
-	
+
 	// Resets DSP and uses supplied values to initialize registers
 	enum { register_count = 128 };
 	void load( uint8_t const regs [register_count] );
@@ -89,9 +89,9 @@ public:
 	sample_t const* out_pos() const { return m.out; }
 public:
 	BLARGG_DISABLE_NOTHROW
-	
+
 	enum { echo_hist_size = 8 };
-	
+
 	enum env_mode_t { env_release, env_attack, env_decay, env_sustain };
 	enum { brr_buf_size = 12 };
 	struct voice_t
@@ -112,16 +112,16 @@ private:
 	struct state_t
 	{
 		uint8_t regs [register_count];
-		
+
 #ifdef SPC_ISOLATED_ECHO_BUFFER
 		// Echo buffer, for dodgy SPC rips that were only made to work in dodgy emulators
 		uint8_t echo_ram [64 * 1024];
 #endif
-		
+
 		// Echo history keeps most recent 8 samples (twice the size to simplify wrap handling)
 		int echo_hist [echo_hist_size * 2] [2];
 		int (*echo_hist_pos) [2]; // &echo_hist [0 to 7]
-		
+
 		int every_other_sample; // toggles every sample
 		int kon;                // KON value when last checked
 		int noise;
@@ -129,14 +129,14 @@ private:
 		int echo_length;        // number of bytes that echo_offset will stop at
 		int phase;              // next clock cycle to run (0-31)
 		unsigned counters [4];
-		
+
 		int new_kon;
 		int t_koff;
-		
+
 		voice_t voices [voice_count];
-		
+
 		unsigned* counter_select [32];
-		
+
 		// non-emulation state
 		uint8_t* ram; // 64K shared RAM between DSP and SMP
 		int mute_mask;
@@ -148,7 +148,7 @@ private:
 		sample_t extra [extra_size];
 	};
 	state_t m;
-	
+
 	void init_counter();
 	void run_counter( int );
 	void soft_reset_common();
@@ -170,14 +170,14 @@ inline void Spc_Dsp::update_voice_vol( int addr )
 {
 	int l = (int8_t) m.regs [addr + v_voll];
 	int r = (int8_t) m.regs [addr + v_volr];
-	
+
 	if ( l * r < m.surround_threshold )
 	{
 		// signs differ, so negate those that are negative
 		l ^= l >> 7;
 		r ^= r >> 7;
 	}
-	
+
 	voice_t& v = m.voices [addr >> 4];
 	int enabled = v.enabled;
 	v.volume [0] = l & enabled;
@@ -187,7 +187,7 @@ inline void Spc_Dsp::update_voice_vol( int addr )
 inline void Spc_Dsp::write( int addr, int data )
 {
 	assert( (unsigned) addr < register_count );
-	
+
 	m.regs [addr] = (uint8_t) data;
 	int low = addr & 0x0F;
 	if ( low < 0x2 ) // voice volumes
@@ -198,7 +198,7 @@ inline void Spc_Dsp::write( int addr, int data )
 	{
 		if ( addr == r_kon )
 			m.new_kon = (uint8_t) data;
-		
+
 		if ( addr == r_endx ) // always cleared, regardless of data written
 			m.regs [r_endx] = 0;
 	}

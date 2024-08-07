@@ -23,12 +23,12 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 blargg_err_t Gme_File::load_m3u_( blargg_err_t err )
 {
 	require( raw_track_count_ ); // file must be loaded first
-	
+
 	if ( !err )
 	{
 		if ( playlist.size() )
 			track_count_ = playlist.size();
-		
+
 		int line = playlist.first_error();
 		if ( line )
 		{
@@ -38,7 +38,7 @@ blargg_err_t Gme_File::load_m3u_( blargg_err_t err )
 			do {
 				*--out = line % 10 + '0';
 			} while ( (line /= 10) > 0 );
-			
+
 			static const char str [] = "Problem in m3u at line ";
 			out -= sizeof str - 1;
 			memcpy( out, str, sizeof str - 1 );
@@ -79,7 +79,7 @@ static char* parse_filename( char* in, M3u_Playlist::entry_t& entry )
 		int c = *in;
 		if ( !c ) break;
 		in++;
-		
+
 		if ( c == ',' ) // commas in filename
 		{
 			char* p = skip_white( in );
@@ -89,7 +89,7 @@ static char* parse_filename( char* in, M3u_Playlist::entry_t& entry )
 				break;
 			}
 		}
-		
+
 		if ( c == ':' && in [0] == ':' && in [1] && in [2] != ',' ) // ::type suffix
 		{
 			entry.type = ++in;
@@ -102,7 +102,7 @@ static char* parse_filename( char* in, M3u_Playlist::entry_t& entry )
 			}
 			break;
 		}
-		
+
 		if ( c == '\\' ) // \ prefix for special characters
 		{
 			c = *in;
@@ -120,16 +120,16 @@ static char* next_field( char* in, int* result )
 	while ( 1 )
 	{
 		in = skip_white( in );
-		
+
 		if ( !*in )
 			break;
-		
+
 		if ( *in == ',' )
 		{
 			in++;
 			break;
 		}
-		
+
 		*result = 1;
 		in++;
 	}
@@ -248,7 +248,7 @@ static char* parse_name( char* in )
 		int c = *in;
 		if ( !c ) break;
 		in++;
-		
+
 		if ( c == ',' ) // commas in string
 		{
 			char* p = skip_white( in );
@@ -258,7 +258,7 @@ static char* parse_name( char* in )
 				break;
 			}
 		}
-		
+
 		if ( c == '\\' ) // \ prefix for special characters
 		{
 			c = *in;
@@ -274,25 +274,25 @@ static char* parse_name( char* in )
 static int parse_line( char* in, M3u_Playlist::entry_t& entry )
 {
 	int result = 0;
-	
+
 	// file
 	entry.file = in;
 	entry.type = "";
 	in = parse_filename( in, entry );
-	
+
 	// track
 	entry.track = -1;
 	entry.decimal_track = 0;
 	in = parse_track( in, entry, &result );
-	
+
 	// name
 	entry.name = in;
 	in = parse_name( in );
-	
+
 	// time
 	entry.length = -1;
 	in = parse_time( in, &entry.length, &result );
-	
+
 	// loop
 	entry.intro = -1;
 	entry.loop  = -1;
@@ -307,7 +307,7 @@ static int parse_line( char* in, M3u_Playlist::entry_t& entry )
 		if ( entry.loop >= 0 )
 		{
 			entry.intro = 0;
-			if ( *in == '-' ) // trailing '-' means that intro length was specified 
+			if ( *in == '-' ) // trailing '-' means that intro length was specified
 			{
 				in++;
 				entry.intro = entry.loop;
@@ -316,15 +316,15 @@ static int parse_line( char* in, M3u_Playlist::entry_t& entry )
 		}
 	}
 	in = next_field( in, &result );
-	
+
 	// fade
 	entry.fade = -1;
 	in = parse_time( in, &entry.fade, &result );
-	
+
 	// repeat
 	entry.repeat = -1;
 	in = parse_int( in, &entry.repeat, &result );
-	
+
 	return result;
 }
 
@@ -335,7 +335,7 @@ static void parse_comment( char* in, M3u_Playlist::info_t& info, char *& last_co
 	if ( *field != '@' )
 		while ( *in && *in != ':' )
 			in++;
-	
+
 	if ( *in == ':' )
 	{
 		const char* text = skip_white( in + 1 );
@@ -393,7 +393,7 @@ static void parse_comment( char* in, M3u_Playlist::info_t& info, char *& last_co
 		last_comment_value[ len + 2 + field_len ] = 0;
 		return;
 	}
-	
+
 	if ( first )
 		info.title = field;
 }
@@ -409,12 +409,12 @@ blargg_err_t M3u_Playlist::parse_()
 	info_.ripping   = "";
 	info_.tagging   = "";
 	info_.copyright = "";
-	
+
 	int const CR = 13;
 	int const LF = 10;
-	
+
 	data.end() [-1] = LF; // terminate input
-	
+
 	first_error_ = 0;
 	bool first_comment = true;
 	int line  = 0;
@@ -435,7 +435,7 @@ blargg_err_t M3u_Playlist::parse_()
 		if ( in [0] == CR && in [1] == LF ) // treat CR,LF as a single line
 			*in++ = 0;
 		*in++ = 0;
-		
+
 		// parse line
 		if ( *begin == '#' )
 		{
@@ -446,7 +446,7 @@ blargg_err_t M3u_Playlist::parse_()
 		{
 			if ( (int) entries.size() <= count )
 				RETURN_ERR( entries.resize( count * 2 + 64 ) );
-			
+
 			if ( !parse_line( begin, entries [count] ) )
 				count++;
 			else if ( !first_error_ )
@@ -457,10 +457,10 @@ blargg_err_t M3u_Playlist::parse_()
 	}
 	if ( count <= 0 )
 		return "Not an m3u playlist";
-	
+
 	if ( !(info_.composer [0] | info_.engineer [0] | info_.ripping [0] | info_.tagging [0]) )
 		info_.title = "";
-	
+
 	return entries.resize( count );
 }
 

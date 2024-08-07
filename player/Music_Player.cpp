@@ -69,12 +69,12 @@ Music_Player::Music_Player()
 gme_err_t Music_Player::init( long rate )
 {
 	sample_rate = rate;
-	
+
 	int min_size = sample_rate * 2 / fill_rate;
 	int buf_size = 512;
 	while ( buf_size < min_size )
 		buf_size *= 2;
-	
+
 	return sound_init( sample_rate, buf_size, fill_buffer, this );
 }
 
@@ -112,7 +112,7 @@ const arc_type_t* identify_archive( const char* path )
 gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 {
 	stop();
-	
+
 	if ( by_mem )
 	{
 		printf( "Loading file %s by memory...\n", path );
@@ -188,7 +188,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 		else
 			RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
 	}
-	
+
 	char m3u_path [256 + 5];
 	strncpy( m3u_path, path, 256 );
 	m3u_path [256] = 0;
@@ -197,7 +197,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 		p = m3u_path + strlen( m3u_path );
 	strcpy( p, ".m3u" );
 	if ( gme_load_m3u( emu_, m3u_path ) ) { } // ignore error
-	
+
 	return 0;
 }
 
@@ -213,20 +213,20 @@ gme_err_t Music_Player::start_track( int track )
 		// Sound must not be running when operating on emulator
 		sound_stop();
 		RETURN_ERR( gme_start_track( emu_, track ) );
-		
+
 		gme_free_info( track_info_ );
 		track_info_ = nullptr;
 		RETURN_ERR( gme_track_info( emu_, &track_info_, track ) );
-		
+
 		// Calculate track length
 		if ( track_info_->length <= 0 )
 			track_info_->length = track_info_->intro_length +
 						track_info_->loop_length * 2;
-		
+
 		if ( track_info_->length <= 0 )
 			track_info_->length = (long) (2.5 * 60 * 1000);
 		gme_set_fade_msecs( emu_, track_info_->length, 8000 );
-		
+
 		paused = false;
 		sound_start();
 	}
@@ -324,7 +324,7 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 	if ( self->emu_ )
 	{
 		if ( gme_play( self->emu_, count, out ) ) { } // ignore error
-		
+
 		if ( self->scope_buf )
 			memcpy( self->scope_buf, out, self->scope_buf_size * sizeof *self->scope_buf );
 	}
@@ -348,7 +348,7 @@ static const char* sound_init( long sample_rate, int buf_size,
 {
 	sound_callback = cb;
 	sound_callback_data = data;
-	
+
 	static SDL_AudioSpec as; // making static clears all fields to 0
 	as.freq     = sample_rate;
 	as.format   = AUDIO_S16SYS;
@@ -362,7 +362,7 @@ static const char* sound_init( long sample_rate, int buf_size,
 			err = "Couldn't open SDL audio";
 		return err;
 	}
-	
+
 	return 0;
 }
 
@@ -374,7 +374,7 @@ static void sound_start()
 static void sound_stop()
 {
 	SDL_PauseAudio( true );
-	
+
 	// be sure audio thread is not active
 	SDL_LockAudio();
 	SDL_UnlockAudio();
