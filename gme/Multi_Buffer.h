@@ -141,7 +141,7 @@ inline blargg_err_t Multi_Buffer::set_sample_rate( long rate, int msec )
 {
 	sample_rate_ = rate;
 	length_ = msec;
-	return 0;
+	return nullptr;
 }
 
 inline blargg_err_t Silent_Buffer::set_sample_rate( long rate, int msec )

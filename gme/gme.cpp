@@ -65,7 +65,7 @@ gme_type_t const* gme_type_list()
 	            gme_vgz_type,
 	#endif
 #endif
-        0
+        nullptr
     };
 
 	return gme_type_list_;
@@ -114,7 +114,7 @@ gme_type_t gme_identify_extension( const char* extension_ )
 	for ( gme_type_t const* types = gme_type_list(); *types; types++ )
 		if ( !strcmp( extension, (*types)->extension_ ) )
 			return *types;
-	return 0;
+	return nullptr;
 }
 
 const char *gme_type_extension( gme_type_t music_type )
@@ -137,15 +137,15 @@ gme_err_t gme_identify_file( const char* path, gme_type_t* type_out )
 		RETURN_ERR( in.read( header, sizeof header ) );
 		*type_out = gme_identify_extension( gme_identify_header( header ) );
 	}
-	return 0;
+	return nullptr;
 }
 
 gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sample_rate )
 {
 	require( (data || !size) && out );
-	*out = 0;
+	*out = nullptr;
 
-	gme_type_t file_type = 0;
+	gme_type_t file_type = nullptr;
 	if ( size >= 4 )
 		file_type = gme_identify_extension( gme_identify_header( data ) );
 	if ( !file_type )
@@ -167,7 +167,7 @@ gme_err_t gme_open_data( void const* data, long size, Music_Emu** out, int sampl
 gme_err_t gme_open_file( const char* path, Music_Emu** out, int sample_rate )
 {
 	require( path && out );
-	*out = 0;
+	*out = nullptr;
 
 	GME_FILE_READER in;
 	RETURN_ERR( in.open( path ) );
@@ -251,7 +251,7 @@ Music_Emu* gme_internal_new_emu_( gme_type_t type, int rate, bool multi_channel 
 			delete me;
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 Music_Emu* gme_new_emu( gme_type_t type, int rate )
@@ -307,7 +307,7 @@ struct gme_info_t_ : gme_info_t
 
 gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
 {
-	*out = NULL;
+	*out = nullptr;
 
 	gme_info_t_* info = BLARGG_NEW gme_info_t_;
 	CHECK_ALLOC( info );
@@ -368,7 +368,7 @@ gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
 
 	*out = info;
 
-	return 0;
+	return nullptr;
 }
 
 void gme_free_info( gme_info_t* info )

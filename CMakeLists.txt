@@ -6,9 +6,17 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 include(CMakePushCheckState)
 include(CheckCXXSourceCompiles)
+include(CheckCXXCompilerFlag)
 include(TestBigEndian)
 include(GNUInstallDirs)
 include(CTest)
+
+macro(gme_add_cxx_warning_flag WARNINGFLAG WARNING_VAR)
+    check_cxx_compiler_flag("-W${WARNINGFLAG}" HAVE_CXXW_${WARNING_VAR})
+    if(HAVE_CXXW_${WARNING_VAR})
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W${WARNINGFLAG}")
+    endif()
+endmacro()
 
 file(READ "gme/gme.h" GME_GME_H)
 string(REGEX MATCH "/\\* Game_Music_Emu ([0-9]+)\\.([0-9]+).([0-9]+) \\*/" RE_GME_VERSION "${GME_GME_H}")
@@ -87,13 +95,16 @@ if(CMAKE_BUILD_TYPE_LOWER STREQUAL "debug")
 endif()
 
 # Check for GCC/Clang "visibility" support.
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND GME_ENABLE_UBSAN)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  gme_add_cxx_warning_flag(zero-as-null-pointer-constant ZERO_AS_NULLPTR_CONSTANT)
+  if(GME_ENABLE_UBSAN)
     # GCC needs -static-libubsan
     if(NOT GME_BUILD_SHARED AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined -static-libubsan")
     else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined")
     endif()
+  endif()
 endif()
 
 # Shared library defined here

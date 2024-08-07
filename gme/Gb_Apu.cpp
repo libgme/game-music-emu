@@ -42,11 +42,11 @@ Gb_Apu::Gb_Apu()
 	{
 		Gb_Osc& osc = *oscs [i];
 		osc.regs = &regs [i * 5];
-		osc.output = 0;
-		osc.outputs [0] = 0;
-		osc.outputs [1] = 0;
-		osc.outputs [2] = 0;
-		osc.outputs [3] = 0;
+		osc.output = nullptr;
+		osc.outputs [0] = nullptr;
+		osc.outputs [1] = nullptr;
+		osc.outputs [2] = nullptr;
+		osc.outputs [3] = nullptr;
 	}
 
 	set_tempo( 1.0 );

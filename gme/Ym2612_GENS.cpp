@@ -839,7 +839,7 @@ const char* Ym2612_GENS_Emu::set_rate( double sample_rate, double clock_rate )
 
 	impl->set_rate( sample_rate, clock_rate );
 
-	return 0;
+	return nullptr;
 }
 
 Ym2612_GENS_Emu::~Ym2612_GENS_Emu()

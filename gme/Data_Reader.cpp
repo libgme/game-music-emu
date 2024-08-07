@@ -49,7 +49,7 @@ blargg_err_t Data_Reader::read( void* p, long s )
 		return "Read error";
 	}
 
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Data_Reader::skip( long count )
@@ -65,7 +65,7 @@ blargg_err_t Data_Reader::skip( long count )
 		count -= n;
 		RETURN_ERR( read( buf, n ) );
 	}
-	return 0;
+	return nullptr;
 }
 
 long File_Reader::remain() const { return size() - tell(); }
@@ -75,7 +75,7 @@ blargg_err_t File_Reader::skip( long n )
 	RETURN_VALIDITY_CHECK( n >= 0 );
 
 	if ( !n )
-		return 0;
+		return nullptr;
 	return seek( tell() + n );
 }
 
@@ -146,7 +146,7 @@ blargg_err_t Remaining_Reader::read( void* out, long count )
 	long first = read_first( out, count );
 	long second = max( 0l, count - first );
 	if ( !second )
-		return 0;
+		return nullptr;
 	return in->read( (char*) out + first, second );
 }
 
@@ -197,7 +197,7 @@ blargg_err_t Mem_File_Reader::seek( long n )
 	if ( n > m_size )
 		return eof_error;
 	m_pos = n;
-	return 0;
+	return nullptr;
 }
 
 #ifdef HAVE_ZLIB_H
@@ -224,8 +224,8 @@ bool Mem_File_Reader::gz_decompress()
 	strm.next_in   = const_cast<Bytef *>( reinterpret_cast<const Bytef *>( m_begin ) );
 	strm.avail_in  = static_cast<uInt>( m_size );
 	strm.total_out = 0;
-	strm.zalloc    = Z_NULL;
-	strm.zfree     = Z_NULL;
+	strm.zalloc    = nullptr;
+	strm.zfree     = nullptr;
 
 	bool done = false;
 
@@ -404,7 +404,7 @@ blargg_err_t Std_File_Reader::read( void* p, long s )
 #endif
 	const auto &file = reinterpret_cast<FILE*>( file_ );
 	if ( s == static_cast<long>( fread( p, 1, static_cast<size_t>(s), file ) ) )
-		return 0;
+		return nullptr;
 	if ( feof( file ) )
 		return eof_error;
 	return "Couldn't read from file";
