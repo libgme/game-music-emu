@@ -83,7 +83,7 @@ Audio_Scope::Audio_Scope()
 Audio_Scope::~Audio_Scope()
 {
 	free( scope_lines );
-	
+
 	if ( window_renderer )
 		SDL_DestroyRenderer( window_renderer );
 	if ( window )
@@ -94,20 +94,20 @@ std::string Audio_Scope::init( int width, int height )
 {
 	assert( height <= 16384 );
 	assert( !scope_lines ); // can only call init() once
-	
+
 	scope_height = height;
 	scope_lines = reinterpret_cast<SDL_Point *>( calloc( width, sizeof( SDL_Point ) ) );
 	if ( !scope_lines )
 		return "Out of memory";
-	
+
 	buf_size = width;
-	
+
 	for ( sample_shift = 1; sample_shift < 14; )
 		if ( ((0x7FFFL * 2) >> sample_shift++) < height )
 			break;
-	
+
 	v_offset = (height - largest_power_of_2_within(height)) / 2;
-	
+
 	// What the user will see
 	window = SDL_CreateWindow( "libgme sample player",
 			SDL_WINDOWPOS_UNDEFINED,
@@ -119,7 +119,7 @@ std::string Audio_Scope::init( int width, int height )
 	// Render object used to update window (perhaps in video or GPU ram)
 	window_renderer = SDL_CreateRenderer( window, -1, 0 /* no flags */ );
 	RETURN_SDL_ERR( window_renderer, "Couldn't create renderer for output window" );
-	
+
 	return std::string(); // success
 }
 
@@ -129,7 +129,7 @@ const char* Audio_Scope::draw( const short* in, long count, int step )
 	{
 		count = buf_size;
 	}
-	
+
 	SDL_SetRenderDrawColor( window_renderer, 0, 0, 0, 255 );
 	SDL_RenderClear( window_renderer );
 
