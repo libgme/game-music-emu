@@ -16,3 +16,6 @@ test/curm/*
 test/new/*
 test/newm/*
 
+# Zig folders
+*zig-cache/
+zig-out/
