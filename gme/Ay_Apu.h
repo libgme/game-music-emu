@@ -16,7 +16,7 @@ public:
 	void reset();
 
 	// Write to register at specified time
-	enum { reg_count = 16 };
+	static const unsigned int reg_count = 16;
 	void write( blip_time_t time, int addr, int data );
 
 	// Run sound to specified time, end current time frame, then start a new
@@ -28,7 +28,7 @@ public:
 
 	// Set sound output of specific oscillator to buffer, where index is
 	// 0, 1, or 2. If buffer is NULL, the specified oscillator is muted.
-	enum { osc_count = 3 };
+	static const int osc_count = 3;
 	void osc_output( int index, Blip_Buffer* );
 
 	// Set overall volume (default is 1.0)
@@ -67,7 +67,7 @@ private:
 	void run_until( blip_time_t );
 	void write_data_( int addr, int data );
 public:
-	enum { amp_range = 255 };
+	static const int amp_range = 255;
 	Blip_Synth<blip_good_quality,1> synth_;
 };
 

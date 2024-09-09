@@ -29,12 +29,12 @@ public:
 	// count, call end_frame( last_cpu_time ).
 
 	// Write to register (0x4000-0x4017, except 0x4014 and 0x4016)
-	enum { start_addr = 0x4000 };
-	enum { end_addr   = 0x4017 };
+	static const unsigned int start_addr = 0x4000;
+	static const unsigned int end_addr   = 0x4017;
 	void write_register( nes_time_t, nes_addr_t, int data );
 
 	// Read from status register at 0x4015
-	enum { status_addr = 0x4015 };
+	static const unsigned int status_addr = 0x4015;
 	int read_status( nes_time_t );
 
 	// Run all oscillators up to specified time, end current time frame, then
@@ -67,7 +67,7 @@ public:
 	// the specified oscillator is muted and emulation accuracy is reduced.
 	// The oscillators are indexed as follows: 0) Square 1, 1) Square 2,
 	// 2) Triangle, 3) Noise, 4) DMC.
-	enum { osc_count = 5 };
+	static const int osc_count = 5;
 	void osc_output( int index, Blip_Buffer* buffer );
 
 	// Set IRQ time callback that is invoked when the time of earliest IRQ
@@ -78,8 +78,8 @@ public:
 	// Get time that APU-generated IRQ will occur if no further register reads
 	// or writes occur. If IRQ is already pending, returns irq_waiting. If no
 	// IRQ will occur, returns no_irq.
-	enum { no_irq = INT_MAX / 2 + 1 };
-	enum { irq_waiting = 0 };
+	static const unsigned int no_irq = INT_MAX / 2 + 1;
+	static const unsigned int irq_waiting = 0;
 	nes_time_t earliest_irq( nes_time_t ) const;
 
 	// Count number of DMC reads that would occur if 'run_until( t )' were executed.

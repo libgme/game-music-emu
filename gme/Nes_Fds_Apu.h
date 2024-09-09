@@ -12,14 +12,14 @@ class Nes_Fds_Apu {
 public:
 	// setup
 	void set_tempo( double );
-	enum { osc_count = 1 };
+	static const int osc_count = 1;
 	void volume( double );
 	void treble_eq( blip_eq_t const& eq ) { synth.treble_eq( eq ); }
 
 	// emulation
 	void reset();
-	enum { io_addr = 0x4040 };
-	enum { io_size = 0x53 };
+	static const unsigned int io_addr = 0x4040;
+	static const unsigned int io_size = 0x53;
 	void write( blip_time_t time, unsigned addr, int data );
 	int read( blip_time_t time, unsigned addr );
 	void end_frame( blip_time_t );
@@ -31,14 +31,14 @@ public:
 
 	void osc_output( int, Blip_Buffer* );
 private:
-	enum { wave_size       = 0x40 };
-	enum { master_vol_max  =   10 };
-	enum { vol_max         = 0x20 };
-	enum { wave_sample_max = 0x3F };
+	static const unsigned int wave_size       = 0x40;
+	static const unsigned int master_vol_max  =   10;
+	static const int vol_max         = 0x20;
+	static const unsigned int wave_sample_max = 0x3F;
 
 	unsigned char regs_ [io_size];// last written value to registers
 
-	enum { lfo_base_tempo = 8 };
+	static const unsigned int lfo_base_tempo = 8;
 	int lfo_tempo; // normally 8; adjusted by set_tempo()
 
 	int env_delay;

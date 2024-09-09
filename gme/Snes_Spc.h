@@ -66,7 +66,7 @@ public:
 	void disable_echo( bool disable = true );
 
 	// Sets tempo, where tempo_unit = normal, tempo_unit / 2 = half speed, etc.
-	enum { tempo_unit = 0x100 };
+	static const unsigned int tempo_unit = 0x100;
 	void set_tempo( int );
 
 // SPC music files

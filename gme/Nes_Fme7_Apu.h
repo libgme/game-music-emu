@@ -9,7 +9,7 @@
 
 struct fme7_apu_state_t
 {
-	enum { reg_count = 14 };
+	static const unsigned int reg_count = 14;
 	uint8_t regs [reg_count];
 	uint8_t phases [3]; // 0 or 1
 	uint8_t latch;
@@ -23,16 +23,16 @@ public:
 	void volume( double );
 	void treble_eq( blip_eq_t const& );
 	void output( Blip_Buffer* );
-	enum { osc_count = 3 };
+	static const int osc_count = 3;
 	void osc_output( int index, Blip_Buffer* );
 	void end_frame( blip_time_t );
 	void save_state( fme7_apu_state_t* ) const;
 	void load_state( fme7_apu_state_t const& );
 
 	// Mask and addresses of registers
-	enum { addr_mask = 0xE000 };
-	enum { data_addr = 0xE000 };
-	enum { latch_addr = 0xC000 };
+	static const unsigned int addr_mask = 0xE000;
+	static const unsigned int data_addr = 0xE000;
+	static const unsigned int latch_addr = 0xC000;
 
 	// (addr & addr_mask) == latch_addr
 	void write_latch( int );
@@ -56,7 +56,7 @@ private:
 	} oscs [osc_count];
 	blip_time_t last_time;
 
-	enum { amp_range = 192 }; // can be any value; this gives best error/quality tradeoff
+	static const unsigned int amp_range = 192; // can be any value; this gives best error/quality tradeoff
 	Blip_Synth<blip_good_quality,1> synth;
 
 	void run_until( blip_time_t );

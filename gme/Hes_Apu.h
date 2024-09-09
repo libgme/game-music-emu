@@ -25,7 +25,7 @@ struct Hes_Osc
 	unsigned noise_lfsr;
 	unsigned char control;
 
-	enum { amp_range = 0x8000 };
+	static const unsigned int amp_range = 0x8000;
 	typedef Blip_Synth<blip_med_quality,1> synth_t;
 
 	void run_until( synth_t& synth, blip_time_t );
@@ -36,13 +36,13 @@ public:
 	void treble_eq( blip_eq_t const& );
 	void volume( double );
 
-	enum { osc_count = 6 };
+	static const int osc_count = 6;
 	void osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right );
 
 	void reset();
 
-	enum { start_addr = 0x0800 };
-	enum { end_addr   = 0x0809 };
+	static const unsigned int start_addr = 0x0800;
+	static const unsigned int end_addr   = 0x0809;
 	void write_data( blip_time_t, int addr, int data );
 
 	void end_frame( blip_time_t );

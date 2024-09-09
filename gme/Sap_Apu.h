@@ -11,13 +11,13 @@ class Sap_Apu_Impl;
 
 class Sap_Apu {
 public:
-	enum { osc_count = 4 };
+	static const int osc_count = 4;
 	void osc_output( int index, Blip_Buffer* );
 
 	void reset( Sap_Apu_Impl* );
 
-	enum { start_addr = 0xD200 };
-	enum { end_addr   = 0xD209 };
+	static const unsigned int start_addr = 0xD200;
+	static const unsigned int end_addr   = 0xD209;
 	void write_data( blip_time_t, unsigned addr, int data );
 
 	void end_frame( blip_time_t );
@@ -46,9 +46,9 @@ private:
 	void calc_periods();
 	void run_until( blip_time_t );
 
-	enum { poly4_len  = (1L <<  4) - 1 };
-	enum { poly9_len  = (1L <<  9) - 1 };
-	enum { poly17_len = (1L << 17) - 1 };
+	static const unsigned int poly4_len  = (1L <<  4) - 1;
+	static const unsigned int poly9_len  = (1L <<  9) - 1;
+	static const unsigned int poly17_len = (1L << 17) - 1;
 	friend class Sap_Apu_Impl;
 };
 

@@ -82,7 +82,7 @@ private:
 	friend void kss_cpu_write( class Kss_Cpu*, unsigned addr, int data );
 
 	// large items
-	enum { mem_size = 0x10000 };
+	static const unsigned int mem_size = 0x10000;
 	byte ram [mem_size + cpu_padding];
 
 	Ay_Apu ay;

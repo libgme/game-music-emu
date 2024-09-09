@@ -26,7 +26,7 @@ public:
 	// Assign single oscillator output to buffer(s). Valid indicies are 0 to 3,
 	// which refer to Square 1, Square 2, Wave, and Noise. If buffer is NULL,
 	// silences oscillator.
-	enum { osc_count = 4 };
+	static const int osc_count = 4;
 	void osc_output( int index, Blip_Buffer* mono );
 	void osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right );
 
@@ -34,9 +34,9 @@ public:
 	void reset();
 
 	// Reads and writes at addr must satisfy start_addr <= addr <= end_addr
-	enum { start_addr = 0xFF10 };
-	enum { end_addr   = 0xFF3F };
-	enum { register_count = end_addr - start_addr + 1 };
+	static const unsigned int start_addr = 0xFF10;
+	static const unsigned int end_addr   = 0xFF3F;
+	static const unsigned int register_count = end_addr - start_addr + 1;
 
 	// Write 'data' to address at specified time
 	void write_register( blip_time_t, unsigned addr, int data );

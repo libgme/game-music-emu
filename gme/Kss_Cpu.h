@@ -19,7 +19,7 @@ public:
 	void reset( void* unmapped_write, void const* unmapped_read );
 
 	// Map memory. Start and size must be multiple of page_size.
-	enum { page_size = 0x2000 };
+	static const unsigned int page_size = 0x2000;
 	void map_mem( unsigned addr, blargg_ulong size, void* write, void const* read );
 
 	// Map address to page
@@ -68,15 +68,15 @@ public:
 	};
 	//registers_t r; (below for efficiency)
 
-	enum { idle_addr = 0xFFFF };
+	static const unsigned int idle_addr = 0xFFFF;
 
 	// can read this far past end of a page
-	enum { cpu_padding = 0x100 };
+	static const unsigned int cpu_padding = 0x100;
 
 public:
 	Kss_Cpu();
-	enum { page_shift = 13 };
-	enum { page_count = 0x10000 >> page_shift };
+	static const unsigned int page_shift = 13;
+	static const int page_count = 0x10000 >> page_shift;
 private:
 	uint8_t szpc [0x200];
 	cpu_time_t end_time_;
