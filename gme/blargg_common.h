@@ -27,11 +27,10 @@
 	#define STATIC_CAST(T,expr) ((T) (expr))
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER < 1910
-	#define blaarg_static_assert(cond, msg) \
-	        void blargg_failed_(int (*arg) [2 / static_cast<int>(static_cast<bool>(cond)) - 1])
-#else
+#if !defined(_MSC_VER) || _MSC_VER >= 1910
 	#define blaarg_static_assert(cond, msg) static_assert(cond, msg)
+#else
+	#define blaarg_static_assert(cond, msg) assert(cond)
 #endif
 
 // blargg_err_t (0 on success, otherwise error string)
