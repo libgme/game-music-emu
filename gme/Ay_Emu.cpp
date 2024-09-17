@@ -31,7 +31,7 @@ using std::max;
 
 Ay_Emu::Ay_Emu()
 {
-	beeper_output = 0;
+	beeper_output = nullptr;
 	set_type( gme_ay_type );
 
 	static const char* const names [osc_count] = {
@@ -57,7 +57,7 @@ static byte const* get_data( Ay_Emu::file_t const& file, byte const* ptr, int mi
 	assert( (unsigned long) pos <= (unsigned long) file_size - 2 );
 	int offset = (int16_t) get_be16( ptr );
 	if ( !offset || blargg_ulong (pos + offset) > blargg_ulong (file_size - min_size) )
-		return 0;
+		return nullptr;
 	return ptr + offset;
 }
 
@@ -78,7 +78,7 @@ static blargg_err_t parse_header( byte const* in, long size, Ay_Emu::file_t* out
 	if ( !out->tracks )
 		return "Missing track data";
 
-	return 0;
+	return nullptr;
 }
 
 static void copy_ay_fields( Ay_Emu::file_t const& file, track_info_t* out, int track )
@@ -95,7 +95,7 @@ static void copy_ay_fields( Ay_Emu::file_t const& file, track_info_t* out, int t
 blargg_err_t Ay_Emu::track_info_( track_info_t* out, int track ) const
 {
 	copy_ay_fields( file, out, track );
-	return 0;
+	return nullptr;
 }
 
 struct Ay_File : Gme_Info_
@@ -108,13 +108,13 @@ struct Ay_File : Gme_Info_
 	{
 		RETURN_ERR( parse_header( begin, size, &file ) );
 		set_track_count( file.header->max_track + 1 );
-		return 0;
+		return nullptr;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int track ) const
 	{
 		copy_ay_fields( file, out, track );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -274,7 +274,7 @@ blargg_err_t Ay_Emu::start_track_( int track )
 	cpc_mode      = false;
 	cpc_latch     = 0;
 
-	return 0;
+	return nullptr;
 }
 
 // Emulation
@@ -406,5 +406,5 @@ blargg_err_t Ay_Emu::run_clocks( blip_time_t& duration, int )
 
 	apu.end_frame( duration );
 
-	return 0;
+	return nullptr;
 }

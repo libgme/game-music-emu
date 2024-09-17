@@ -25,11 +25,11 @@ void Hes_Emu::cpu_write( hes_addr_t addr, int data )
 
 inline byte const* Hes_Emu::cpu_set_mmr( int page, int bank )
 {
-	write_pages [page] = 0;
+	write_pages [page] = nullptr;
 	if ( bank < 0x80 )
 		return rom.at_addr( bank * (blargg_long) page_size );
 
-	byte* data = 0;
+	byte* data = nullptr;
 	switch ( bank )
 	{
 		case 0xF8:

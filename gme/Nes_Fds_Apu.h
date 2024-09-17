@@ -124,7 +124,7 @@ inline int Nes_Fds_Apu::read( blip_time_t time, unsigned addr )
 inline Nes_Fds_Apu::Nes_Fds_Apu()
 {
 	lfo_tempo = lfo_base_tempo;
-	osc_output( 0, NULL );
+	osc_output( 0, nullptr );
 	volume( 1.0 );
 	reset();
 }

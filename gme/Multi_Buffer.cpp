@@ -26,16 +26,16 @@ Multi_Buffer::Multi_Buffer( int spf ) : samples_per_frame_( spf )
 	channels_changed_count_ = 1;
 }
 
-blargg_err_t Multi_Buffer::set_channel_count( int ) { return 0; }
+blargg_err_t Multi_Buffer::set_channel_count( int ) { return nullptr; }
 
 // Silent_Buffer
 
 Silent_Buffer::Silent_Buffer() : Multi_Buffer( 1 ) // 0 channels would probably confuse
 {
 	// TODO: better to use empty Blip_Buffer so caller never has to check for NULL?
-	chan.left   = 0;
-	chan.center = 0;
-	chan.right  = 0;
+	chan.left   = nullptr;
+	chan.center = nullptr;
+	chan.right  = nullptr;
 }
 
 // Mono_Buffer

@@ -44,7 +44,7 @@ Wave_Writer::Wave_Writer( long sample_rate, const char* filename )
 	if ( !file )
 		exit_with_error( "Couldn't open WAVE file for writing" );
 
-	setvbuf( file, 0, _IOFBF, 32 * 1024L );
+	setvbuf( file, nullptr, _IOFBF, 32 * 1024L );
 }
 
 void Wave_Writer::flush()
@@ -151,7 +151,7 @@ void Wave_Writer::close()
 		fwrite( header, sizeof header, 1, file );
 
 		fclose( file );
-		file = 0;
+		file = nullptr;
 		free( buf );
 	}
 }
@@ -180,5 +180,5 @@ void wave_write( const short* buf, long count ) { ww->write( buf, count ); }
 void wave_close()
 {
 	delete ww;
-	ww = 0;
+	ww = nullptr;
 }

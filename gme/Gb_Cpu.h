@@ -14,7 +14,7 @@ class Gb_Cpu {
 	enum { clocks_per_instr = 4 };
 public:
 	// Clear registers and map all pages to unmapped
-	void reset( void* unmapped = 0 );
+	void reset( void* unmapped = nullptr );
 
 	// Map code memory (memory accessed via the program counter). Start and size
 	// must be multiple of page_size.
