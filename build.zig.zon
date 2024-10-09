@@ -1,0 +1,28 @@
+.{
+	.name = "game-music-emu",
+	.version = "0.6.4",
+	.minimum_zig_version = "0.12.0",
+	.dependencies = .{
+		.zlib = .{
+			.url = "https://github.com/madler/zlib/archive/refs/tags/v1.3.1.tar.gz",
+			.hash = "1220fed0c74e1019b3ee29edae2051788b080cd96e90d56836eea857b0b966742efb",
+		},
+		.unrar = .{
+			.url = "https://github.com/myQwil/unrar/archive/9195ea6387623537e068e74c1b36d9ec499dd785.tar.gz",
+			.hash = "122069a28e9d8b7ee7501a7febfadde698f1e6bc676c386c58c38ec25822a1948e13",
+		},
+	},
+	.paths = .{
+		"gme",
+		"player",
+		"zig",
+		"build.zig",
+		"build.zig.zon",
+		"license.gpl2.txt",
+		"license.txt",
+		"readme.txt",
+		"test.m3u",
+		"test.nsf",
+		"test.vgz",
+	},
+}
