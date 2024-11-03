@@ -166,8 +166,7 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			while ( !(res = in.next( bp, &entry )) )
 			{ // copy data and file sizes
 				gme_type_t t;
-				if ( !(t = gme_identify_extension( entry.name ))
-				|| gme_fixed_track_count( t ) != 1 )
+				if ( !(t = gme_identify_extension( entry.name )) )
 					continue;
 				if ( !emu_type )
 					emu_type = t;
@@ -182,7 +181,10 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			emu_ = gme_new_emu( emu_type, sample_rate );
 			if ( !emu_ )
 				return "Out of memory";
-			RETURN_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
+			if ( gme_fixed_track_count( emu_type ) == 1 )
+				RETURN_ERR( gme_load_tracks( emu_, buf.begin(), sizes.begin(), n ) );
+			else
+				RETURN_ERR( gme_load_data( emu_, buf.begin(), sizes[0] ) );
 		}
 		else
 			RETURN_ERR( gme_open_file( path, &emu_, sample_rate ) );
