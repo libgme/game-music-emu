@@ -311,9 +311,6 @@ blargg_err_t Nsf_Emu::init_sound()
 			count += Nes_Vrc7_Apu::osc_count;
 		}
 
-		set_voice_count( count );
-		set_voice_names( &apu_names[0] );
-
 		if ( namco ) namco->volume( adjusted_gain );
 		if ( vrc6  ) vrc6 ->volume( adjusted_gain );
 		if ( fme7  ) fme7 ->volume( adjusted_gain );
@@ -322,6 +319,9 @@ blargg_err_t Nsf_Emu::init_sound()
 		if ( vrc7  ) vrc7 ->volume( adjusted_gain );
 	}
 	#endif
+
+	set_voice_count( count );
+	set_voice_names( &apu_names[0] );
 
 	apu.volume( adjusted_gain );
 
