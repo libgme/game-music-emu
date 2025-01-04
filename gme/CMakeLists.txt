@@ -283,7 +283,7 @@ if(NOT MSVC)
     # Link with -no-undefined, if available
     if(APPLE)
         set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
-    else()
+    elseif(NOT CMAKE_SYSTEM_NAME MATCHES ".*OpenBSD.*")
         cmake_push_check_state()
         set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
             check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
