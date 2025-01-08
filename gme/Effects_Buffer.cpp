@@ -102,7 +102,7 @@ blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec ) noexcept
 			reverb_buf[i].resize( reverb_size );
 		}
 
-		if ( !echo_buf.size() || !reverb_buf.size() )
+		if ( !echo_buf[i].size() || !reverb_buf[i].size() )
 		{
 			return "Out of memory";
 		}
