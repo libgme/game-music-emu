@@ -88,26 +88,24 @@ Effects_Buffer::Effects_Buffer( int num_voices, bool center_only )
 Effects_Buffer::~Effects_Buffer()
 {}
 
-blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec )
+blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec ) noexcept
 {
-	try
+	for(int i=0; i<max_voices; i++)
 	{
-		for(int i=0; i<max_voices; i++)
+		if ( !echo_buf[i].size() )
 		{
-			if ( !echo_buf[i].size() )
-			{
-				echo_buf[i].resize( echo_size );
-			}
-
-			if ( !reverb_buf[i].size() )
-			{
-				reverb_buf[i].resize( reverb_size );
-			}
+			echo_buf[i].resize( echo_size );
 		}
-	}
-	catch(std::bad_alloc& ba)
-	{
-		return "Out of memory";
+
+		if ( !reverb_buf[i].size() )
+		{
+			reverb_buf[i].resize( reverb_size );
+		}
+
+		if ( !echo_buf.size() || !reverb_buf.size() )
+		{
+			return "Out of memory";
+		}
 	}
 
 	for ( int i = 0; i < buf_count; i++ )
