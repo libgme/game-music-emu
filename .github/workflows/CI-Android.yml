@@ -19,3 +19,7 @@ jobs:
       - name: Build (Android.mk)
         run: |
           ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=Android.mk APP_STL=c++_shared V=1
+      - name: Build w/o Zlib (Android.mk)
+        run: |
+          ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=Android.mk distclean
+          ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=Android.mk APP_STL=c++_shared V=1 GME_ZLIB=N

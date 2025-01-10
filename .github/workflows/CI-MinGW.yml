@@ -37,6 +37,16 @@ jobs:
         cmake --build . --target demo_mem
         cmake --build . --target demo_multi
         cmake --build . --target gme_player
+    - name: Build Shared w/o Zlib
+      run: |
+        mkdir build-nozlib
+        cd build-nozlib
+        cmake -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DGME_ZLIB=OFF ..
+        cmake --build .
+        cmake --build . --target demo
+        cmake --build . --target demo_mem
+        cmake --build . --target demo_multi
+        cmake --build . --target gme_player
     - name: Build Static
       run: |
         mkdir build-static
