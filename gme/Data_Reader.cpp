@@ -399,13 +399,14 @@ blargg_err_t Std_File_Reader::read( void* p, long s )
 	if ( gzeof( gzfile ) )
 		return eof_error;
 	return "Couldn't read from GZ file";
-#endif
+#else
 	const auto &file = reinterpret_cast<FILE*>( file_ );
 	if ( s == static_cast<long>( fread( p, 1, static_cast<size_t>(s), file ) ) )
 		return 0;
 	if ( feof( file ) )
 		return eof_error;
 	return "Couldn't read from file";
+#endif
 }
 
 long Std_File_Reader::tell() const
@@ -413,8 +414,9 @@ long Std_File_Reader::tell() const
 	if (!file_) return -1L;
 #ifdef HAVE_ZLIB_H
 	return gztell( reinterpret_cast<gzFile>( file_ ) );
-#endif
+#else
 	return ftell( reinterpret_cast<FILE*>( file_ ) );
+#endif
 }
 
 blargg_err_t Std_File_Reader::seek( long n )
@@ -426,12 +428,13 @@ blargg_err_t Std_File_Reader::seek( long n )
 	if ( n > size_ )
 		return eof_error;
 	return "Error seeking in GZ file";
-#endif
+#else
 	if ( !fseek( reinterpret_cast<FILE*>( file_ ), n, SEEK_SET ) )
 		return nullptr;
 	if ( n > size() )
 		return eof_error;
 	return "Error seeking in file";
+#endif
 }
 
 void Std_File_Reader::close()
