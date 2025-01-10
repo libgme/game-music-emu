@@ -19,6 +19,10 @@ jobs:
       run: |
         cmake -B build -DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
         cmake --build build/
+    - name: Build Shared w/o Zlib
+      run: |
+        cmake -B build-nozlib -DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DGME_ZLIB=OFF
+        cmake --build build-nozlib/
     - name: Build Static
       run: |
         cmake -B build-static -DCMAKE_TOOLCHAIN_FILE=C:\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -DCMAKE_BUILD_TYPE=${{ matrix.configuration }} -DBUILD_SHARED_LIBS=OFF
