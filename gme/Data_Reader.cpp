@@ -391,16 +391,14 @@ long Std_File_Reader::read_avail( void* p, long s )
 blargg_err_t Std_File_Reader::read( void* p, long s )
 {
 	RETURN_VALIDITY_CHECK( s > 0 && static_cast<unsigned long>(s) <= UINT_MAX );
+	if (!file_) return "NULL FILE pointer";
 #ifdef HAVE_ZLIB_H
-	if ( file_ )
-	{
-		const auto &gzfile = reinterpret_cast<gzFile>( file_ );
-		if ( s == gzread( gzfile, p, static_cast<unsigned>( s ) ) )
-			return nullptr;
-		if ( gzeof( gzfile ) )
-			return eof_error;
-		return "Couldn't read from GZ file";
-	}
+	const auto &gzfile = reinterpret_cast<gzFile>( file_ );
+	if ( s == gzread( gzfile, p, static_cast<unsigned>( s ) ) )
+		return nullptr;
+	if ( gzeof( gzfile ) )
+		return eof_error;
+	return "Couldn't read from GZ file";
 #endif
 	const auto &file = reinterpret_cast<FILE*>( file_ );
 	if ( s == static_cast<long>( fread( p, 1, static_cast<size_t>(s), file ) ) )
@@ -412,24 +410,22 @@ blargg_err_t Std_File_Reader::read( void* p, long s )
 
 long Std_File_Reader::tell() const
 {
+	if (!file_) return -1L;
 #ifdef HAVE_ZLIB_H
-	if ( file_ )
-		return gztell( reinterpret_cast<gzFile>( file_ ) );
+	return gztell( reinterpret_cast<gzFile>( file_ ) );
 #endif
 	return ftell( reinterpret_cast<FILE*>( file_ ) );
 }
 
 blargg_err_t Std_File_Reader::seek( long n )
 {
+	if (!file_) return "NULL FILE pointer";
 #ifdef HAVE_ZLIB_H
-	if ( file_ )
-	{
-		if ( gzseek( reinterpret_cast<gzFile>( file_ ), n, SEEK_SET ) >= 0 )
-			return nullptr;
-		if ( n > size_ )
-			return eof_error;
-		return "Error seeking in GZ file";
-	}
+	if ( gzseek( reinterpret_cast<gzFile>( file_ ), n, SEEK_SET ) >= 0 )
+		return nullptr;
+	if ( n > size_ )
+		return eof_error;
+	return "Error seeking in GZ file";
 #endif
 	if ( !fseek( reinterpret_cast<FILE*>( file_ ), n, SEEK_SET ) )
 		return nullptr;
