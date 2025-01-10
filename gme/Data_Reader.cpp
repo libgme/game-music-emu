@@ -390,8 +390,8 @@ long Std_File_Reader::read_avail( void* p, long s )
 
 blargg_err_t Std_File_Reader::read( void* p, long s )
 {
-	RETURN_VALIDITY_CHECK( s > 0 && static_cast<unsigned long>(s) <= UINT_MAX );
 	if (!file_) return "NULL FILE pointer";
+	RETURN_VALIDITY_CHECK( s > 0 && static_cast<unsigned long>(s) <= UINT_MAX );
 #ifdef HAVE_ZLIB_H
 	const auto &gzfile = reinterpret_cast<gzFile>( file_ );
 	if ( s == gzread( gzfile, p, static_cast<unsigned>( s ) ) )
