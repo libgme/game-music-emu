@@ -362,15 +362,16 @@ blargg_err_t Std_File_Reader::open( const char* path )
 
 long Std_File_Reader::size() const
 {
+	if (!file_) return -1L;
 #ifdef HAVE_ZLIB_H
-	if ( file_ )
-		return size_; // Set for both compressed and uncompressed modes
-#endif
+	return size_; // Set for both compressed and uncompressed modes
+#else
 	long pos = tell();
 	fseek( (FILE*) file_, 0, SEEK_END );
 	long result = tell();
 	fseek( (FILE*) file_, pos, SEEK_SET );
 	return result;
+#endif
 }
 
 long Std_File_Reader::read_avail( void* p, long s )
