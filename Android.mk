@@ -24,7 +24,6 @@ GME_ZLIB=Y
 
 LOCAL_CFLAGS := -O2 -Wall \
 	-DBLARGG_LITTLE_ENDIAN=1 \
-	-DBLARGG_BUILD_DLL \
 	-DLIBGME_VISIBILITY \
 	-fwrapv \
 	-fvisibility=hidden \
