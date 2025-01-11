@@ -362,7 +362,8 @@ blargg_err_t Std_File_Reader::open( const char* path )
 
 long Std_File_Reader::size() const
 {
-	if (!file_) return -1L;
+	if ( !file_ )
+		return -1L;
 #ifdef HAVE_ZLIB_H
 	return size_; // Set for both compressed and uncompressed modes
 #else
@@ -391,7 +392,9 @@ long Std_File_Reader::read_avail( void* p, long s )
 
 blargg_err_t Std_File_Reader::read( void* p, long s )
 {
-	if (!file_) return "NULL FILE pointer";
+	if ( !file_ )
+		return "NULL FILE pointer";
+
 	RETURN_VALIDITY_CHECK( s > 0 && static_cast<unsigned long>(s) <= UINT_MAX );
 #ifdef HAVE_ZLIB_H
 	const auto &gzfile = reinterpret_cast<gzFile>( file_ );
@@ -412,7 +415,8 @@ blargg_err_t Std_File_Reader::read( void* p, long s )
 
 long Std_File_Reader::tell() const
 {
-	if (!file_) return -1L;
+	if ( !file_ )
+		return -1L;
 #ifdef HAVE_ZLIB_H
 	return gztell( reinterpret_cast<gzFile>( file_ ) );
 #else
@@ -422,7 +426,8 @@ long Std_File_Reader::tell() const
 
 blargg_err_t Std_File_Reader::seek( long n )
 {
-	if (!file_) return "NULL FILE pointer";
+	if ( !file_ )
+		return "NULL FILE pointer";
 #ifdef HAVE_ZLIB_H
 	if ( gzseek( reinterpret_cast<gzFile>( file_ ), n, SEEK_SET ) >= 0 )
 		return nullptr;
@@ -450,4 +455,3 @@ void Std_File_Reader::close()
 		file_ = nullptr;
 	}
 }
-
