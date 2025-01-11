@@ -121,9 +121,7 @@ private:
 	friend class Blip_Reader;
 };
 
-#ifdef HAVE_CONFIG_H
-	#include "config.h"
-#endif
+#include "blargg_config.h"
 
 // Number of bits in resample ratio fraction. Higher values give a more accurate ratio
 // but reduce maximum buffer size.
@@ -273,11 +271,12 @@ public:
 	Silent_Blip_Buffer();
 };
 
-	#if defined (__GNUC__) || _MSC_VER >= 1100
-		#define BLIP_RESTRICT __restrict
-	#else
-		#define BLIP_RESTRICT
-	#endif
+#if (defined(__GNUC__) && (__GNUC__ >= 3)) || \
+    (defined(_MSC_VER) && (_MSC_VER >= 1100))
+    #define BLIP_RESTRICT __restrict
+#else
+    #define BLIP_RESTRICT
+#endif
 
 // Optimized reading from Blip_Buffer, for use in custom sample output
 
