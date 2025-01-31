@@ -86,6 +86,13 @@ if(CMAKE_BUILD_TYPE_LOWER STREQUAL "debug")
     endif()
 endif()
 
+# c++ tweaks
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fno-exceptions")
+elseif(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /GR-")
+endif()
+
 # Check for GCC/Clang "visibility" support.
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang" AND GME_ENABLE_UBSAN)
     # GCC needs -static-libubsan
