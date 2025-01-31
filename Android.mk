@@ -8,7 +8,6 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := libgme
 
-LOCAL_CPP_FEATURES := exceptions
 #LOCAL_SANITIZE := undefined
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/gme
