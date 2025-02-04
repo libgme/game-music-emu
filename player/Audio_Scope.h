@@ -3,8 +3,8 @@
 #ifndef AUDIO_SCOPE_H
 #define AUDIO_SCOPE_H
 
-#include "SDL.h"
-
+#include <SDL_render.h>
+#include <SDL_video.h>
 #include <string>
 
 class Audio_Scope {
