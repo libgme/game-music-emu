@@ -91,11 +91,17 @@ BLARGG_EXPORT int gme_tell( Music_Emu const* );
 /* Number of samples generated since beginning of track */
 BLARGG_EXPORT int gme_tell_samples( Music_Emu const* );
 
+/* Number of milliseconds played since beginning of track (scaled with tempo) */
+BLARGG_EXPORT int gme_tell_scaled( Music_Emu const* );
+
 /* Seek to new time in track. Seeking backwards or far forward can take a while. */
 BLARGG_EXPORT gme_err_t gme_seek( Music_Emu*, int msec );
 
 /* Equivalent to restarting track then skipping n samples */
 BLARGG_EXPORT gme_err_t gme_seek_samples( Music_Emu*, int n );
+
+/* Seek to new time in track (scaled with tempo). */
+BLARGG_EXPORT gme_err_t gme_seek_scaled( Music_Emu*, int msec );
 
 
 /******** Informational ********/

@@ -24,6 +24,7 @@ gme_open_file
 gme_play
 gme_seek
 gme_seek_samples
+gme_seek_scaled
 gme_set_autoload_playback_limit
 gme_set_equalizer
 gme_set_fade
@@ -34,6 +35,7 @@ gme_set_user_data
 gme_start_track
 gme_tell
 gme_tell_samples
+gme_tell_scaled
 gme_track_count
 gme_track_ended
 gme_track_info
