@@ -16,3 +16,7 @@ test/curm/*
 test/new/*
 test/newm/*
 
+# OS Junk
+.DS_Store
+Thumbs.db
+desktop.ini
