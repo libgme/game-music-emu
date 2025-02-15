@@ -1,29 +1,3 @@
-# Add library to be compiled.
-if(GME_BUILD_SHARED)
-    # Shared build.
-    add_library(gme_shared SHARED)
-    set_target_properties(gme_shared PROPERTIES OUTPUT_NAME gme)
-endif()
-
-if(GME_BUILD_STATIC)
-    # Static build.
-    add_library(gme_static STATIC)
-
-    # Static builds need to find static zlib (and static forms of other needed
-    # libraries.  Ensure CMake looks only for static libs if we're doing a static
-    # build.  See https://stackoverflow.com/a/44738756
-    if(MSVC)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
-    else()
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    endif()
-
-    if(WIN32 AND GME_BUILD_SHARED)
-        set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme-static)
-    else()
-        set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme)
-    endif()
-endif()
 
 if(NOT GME_BUILD_SHARED AND NOT GME_BUILD_STATIC)
     message(FATAL_ERROR "Both shared and static builds disabled. Please enable build of shared and/or static build of the GME.")
@@ -31,12 +5,6 @@ endif()
 
 if(GME_ZLIB)
     find_package(ZLIB QUIET)
-endif()
-
-if(GME_BUILD_SHARED)
-    add_library(gme::gme ALIAS gme_shared)
-else()
-    add_library(gme::gme ALIAS gme_static)
 endif()
 
 # List of source files required by libgme and any emulators
@@ -356,9 +324,6 @@ set(INSTALL_TARGETS)
 macro(set_gme_props gme_target)
     list(APPEND INSTALL_TARGETS ${gme_target})
 
-    # Add sources to library.
-    target_sources(${gme_target} PRIVATE ${libgme_SRCS})
-
     set_property(TARGET ${gme_target} PROPERTY C_VISIBILITY_PRESET "hidden")
     set_property(TARGET ${gme_target} PROPERTY VISIBILITY_INLINES_HIDDEN TRUE)
     set_property(TARGET ${gme_target} PROPERTY CXX_VISIBILITY_PRESET "hidden")
@@ -401,6 +366,9 @@ endmacro()
 
 # Building the Shared version of GME
 if(GME_BUILD_SHARED)
+    add_library(gme_shared SHARED ${libgme_SRCS})
+    set_target_properties(gme_shared PROPERTIES OUTPUT_NAME gme)
+
     if(WIN32)
         set_property(TARGET gme_shared PROPERTY DEFINE_SYMBOL BLARGG_BUILD_DLL)
     endif()
@@ -443,6 +411,24 @@ endif()
 
 # Building the Static version of GME
 if(GME_BUILD_STATIC)
+    # Static build.
+    add_library(gme_static STATIC ${libgme_SRCS})
+
+    # Static builds need to find static zlib (and static forms of other needed
+    # libraries.  Ensure CMake looks only for static libs if we're doing a static
+    # build.  See https://stackoverflow.com/a/44738756
+    if(MSVC)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    endif()
+
+    if(WIN32 AND GME_BUILD_SHARED)
+        set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme-static)
+    else()
+        set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme)
+    endif()
+
     set_gme_props(gme_static)
 
     target_link_libraries(gme_static PUBLIC gme_deps)
@@ -450,6 +436,12 @@ if(GME_BUILD_STATIC)
     if(HAVE_LIBM)
         target_link_libraries(gme_static PUBLIC -lm)
     endif()
+endif()
+
+if(GME_BUILD_SHARED)
+    add_library(gme::gme ALIAS gme_shared)
+else()
+    add_library(gme::gme ALIAS gme_static)
 endif()
 
 
