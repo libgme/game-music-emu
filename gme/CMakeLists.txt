@@ -1,26 +1,11 @@
-# Add library to be compiled.
-if(GME_BUILD_SHARED)
-    # Shared build.
-    add_library(gme SHARED)
-else()
-    # Static build.
-    add_library(gme STATIC)
 
-    # Static builds need to find static zlib (and static forms of other needed
-    # libraries.  Ensure CMake looks only for static libs if we're doing a static
-    # build.  See https://stackoverflow.com/a/44738756
-    if(MSVC)
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
-    else()
-        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-    endif()
+if(NOT GME_BUILD_SHARED AND NOT GME_BUILD_STATIC)
+    message(FATAL_ERROR "Both shared and static builds disabled. Please enable build of shared and/or static build of the GME.")
 endif()
 
 if(GME_ZLIB)
     find_package(ZLIB QUIET)
 endif()
-
-add_library(gme::gme ALIAS gme)
 
 # List of source files required by libgme and any emulators
 # This is not 100% accurate (Fir_Resampler for instance) but
@@ -240,57 +225,44 @@ if(GME_BUILD_FRAMEWORK)
     set(libgme_SRCS ${libgme_SRCS} ${EXPORTED_HEADERS})
 endif()
 
-# Add sources to library.
-target_sources(gme PRIVATE ${libgme_SRCS})
+# Extract symbols from gme.exports
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/gme.exports" gme_exports_strings)
+set(gme_exports)
+foreach(gme_export_string ${gme_exports_strings})
+    string(STRIP "${gme_export_string}" gme_export_string)
+    string(SUBSTRING "${gme_export_string}" 0 1 gme_export_first_char)
+    if(gme_export_string AND NOT gme_export_first_char STREQUAL "#")
+        list(APPEND gme_exports ${gme_export_string})
+    endif()
+endforeach()
 
-set_property(TARGET gme PROPERTY C_VISIBILITY_PRESET "hidden")
-set_property(TARGET gme PROPERTY VISIBILITY_INLINES_HIDDEN TRUE)
-set_property(TARGET gme PROPERTY CXX_VISIBILITY_PRESET "hidden")
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_definitions(gme PRIVATE LIBGME_VISIBILITY)
-endif()
-
-if(WIN32)
-    set_property(TARGET gme PROPERTY DEFINE_SYMBOL BLARGG_BUILD_DLL)
-endif()
-
-target_compile_definitions(gme PRIVATE GEN_TYPES_H)
-if(WORDS_BIGENDIAN)
-    target_compile_definitions(gme PRIVATE BLARGG_BIG_ENDIAN=1)
-else()
-    target_compile_definitions(gme PRIVATE BLARGG_LITTLE_ENDIAN=1)
-endif()
-
-# Try to protect against undefined behavior from signed integer overflow
-# This has caused miscompilation of code already and there are other
-# potential uses; see https://bitbucket.org/mpyne/game-music-emu/issues/18/
-#                    (https://github.com/libgme/game-music-emu/issues/20 )
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(gme PRIVATE -fwrapv)
-endif()
-
-target_include_directories(gme
-    PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"  # For gen_types.h
-    INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>"
-    INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-)
+add_library(gme_deps INTERFACE)
 
 ## FIXME: Properly find the C++ library !!!
 set(PC_LIBS -lstdc++)
 
+if(GME_ZLIB)
+    if(ZLIB_FOUND)
+        message(STATUS "ZLib library located, compressed file formats will be supported")
+        target_compile_definitions(gme_deps INTERFACE HAVE_ZLIB_H)
+        target_link_libraries(gme_deps INTERFACE ZLIB::ZLIB)
+        # Is not to be installed though
+        list(APPEND PC_LIBS -lz) # for libgme.pc
+    else()
+        message(STATUS "** ZLib library not found, disabling support for compressed formats such as VGZ")
+    endif()
+else()
+    message(STATUS "Zlib-Compressed formats excluded")
+endif()
+
 if(NOT MSVC)
     # Link with -no-undefined, if available
-    if(APPLE)
-        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
-    elseif(NOT CMAKE_SYSTEM_NAME MATCHES ".*OpenBSD.*")
+    if(NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES ".*OpenBSD.*")
         cmake_push_check_state()
         set(CMAKE_REQUIRED_FLAGS "-Wl,-no-undefined")
             check_cxx_source_compiles("int main(void) { return 0;}" LINKER_SUPPORTS_NO_UNDEFINED)
         cmake_pop_check_state()
-        if(LINKER_SUPPORTS_NO_UNDEFINED)
-            set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
-        endif()
     endif()
 
     # Link to libm, if necessary
@@ -309,36 +281,10 @@ if(NOT MSVC)
             }" HAVE_LIBM)
         cmake_pop_check_state()
         if(HAVE_LIBM)
-            target_link_libraries(gme PRIVATE -lm)
             list(APPEND PC_LIBS -lm) # for libgme.pc
         endif()
     endif()
 endif()
-
-if(GME_ZLIB)
-    if(ZLIB_FOUND)
-        message(STATUS "ZLib library located, compressed file formats will be supported")
-        target_compile_definitions(gme PRIVATE HAVE_ZLIB_H)
-        target_link_libraries(gme PRIVATE ZLIB::ZLIB)
-        # Is not to be installed though
-        list(APPEND PC_LIBS -lz) # for libgme.pc
-    else()
-        message(STATUS "** ZLib library not found, disabling support for compressed formats such as VGZ")
-    endif()
-else()
-    message(STATUS "Zlib-Compressed formats excluded")
-endif()
-
-# Extract symbols from gme.exports
-file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/gme.exports" gme_exports_strings)
-set(gme_exports)
-foreach(gme_export_string ${gme_exports_strings})
-    string(STRIP "${gme_export_string}" gme_export_string)
-    string(SUBSTRING "${gme_export_string}" 0 1 gme_export_first_char)
-    if(gme_export_string AND NOT gme_export_first_char STREQUAL "#")
-        list(APPEND gme_exports ${gme_export_string})
-    endif()
-endforeach()
 
 # Add a version script to hide the c++ STL
 if(APPLE)
@@ -352,9 +298,6 @@ if(APPLE)
     set(generated_sym_file "${CMAKE_CURRENT_BINARY_DIR}/gme.sym")
     file(WRITE "${temporary_sym_file}" "${gme_syms}")
     execute_process(COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${temporary_sym_file}" "${generated_sym_file}")
-
-    set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
-    set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
 elseif(UNIX)
     set(gme_syms "{\n  global:\n")
     foreach(gme_export ${gme_exports})
@@ -372,37 +315,141 @@ elseif(UNIX)
     set(CMAKE_REQUIRED_FLAGS "-Wl,-version-script='${generated_sym_file}'")
     check_cxx_source_compiles("int main() { return 0;}" LINKER_SUPPORTS_VERSION_SCRIPT)
     cmake_pop_check_state()
+endif()
 
-    if(LINKER_SUPPORTS_VERSION_SCRIPT)
-        set_property(TARGET gme APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
-        set_property(TARGET gme APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
+
+set(INSTALL_TARGETS)
+
+# Shared properties for shared and static builds of libGME
+macro(set_gme_props gme_target)
+    list(APPEND INSTALL_TARGETS ${gme_target})
+
+    set_property(TARGET ${gme_target} PROPERTY C_VISIBILITY_PRESET "hidden")
+    set_property(TARGET ${gme_target} PROPERTY VISIBILITY_INLINES_HIDDEN TRUE)
+    set_property(TARGET ${gme_target} PROPERTY CXX_VISIBILITY_PRESET "hidden")
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_definitions(${gme_target} PRIVATE LIBGME_VISIBILITY)
+    endif()
+
+    target_compile_definitions(${gme_target} PRIVATE GEN_TYPES_H)
+    if(WORDS_BIGENDIAN)
+        target_compile_definitions(${gme_target} PRIVATE BLARGG_BIG_ENDIAN=1)
+    else()
+        target_compile_definitions(${gme_target} PRIVATE BLARGG_LITTLE_ENDIAN=1)
+    endif()
+
+    # Try to protect against undefined behavior from signed integer overflow
+    # This has caused miscompilation of code already and there are other
+    # potential uses; see https://bitbucket.org/mpyne/game-music-emu/issues/18/
+    #                    (https://github.com/libgme/game-music-emu/issues/20 )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        target_compile_options(${gme_target} PRIVATE -fwrapv)
+    endif()
+
+    target_include_directories(${gme_target}
+        PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"  # For gen_types.h
+        INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>"
+        INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    )
+
+    if(NOT MSVC)
+        # Link with -no-undefined, if available
+        if(APPLE)
+            set_property(TARGET ${gme_target} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-undefined,error")
+        elseif(NOT CMAKE_SYSTEM_NAME MATCHES ".*OpenBSD.*" AND LINKER_SUPPORTS_NO_UNDEFINED)
+            set_property(TARGET ${gme_target} APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no-undefined")
+        endif()
+    endif()
+
+endmacro()
+
+# Building the Shared version of GME
+if(GME_BUILD_SHARED)
+    add_library(gme_shared SHARED ${libgme_SRCS})
+    set_target_properties(gme_shared PROPERTIES OUTPUT_NAME gme)
+
+    if(WIN32)
+        set_property(TARGET gme_shared PROPERTY DEFINE_SYMBOL BLARGG_BUILD_DLL)
+    endif()
+
+    set_gme_props(gme_shared)
+
+    # Add a version script to hide the c++ STL
+    if(APPLE)
+        set_property(TARGET gme_shared APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-exported_symbols_list,'${generated_sym_file}'")
+        set_property(TARGET gme_shared APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
+    elseif(UNIX AND LINKER_SUPPORTS_VERSION_SCRIPT)
+        set_property(TARGET gme_shared APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-version-script='${generated_sym_file}'")
+        set_property(TARGET gme_shared APPEND PROPERTY LINK_DEPENDS "${generated_sym_file}")
+    endif()
+
+    target_link_libraries(gme_shared PRIVATE gme_deps)
+
+    if(HAVE_LIBM)
+        target_link_libraries(gme_shared PRIVATE -lm)
+    endif()
+
+    # The version is the release.  The "soversion" is the API version.  As long
+    # as only build fixes are performed (i.e. no backwards-incompatible changes
+    # to the API), the SOVERSION should be the same even when bumping up VERSION.
+    # The way gme.h is designed, SOVERSION should very rarely be bumped, if ever.
+    # Hopefully the API can stay compatible with old versions.
+    set_target_properties(gme_shared PROPERTIES VERSION ${GME_VERSION} SOVERSION 0)
+
+    # macOS framework build
+    if(GME_BUILD_FRAMEWORK)
+        set_target_properties(gme_shared
+            PROPERTIES FRAMEWORK TRUE
+                       FRAMEWORK_VERSION A
+                       MACOSX_FRAMEWORK_IDENTIFIER net.mpyne.gme
+                       VERSION ${GME_VERSION}
+                       SOVERSION 0
+                       PUBLIC_HEADER "${EXPORTED_HEADERS}")
     endif()
 endif()
 
-# The version is the release.  The "soversion" is the API version.  As long
-# as only build fixes are performed (i.e. no backwards-incompatible changes
-# to the API), the SOVERSION should be the same even when bumping up VERSION.
-# The way gme.h is designed, SOVERSION should very rarely be bumped, if ever.
-# Hopefully the API can stay compatible with old versions.
-set_target_properties(gme
-    PROPERTIES VERSION ${GME_VERSION}
-               SOVERSION 0)
+# Building the Static version of GME
+if(GME_BUILD_STATIC)
+    # Static build.
+    add_library(gme_static STATIC ${libgme_SRCS})
 
-# macOS framework build
-if(GME_BUILD_FRAMEWORK)
-    set_target_properties(gme
-        PROPERTIES FRAMEWORK TRUE
-                   FRAMEWORK_VERSION A
-                   MACOSX_FRAMEWORK_IDENTIFIER net.mpyne.gme
-                   VERSION ${GME_VERSION}
-                   SOVERSION 0
-                   PUBLIC_HEADER "${EXPORTED_HEADERS}")
+    # Static builds need to find static zlib (and static forms of other needed
+    # libraries.  Ensure CMake looks only for static libs if we're doing a static
+    # build.  See https://stackoverflow.com/a/44738756
+    if(MSVC)
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".lib")
+    else()
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    endif()
+
+    if(WIN32 AND GME_BUILD_SHARED)
+        set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme-static)
+    else()
+        set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme)
+    endif()
+
+    set_gme_props(gme_static)
+
+    target_link_libraries(gme_static PUBLIC gme_deps)
+
+    if(HAVE_LIBM)
+        target_link_libraries(gme_static PUBLIC -lm)
+    endif()
 endif()
 
-install(TARGETS gme LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-                    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}  # DLL platforms
-                    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}  # DLL platforms
-                    FRAMEWORK DESTINATION /Library/Frameworks)   # macOS framework
+if(GME_BUILD_SHARED)
+    add_library(gme::gme ALIAS gme_shared)
+else()
+    add_library(gme::gme ALIAS gme_static)
+endif()
+
+
+install(TARGETS ${INSTALL_TARGETS}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}  # DLL platforms
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}  # DLL platforms
+        FRAMEWORK DESTINATION /Library/Frameworks)   # macOS framework
 
 
 # Run during cmake phase, so this is available during make
