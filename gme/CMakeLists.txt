@@ -441,7 +441,7 @@ if(GME_BUILD_SHARED)
     endif()
 endif()
 
-# Building the STatic version of GME
+# Building the Static version of GME
 if(GME_BUILD_STATIC)
     set_gme_props(gme_static)
 
