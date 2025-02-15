@@ -17,7 +17,7 @@ add_custom_command(TARGET demo
     COMMENT "Add convenience copy of test.nsf file for demo application"
     VERBATIM) # VERBATIM is essentially required, "please use correct command line kthx"
 
-target_link_libraries(demo gme)
+target_link_libraries(demo gme::gme)
 
 
 add_executable(demo_mem Wave_Writer.cpp basics_mem.c)
@@ -28,11 +28,11 @@ add_custom_command(TARGET demo_mem
     COMMENT "Add convenience copy of test.vgz file for demo application"
     VERBATIM) # VERBATIM is essentially required, "please use correct command line kthx"
 
-target_link_libraries(demo_mem gme)
+target_link_libraries(demo_mem gme::gme)
 
 
 add_executable(demo_multi Wave_Writer.cpp basics_multi.c)
-target_link_libraries(demo_multi gme)
+target_link_libraries(demo_multi gme::gme)
 
 #
 # Testing
