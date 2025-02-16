@@ -81,10 +81,10 @@ private:
 		fixed_t reverb_level;
 	} chans;
 
-	void mix_mono( blip_sample_t*, blargg_long );
-	void mix_stereo( blip_sample_t*, blargg_long );
-	void mix_enhanced( blip_sample_t*, blargg_long );
-	void mix_mono_enhanced( blip_sample_t*, blargg_long );
+	void mix_mono( blip_sample_t*, int32_t );
+	void mix_stereo( blip_sample_t*, int32_t );
+	void mix_enhanced( blip_sample_t*, int32_t );
+	void mix_mono_enhanced( blip_sample_t*, int32_t );
 };
 
 #endif

@@ -109,7 +109,7 @@ void Nes_Fme7_Apu::run_until( blip_time_t end_time )
 				// maintain phase when silent
 				int count = (end_time - time + period - 1) / period;
 				phases [index] ^= count & 1;
-				time += (blargg_long) count * period;
+				time += (int32_t) count * period;
 			}
 		}
 

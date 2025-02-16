@@ -6,7 +6,7 @@
 
 #include "blargg_common.h"
 
-typedef blargg_long hes_time_t; // clock cycle count
+typedef int32_t hes_time_t; // clock cycle count
 typedef unsigned hes_addr_t; // 16-bit address
 enum { future_hes_time = INT_MAX / 2 + 1 };
 
@@ -73,7 +73,7 @@ private:
 	struct state_t {
 		uint8_t const* code_map [page_count + 1];
 		hes_time_t base;
-		blargg_long time;
+		int32_t time;
 	};
 	state_t* state; // points to state_ or a local copy within run()
 	state_t state_;

@@ -6,7 +6,7 @@
 
 #include "blargg_endian.h"
 
-typedef blargg_long cpu_time_t;
+typedef int32_t cpu_time_t;
 
 // must be defined by caller
 void ay_cpu_out( class Ay_Cpu*, cpu_time_t, unsigned addr, int data );

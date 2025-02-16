@@ -116,9 +116,9 @@ private:
 	int stereo_added;
 	int was_stereo;
 
-	void mix_stereo_no_center( blip_sample_t*, blargg_long );
-	void mix_stereo( blip_sample_t*, blargg_long );
-	void mix_mono( blip_sample_t*, blargg_long );
+	void mix_stereo_no_center( blip_sample_t*, int32_t );
+	void mix_stereo( blip_sample_t*, int32_t );
+	void mix_mono( blip_sample_t*, int32_t );
 };
 
 // Silent_Buffer generates no samples, useful where no sound is wanted

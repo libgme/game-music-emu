@@ -52,10 +52,10 @@ public:
 
 	// Run CPU for at least 'count' cycles and return false, or return true if
 	// illegal instruction is encountered.
-	bool run( blargg_long count );
+	bool run( int32_t count );
 
 	// Number of clock cycles remaining for most recent run() call
-	blargg_long remain() const { return state->remain * clocks_per_instr; }
+	int32_t remain() const { return state->remain * clocks_per_instr; }
 
 	// Can read this many bytes past end of a page
 	enum { cpu_padding = 8 };
@@ -71,7 +71,7 @@ private:
 
 	struct state_t {
 		uint8_t* code_map [page_count + 1];
-		blargg_long remain;
+		int32_t remain;
 	};
 	state_t* state; // points to state_ or a local copy within run()
 	state_t state_;

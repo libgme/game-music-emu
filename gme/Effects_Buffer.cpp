@@ -22,7 +22,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 	#include BLARGG_ENABLE_OPTIMIZER
 #endif
 
-typedef blargg_long fixed_t;
+typedef int32_t fixed_t;
 
 using std::min;
 using std::max;
@@ -362,7 +362,7 @@ long Effects_Buffer::read_samples( blip_sample_t* out, long total_samples )
 	return total_samples * n_channels;
 }
 
-void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
+void Effects_Buffer::mix_mono( blip_sample_t* out_, int32_t count )
 {
     for(int i=0; i<max_voices; i++)
     {
@@ -371,12 +371,12 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
 	BLIP_READER_BEGIN( c, bufs [i*max_buf_count+0] );
 
 	// unrolled loop
-	for ( blargg_long n = count >> 1; n; --n )
+	for ( int32_t n = count >> 1; n; --n )
 	{
-		blargg_long cs0 = BLIP_READER_READ( c );
+		int32_t cs0 = BLIP_READER_READ( c );
 		BLIP_READER_NEXT( c, bass );
 
-		blargg_long cs1 = BLIP_READER_READ( c );
+		int32_t cs1 = BLIP_READER_READ( c );
 		BLIP_READER_NEXT( c, bass );
 
 		if ( (int16_t) cs0 != cs0 )
@@ -403,7 +403,7 @@ void Effects_Buffer::mix_mono( blip_sample_t* out_, blargg_long count )
     }
 }
 
-void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long frames )
+void Effects_Buffer::mix_stereo( blip_sample_t* out_, int32_t frames )
 {
     for(int i=0; i<max_voices; i++)
     {
@@ -442,7 +442,7 @@ void Effects_Buffer::mix_stereo( blip_sample_t* out_, blargg_long frames )
     }
 }
 
-void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames )
+void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, int32_t frames )
 {
 	for(int i=0; i<max_voices; i++)
 	{
@@ -509,7 +509,7 @@ void Effects_Buffer::mix_mono_enhanced( blip_sample_t* out_, blargg_long frames 
     }
 }
 
-void Effects_Buffer::mix_enhanced( blip_sample_t* out_, blargg_long frames )
+void Effects_Buffer::mix_enhanced( blip_sample_t* out_, int32_t frames )
 {
     for(int i=0; i<max_voices; i++)
     {

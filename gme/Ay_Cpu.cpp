@@ -462,7 +462,7 @@ possibly_out_of_time:
 	case 0x29: // ADD HL,HL
 		data = R16( opcode, 4, 0x09 );
 	add_hl_data: {
-		blargg_ulong sum = rp.hl + data;
+		uint32_t sum = rp.hl + data;
 		data ^= rp.hl;
 		rp.hl = sum;
 		flags = (flags & (S80 | Z40 | V04)) |
@@ -710,7 +710,7 @@ possibly_out_of_time:
 	}
 
 	case 0x17:{// RLA
-		blargg_ulong temp = (rg.a << 1) | (flags & C01);
+		uint32_t temp = (rg.a << 1) | (flags & C01);
 		flags = (flags & (S80 | Z40 | P04)) |
 				(temp & (F20 | F08)) |
 				(temp >> 8);
@@ -1028,7 +1028,7 @@ possibly_out_of_time:
 		switch ( data )
 		{
 		{
-			blargg_ulong temp;
+			uint32_t temp;
 		case 0x72: // SBC HL,SP
 		case 0x7A: // ADC HL,SP
 			temp = sp;
@@ -1040,7 +1040,7 @@ possibly_out_of_time:
 		case 0x5A: // ADC HL,DE
 		case 0x6A: // ADC HL,HL
 				temp = R16( data >> 3 & 6, 1, 0 );
-			blargg_ulong sum = temp + (flags & C01);
+			uint32_t sum = temp + (flags & C01);
 			flags = ~data >> 2 & N02;
 			if ( flags )
 				sum = uMinus(sum);
@@ -1351,7 +1351,7 @@ possibly_out_of_time:
 		case 0x19: // ADD IXY,DE
 			temp = R16( data, 4, 0x09 );
 		add_ixy_data: {
-			blargg_ulong sum = ixy + temp;
+			uint32_t sum = ixy + temp;
 			temp ^= ixy;
 			ixy = (uint16_t) sum;
 			flags = (flags & (S80 | Z40 | V04)) |

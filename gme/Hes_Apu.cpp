@@ -161,7 +161,7 @@ void Hes_Osc::run_until( synth_t& synth_, blip_time_t end_time )
 						//  debug_printf( "Used period 0\n" );
 					}
 					// maintain phase when silent
-					blargg_long count = (end_time - time + period - 1) / period;
+					int32_t count = (end_time - time + period - 1) / period;
 					phase += count; // phase will be masked below
 					time += count * period;
 				}

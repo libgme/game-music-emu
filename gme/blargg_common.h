@@ -90,20 +90,6 @@ public:
 #define BLARGG_2CHAR( a, b ) \
 	((a&0xFF)*0x100L + (b&0xFF))
 
-// blargg_long/blargg_ulong = at least 32 bits, int if it's big enough
-
-#if INT_MAX < 0x7FFFFFFF || LONG_MAX == 0x7FFFFFFF
-	typedef long blargg_long;
-#else
-	typedef int blargg_long;
-#endif
-
-#if UINT_MAX < 0xFFFFFFFF || ULONG_MAX == 0xFFFFFFFF
-	typedef unsigned long blargg_ulong;
-#else
-	typedef unsigned blargg_ulong;
-#endif
-
 // int8_t etc.
 #include <stdint.h>
 

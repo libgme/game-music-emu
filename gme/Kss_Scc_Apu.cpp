@@ -37,7 +37,7 @@ void Scc_Apu::run_until( blip_time_t end_time )
 		int volume = 0;
 		if ( regs [0x8F] & (1 << index) )
 		{
-			blip_time_t inaudible_period = (blargg_ulong) (output->clock_rate() +
+			blip_time_t inaudible_period = (uint32_t) (output->clock_rate() +
 					inaudible_freq * 32) / (inaudible_freq * 16);
 			if ( period > inaudible_period )
 				volume = (regs [0x8A + index] & 0x0F) * (amp_range / 256 / 15);
@@ -62,7 +62,7 @@ void Scc_Apu::run_until( blip_time_t end_time )
 			if ( !volume )
 			{
 				// maintain phase
-				blargg_long count = (end_time - time + period - 1) / period;
+				int32_t count = (end_time - time + period - 1) / period;
 				osc.phase = (osc.phase + count) & (wave_size - 1);
 				time += count * period;
 			}

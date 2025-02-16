@@ -154,7 +154,7 @@ void Gbs_Emu::set_bank( int n )
 		n = 1;
 	}
 
-	blargg_long addr = n * (blargg_long) bank_size;
+	int32_t addr = n * (int32_t) bank_size;
 	if (addr > rom.size())
 	{
 		return;

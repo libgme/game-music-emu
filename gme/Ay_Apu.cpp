@@ -171,7 +171,7 @@ void Ay_Apu::run_until( blip_time_t final_end_time )
 	if ( !noise_period )
 		noise_period = noise_period_factor;
 	blip_time_t const old_noise_delay = noise.delay;
-	blargg_ulong const old_noise_lfsr = noise.lfsr;
+	uint32_t const old_noise_lfsr = noise.lfsr;
 
 	// envelope period
 	blip_time_t const env_period_factor = period_factor * 2; // verified
@@ -195,7 +195,7 @@ void Ay_Apu::run_until( blip_time_t final_end_time )
 
 		// period
 		int half_vol = 0;
-		blip_time_t inaudible_period = (blargg_ulong) (osc_output->clock_rate() +
+		blip_time_t inaudible_period = (uint32_t) (osc_output->clock_rate() +
 				inaudible_freq) / (inaudible_freq * 2);
 		if ( osc->period <= inaudible_period && !(osc_mode & tone_off) )
 		{
@@ -237,14 +237,14 @@ void Ay_Apu::run_until( blip_time_t final_end_time )
 		blip_time_t time = start_time + osc->delay;
 		if ( osc_mode & tone_off ) // maintain tone's phase when off
 		{
-			blargg_long count = (final_end_time - time + period - 1) / period;
+			int32_t count = (final_end_time - time + period - 1) / period;
 			time += count * period;
 			osc->phase ^= count & 1;
 		}
 
 		// noise time
 		blip_time_t ntime = final_end_time;
-		blargg_ulong noise_lfsr = 1;
+		uint32_t noise_lfsr = 1;
 		if ( !(osc_mode & noise_off) )
 		{
 			ntime = start_time + old_noise_delay;
@@ -311,8 +311,8 @@ void Ay_Apu::run_until( blip_time_t final_end_time )
 					else
 					{
 						// 20 or more noise periods on average for some music
-						blargg_long remain = end - ntime;
-						blargg_long count = remain / noise_period;
+						int32_t remain = end - ntime;
+						int32_t count = remain / noise_period;
 						if ( remain >= 0 )
 							ntime += noise_period + count * noise_period;
 					}
@@ -380,7 +380,7 @@ void Ay_Apu::run_until( blip_time_t final_end_time )
 	blip_time_t remain = final_end_time - last_time - env.delay;
 	if ( remain >= 0 )
 	{
-		blargg_long count = (remain + env_period) / env_period;
+		int32_t count = (remain + env_period) / env_period;
 		env.pos += count;
 		if ( env.pos >= 0 )
 			env.pos = (env.pos & 31) - 32;

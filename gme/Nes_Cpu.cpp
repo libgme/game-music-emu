@@ -851,7 +851,7 @@ imm##op:
 		SET_STATUS( temp );
 		if ( !((data ^ status) & st_i) ) goto loop; // I flag didn't change
 		this->r.status = status; // update externally-visible I flag
-		blargg_long delta = s.base - irq_time_;
+		int32_t delta = s.base - irq_time_;
 		if ( delta <= 0 ) goto loop;
 		if ( status & st_i ) goto loop;
 		s_time += delta;
@@ -920,7 +920,7 @@ imm##op:
 	handle_cli: {
 		//debug_printf( "CLI at %d\n", TIME );
 		this->r.status = status; // update externally-visible I flag
-		blargg_long delta = s.base - irq_time_;
+		int32_t delta = s.base - irq_time_;
 		if ( delta <= 0 )
 		{
 			if ( TIME < irq_time_ )
@@ -951,7 +951,7 @@ imm##op:
 		status |= st_i;
 	handle_sei: {
 		this->r.status = status; // update externally-visible I flag
-		blargg_long delta = s.base - end_time_;
+		int32_t delta = s.base - end_time_;
 		s.base = end_time_;
 		s_time += delta;
 		if ( s_time < 0 )
@@ -1034,7 +1034,7 @@ interrupt:
 		WRITE_LOW( sp, temp );
 
 		this->r.status = status |= st_i;
-		blargg_long delta = s.base - end_time_;
+		int32_t delta = s.base - end_time_;
 		if ( delta >= 0 ) goto loop;
 		s_time += delta;
 		s.base = end_time_;

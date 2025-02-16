@@ -54,7 +54,7 @@ private:
 
 	struct {
 		blip_time_t delay;
-		blargg_ulong lfsr;
+		uint32_t lfsr;
 	} noise;
 
 	struct {

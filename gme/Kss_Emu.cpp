@@ -226,7 +226,7 @@ blargg_err_t Kss_Emu::start_track_( int track )
 	rom.set_addr( -load_size - header_.extra_header );
 
 	// check available bank data
-	blargg_long const bank_size = this->bank_size();
+	int32_t const bank_size = this->bank_size();
 	int max_banks = (rom.file_size() - load_size + bank_size - 1) / bank_size;
 	bank_count = header_.bank_mode & 0x7F;
 	if ( bank_count > max_banks )
@@ -276,7 +276,7 @@ void Kss_Emu::set_bank( int logical, int physical )
 	}
 	else
 	{
-		long phys = physical * (blargg_long) bank_size;
+		long phys = physical * (int32_t) bank_size;
 		for ( unsigned offset = 0; offset < bank_size; offset += page_size )
 			cpu::map_mem( addr + offset, page_size,
 					unmapped_write, rom.at_addr( phys + offset ) );

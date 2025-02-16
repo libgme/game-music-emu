@@ -115,7 +115,7 @@ blargg_err_t Classic_Emu::play_( long count, sample_t* out )
 				remute_voices();
 			}
 			int msec = buf->length();
-			blip_time_t clocks_emulated = (blargg_long) msec * clock_rate_ / 1000;
+			blip_time_t clocks_emulated = (int32_t) msec * clock_rate_ / 1000;
 			RETURN_ERR( run_clocks( clocks_emulated, msec ) );
 			assert( clocks_emulated );
 			buf->end_frame( clocks_emulated );

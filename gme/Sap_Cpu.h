@@ -6,7 +6,7 @@
 
 #include "blargg_common.h"
 
-typedef blargg_long sap_time_t; // clock cycle count
+typedef int32_t sap_time_t; // clock cycle count
 typedef unsigned sap_addr_t; // 16-bit address
 enum { future_sap_time = INT_MAX / 2 + 1 };
 

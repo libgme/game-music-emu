@@ -27,7 +27,7 @@ inline byte const* Hes_Emu::cpu_set_mmr( int page, int bank )
 {
 	write_pages [page] = 0;
 	if ( bank < 0x80 )
-		return rom.at_addr( bank * (blargg_long) page_size );
+		return rom.at_addr( bank * (int32_t) page_size );
 
 	byte* data = 0;
 	switch ( bank )
