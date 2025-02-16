@@ -25,11 +25,11 @@ Hes_Apu::Hes_Apu()
 	do
 	{
 		osc--;
-		osc->outputs [0] = 0;
-		osc->outputs [1] = 0;
-		osc->chans [0] = 0;
-		osc->chans [1] = 0;
-		osc->chans [2] = 0;
+		osc->outputs [0] = nullptr;
+		osc->outputs [1] = nullptr;
+		osc->chans [0] = nullptr;
+		osc->chans [1] = nullptr;
+		osc->chans [2] = nullptr;
 	}
 	while ( osc != oscs );
 
@@ -209,7 +209,7 @@ void Hes_Apu::balance_changed( Hes_Osc& osc )
 	// optimizing for the common case of being centered also allows easy
 	// panning using Effects_Buffer
 	osc.outputs [0] = osc.chans [0]; // center
-	osc.outputs [1] = 0;
+	osc.outputs [1] = nullptr;
 	if ( left != right )
 	{
 		osc.outputs [0] = osc.chans [1]; // left

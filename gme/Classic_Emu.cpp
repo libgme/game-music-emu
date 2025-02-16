@@ -20,9 +20,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 Classic_Emu::Classic_Emu()
 {
-	buf           = 0;
-	stereo_buffer = 0;
-	voice_types   = 0;
+	buf           = nullptr;
+	stereo_buffer = nullptr;
+	voice_types   = nullptr;
 
 	// avoid inconsistency in our duplicated constants
 	blaarg_static_assert( (int) wave_type  == (int) Multi_Buffer::wave_type, "wave_type inconsistent across two classes using it" );
@@ -57,7 +57,7 @@ blargg_err_t Classic_Emu::set_sample_rate_( long rate )
 blargg_err_t Classic_Emu::set_multi_channel ( bool is_enabled )
 {
         RETURN_ERR( Music_Emu::set_multi_channel_( is_enabled ) );
-        return 0;
+        return nullptr;
 }
 
 void Classic_Emu::mute_voices_( int mask )
@@ -67,7 +67,7 @@ void Classic_Emu::mute_voices_( int mask )
 	{
 		if ( mask & (1 << i) )
 		{
-			set_voice( i, 0, 0, 0 );
+			set_voice( i, nullptr, nullptr, nullptr );
 		}
 		else
 		{
@@ -91,14 +91,14 @@ blargg_err_t Classic_Emu::setup_buffer( long rate )
 	RETURN_ERR( buf->set_channel_count( voice_count() ) );
 	set_equalizer( equalizer() );
 	buf_changed_count = buf->channels_changed_count();
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Classic_Emu::start_track_( int track )
 {
 	RETURN_ERR( Music_Emu::start_track_( track ) );
 	buf->clear();
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Classic_Emu::play_( long count, sample_t* out )
@@ -121,7 +121,7 @@ blargg_err_t Classic_Emu::play_( long count, sample_t* out )
 			buf->end_frame( clocks_emulated );
 		}
 	}
-	return 0;
+	return nullptr;
 }
 
 // Rom_Data
@@ -154,7 +154,7 @@ blargg_err_t Rom_Data_::load_rom_data_( Data_Reader& in,
 	memset( rom.begin()         , fill, pad_size );
 	memset( rom.end() - pad_size, fill, pad_size );
 
-	return 0;
+	return nullptr;
 }
 
 void Rom_Data_::set_addr_( long addr, int unit )
