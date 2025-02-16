@@ -98,7 +98,7 @@ void Nes_Namco_Apu::run_until( blip_time_t nes_end_time )
 			if ( !volume )
 				continue;
 
-			blargg_long freq = (osc_reg [4] & 3) * 0x10000 + osc_reg [2] * 0x100L + osc_reg [0];
+			int32_t freq = (osc_reg [4] & 3) * 0x10000 + osc_reg [2] * 0x100L + osc_reg [0];
 			if ( freq < 64 * active_oscs )
 				continue; // prevent low frequencies from excessively delaying freq changes
 			blip_resampled_time_t period =

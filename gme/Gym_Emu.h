@@ -58,10 +58,10 @@ private:
 	const byte* loop_begin;
 	const byte* pos;
 	const byte* data_end;
-	blargg_long loop_remain; // frames remaining until loop beginning has been located
+	int32_t loop_remain; // frames remaining until loop beginning has been located
 	header_t header_;
 	double fm_sample_rate;
-	blargg_long clocks_per_frame;
+	int32_t clocks_per_frame;
 	void parse_frame();
 
 	// dac (pcm)

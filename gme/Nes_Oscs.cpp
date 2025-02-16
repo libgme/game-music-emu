@@ -87,7 +87,7 @@ inline nes_time_t Nes_Square::maintain_phase( nes_time_t time, nes_time_t end_ti
 	{
 		int count = (remain + timer_period - 1) / timer_period;
 		phase = (phase + count) & (phase_range - 1);
-		time += (blargg_long) count * timer_period;
+		time += (int32_t) count * timer_period;
 	}
 	return time;
 }
@@ -196,7 +196,7 @@ inline nes_time_t Nes_Triangle::maintain_phase( nes_time_t time, nes_time_t end_
 		int count = (remain + timer_period - 1) / timer_period;
 		phase = ((unsigned) phase + 1 - count) & (phase_range * 2 - 1);
 		phase++;
-		time += (blargg_long) count * timer_period;
+		time += (int32_t) count * timer_period;
 	}
 	return time;
 }

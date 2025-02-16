@@ -210,9 +210,9 @@ void Music_Emu::set_autoload_playback_limit( bool do_autoload_limit )
 
 // Tell/Seek
 
-blargg_long Music_Emu::msec_to_samples( blargg_long msec ) const
+int32_t Music_Emu::msec_to_samples( int32_t msec ) const
 {
-	blargg_long sec = msec / 1000;
+	int32_t sec = msec / 1000;
 	msec -= sec * 1000;
 	return (sec * sample_rate() + msec * sample_rate() / 1000) * out_channels();
 }
@@ -224,8 +224,8 @@ long Music_Emu::tell_samples() const
 
 long Music_Emu::tell() const
 {
-	blargg_long rate = sample_rate() * out_channels();
-	blargg_long sec = out_time / rate;
+	int32_t rate = sample_rate() * out_channels();
+	int32_t sec = out_time / rate;
 	return sec * 1000 + (out_time - sec * rate) * 1000 / rate;
 }
 
@@ -307,7 +307,7 @@ void Music_Emu::set_fade( long start_msec, long length_msec )
 }
 
 // unit / pow( 2.0, (double) x / step )
-static int int_log( blargg_long x, int step, int unit )
+static int int_log( int32_t x, int step, int unit )
 {
 	int shift = x / step;
 	int fraction = (x - shift * step) * unit / step;

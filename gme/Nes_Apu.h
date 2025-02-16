@@ -6,7 +6,7 @@
 
 #include "blargg_common.h"
 
-typedef blargg_long nes_time_t; // CPU clock cycle count
+typedef int32_t nes_time_t; // CPU clock cycle count
 typedef unsigned nes_addr_t; // 16-bit memory address
 
 #include "Nes_Oscs.h"

@@ -138,9 +138,9 @@ double Fir_Resampler_::time_ratio( double new_factor, double rolloff, double gai
 	return ratio_;
 }
 
-int Fir_Resampler_::input_needed( blargg_long output_count ) const
+int Fir_Resampler_::input_needed( int32_t output_count ) const
 {
-	blargg_long input_count = 0;
+	int32_t input_count = 0;
 
 	unsigned long skip = skip_bits >> imp_phase;
 	int remain = res - imp_phase;
@@ -162,13 +162,13 @@ int Fir_Resampler_::input_needed( blargg_long output_count ) const
 	return input_extra;
 }
 
-int Fir_Resampler_::avail_( blargg_long input_count ) const
+int Fir_Resampler_::avail_( int32_t input_count ) const
 {
 	int cycle_count = input_count / input_per_cycle;
 	int output_count = cycle_count * res * stereo;
 	input_count -= cycle_count * input_per_cycle;
 
-	blargg_ulong skip = skip_bits >> imp_phase;
+	uint32_t skip = skip_bits >> imp_phase;
 	int remain = res - imp_phase;
 	while ( input_count >= 0 )
 	{

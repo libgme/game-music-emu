@@ -6,7 +6,7 @@
 
 #include "blargg_endian.h"
 
-typedef blargg_long cpu_time_t;
+typedef int32_t cpu_time_t;
 
 // must be defined by caller
 void kss_cpu_out( class Kss_Cpu*, cpu_time_t, unsigned addr, int data );
@@ -20,7 +20,7 @@ public:
 
 	// Map memory. Start and size must be multiple of page_size.
 	static const unsigned int page_size = 0x2000;
-	void map_mem( unsigned addr, blargg_ulong size, void* write, void const* read );
+	void map_mem( unsigned addr, uint32_t size, void* write, void const* read );
 
 	// Map address to page
 	uint8_t* write( unsigned addr );

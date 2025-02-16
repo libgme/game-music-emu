@@ -136,8 +136,8 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 		// read size and tag
 		byte block_header [2] [4];
 		RETURN_ERR( in.read( block_header, sizeof block_header ) );
-		blargg_long size = get_le32( block_header [0] );
-		blargg_long tag  = get_le32( block_header [1] );
+		int32_t size = get_le32( block_header [0] );
+		int32_t tag  = get_le32( block_header [1] );
 
 		if ( size < 0 )
 			return "Corrupt file";
@@ -155,7 +155,7 @@ blargg_err_t Nsfe_Info::load( Data_Reader& in, Nsf_Emu* nsf_emu )
 				finfo.track_count = 1;
 				finfo.first_track = 0;
 
-				RETURN_ERR( in.read( &finfo, min( size, (blargg_long) nsfe_info_size ) ) );
+				RETURN_ERR( in.read( &finfo, min( size, (int32_t) nsfe_info_size ) ) );
 				if ( size > nsfe_info_size )
 					RETURN_ERR( in.skip( size - nsfe_info_size ) );
 				phase = 1;

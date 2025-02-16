@@ -70,7 +70,7 @@ private:
 	unsigned scc_enabled; // 0 or 0xC000
 	int bank_count;
 	void set_bank( int logical, int physical );
-	blargg_long bank_size() const { return (16 * 1024L) >> (header_.bank_mode >> 7 & 1); }
+	int32_t bank_size() const { return (16 * 1024L) >> (header_.bank_mode >> 7 & 1); }
 
 	blip_time_t play_period;
 	blip_time_t next_play;

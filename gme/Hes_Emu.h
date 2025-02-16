@@ -62,8 +62,8 @@ private:
 
 	struct {
 		hes_time_t last_time;
-		blargg_long count;
-		blargg_long load;
+		int32_t count;
+		int32_t load;
 		int raw_load;
 		byte enabled;
 		byte fired;

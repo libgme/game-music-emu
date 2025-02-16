@@ -19,9 +19,9 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 static int const max_frequency = 12000; // pure waves above this frequency are silenced
 
-static void gen_poly( blargg_ulong mask, int count, byte* out )
+static void gen_poly( uint32_t mask, int count, byte* out )
 {
-	blargg_ulong n = 1;
+	uint32_t n = 1;
 	do
 	{
 		int bits = 0;
@@ -40,10 +40,10 @@ static void gen_poly( blargg_ulong mask, int count, byte* out )
 
 // poly5
 static int const poly5_len = (1 <<  5) - 1;
-static blargg_ulong const poly5_mask = (1UL << poly5_len) - 1;
-static blargg_ulong const poly5 = 0x167C6EA1;
+static uint32_t const poly5_mask = (1UL << poly5_len) - 1;
+static uint32_t const poly5 = 0x167C6EA1;
 
-static inline blargg_ulong run_poly5( blargg_ulong in, int shift )
+static inline uint32_t run_poly5( uint32_t in, int shift )
 {
 	return (in << shift & poly5_mask) | (in >> (poly5_len - shift));
 }
@@ -61,9 +61,9 @@ Sap_Apu_Impl::Sap_Apu_Impl()
 	{
 		byte poly5 [4];
 		gen_poly( POLY_MASK(  5, 2, 0 ), sizeof poly5,  poly5  );
-		blargg_ulong n = poly5 [3] * 0x1000000L + poly5 [2] * 0x10000L +
+		uint32_t n = poly5 [3] * 0x1000000L + poly5 [2] * 0x10000L +
 				poly5 [1] * 0x100L + poly5 [0];
-		blargg_ulong rev = n & 1;
+		uint32_t rev = n & 1;
 		for ( int i = 1; i < poly5_len; i++ )
 			rev |= (n >> i & 1) << (poly5_len - i);
 		debug_printf( "poly5: 0x%08lX\n", rev );
@@ -102,7 +102,7 @@ inline void Sap_Apu::calc_periods()
 		osc_t* const osc = &oscs [i];
 
 		int const osc_reload = osc->regs [0]; // cache
-		blargg_long period = (osc_reload + 1) * divider;
+		int32_t period = (osc_reload + 1) * divider;
 		static byte const fast_bits [osc_count] = { 1 << 6, 1 << 4, 1 << 5, 1 << 3 };
 		if ( this->control & fast_bits [i] )
 		{
@@ -208,7 +208,7 @@ void Sap_Apu::run_until( blip_time_t end_time )
 					poly_inc -= poly_len; // allows more optimized inner loop below
 
 					// square/poly5 wave
-					blargg_ulong wave = poly5;
+					uint32_t wave = poly5;
 					check( poly5 & 1 ); // low bit is set for pure wave
 					int poly5_inc = 0;
 					if ( !(osc_control & 0x80) )
@@ -281,7 +281,7 @@ void Sap_Apu::run_until( blip_time_t end_time )
 		blip_time_t remain = end_time - time;
 		if ( remain > 0 )
 		{
-			blargg_long count = (remain + period - 1) / period;
+			int32_t count = (remain + period - 1) / period;
 			osc->phase ^= count;
 			time += count * period;
 		}

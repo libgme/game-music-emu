@@ -56,7 +56,7 @@ static byte const* get_data( Ay_Emu::file_t const& file, byte const* ptr, int mi
 	long file_size = file.end - (byte const*) file.header;
 	assert( (unsigned long) pos <= (unsigned long) file_size - 2 );
 	int offset = (int16_t) get_be16( ptr );
-	if ( !offset || blargg_ulong (pos + offset) > blargg_ulong (file_size - min_size) )
+	if ( !offset || uint32_t (pos + offset) > uint32_t (file_size - min_size) )
 		return 0;
 	return ptr + offset;
 }
@@ -209,7 +209,7 @@ blargg_err_t Ay_Emu::start_track_( int track )
 		}
 		check( len );
 		byte const* in = get_data( file, blocks, 0 ); blocks += 2;
-		if ( len > blargg_ulong (file.end - in) )
+		if ( len > uint32_t (file.end - in) )
 		{
 			set_warning( "Missing file data" );
 			len = file.end - in;

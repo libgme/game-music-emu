@@ -174,12 +174,12 @@ private:
 	int out_channels() const { return this->multi_channel() ? 2*8 : 2; }
 
 	long sample_rate_;
-	blargg_long msec_to_samples( blargg_long msec ) const;
+	int32_t msec_to_samples( int32_t msec ) const;
 
 	// track-specific
 	int current_track_;
-	blargg_long out_time;  // number of samples played since start of track
-	blargg_long emu_time;  // number of samples emulator has generated since start of track
+	int32_t out_time;  // number of samples played since start of track
+	int32_t emu_time;  // number of samples emulator has generated since start of track
 	bool emu_track_ended_; // emulator has reached end of track
 	bool emu_autoload_playback_limit_; // whether to load and obey track length by default
 	volatile bool track_ended_;
@@ -187,7 +187,7 @@ private:
 	void end_track_if_error( blargg_err_t );
 
 	// fading
-	blargg_long fade_start;
+	int32_t fade_start;
 	int fade_step;
 	void handle_fade( long count, sample_t* out );
 

@@ -498,7 +498,7 @@ int Hes_Emu::cpu_done()
 	return 0;
 }
 
-static void adjust_time( blargg_long& time, hes_time_t delta )
+static void adjust_time( int32_t& time, hes_time_t delta )
 {
 	if ( time < future_hes_time )
 	{

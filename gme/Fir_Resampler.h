@@ -48,7 +48,7 @@ public:
 // Output
 
 	// Number of extra input samples needed until 'count' output samples are available
-	int input_needed( blargg_long count ) const;
+	int input_needed( int32_t count ) const;
 
 	// Number of output samples available
 	int avail() const { return avail_( write_pos - &buf [width_ * stereo] ); }
@@ -64,14 +64,14 @@ protected:
 	int imp_phase;
 	int const width_;
 	int const write_offset;
-	blargg_ulong skip_bits;
+	uint32_t skip_bits;
 	int step;
 	int input_per_cycle;
 	double ratio_;
 	sample_t* impulses;
 
 	Fir_Resampler_( int width, sample_t* );
-	int avail_( blargg_long input_count ) const;
+	int avail_( int32_t input_count ) const;
 };
 
 // Width is number of points in FIR. Must be even and 4 or more. More points give
@@ -85,7 +85,7 @@ public:
 
 	// Read at most 'count' samples. Returns number of samples actually read.
 	typedef short sample_t;
-	int read( sample_t* out, blargg_long count );
+	int read( sample_t* out, int32_t count );
 };
 
 // End of public interface
@@ -97,12 +97,12 @@ inline void Fir_Resampler_::write( long count )
 }
 
 template<int width>
-int Fir_Resampler<width>::read( sample_t* out_begin, blargg_long count )
+int Fir_Resampler<width>::read( sample_t* out_begin, int32_t count )
 {
 	sample_t* out = out_begin;
 	const sample_t* in = buf.begin();
 	sample_t* end_pos = write_pos;
-	blargg_ulong skip = skip_bits >> imp_phase;
+	uint32_t skip = skip_bits >> imp_phase;
 	sample_t const* imp = impulses [imp_phase];
 	int remain = res - imp_phase;
 	int const step = this->step;
@@ -132,8 +132,8 @@ int Fir_Resampler<width>::read( sample_t* out_begin, blargg_long count )
 			else
 			{
 				// accumulate in extended precision
-				blargg_long l = 0;
-				blargg_long r = 0;
+				int32_t l = 0;
+				int32_t r = 0;
 
 				const sample_t* i = in;
 

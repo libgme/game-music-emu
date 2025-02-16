@@ -42,7 +42,7 @@ private:
 	Nes_Namco_Apu& operator = ( const Nes_Namco_Apu& );
 
 	struct Namco_Osc {
-		blargg_long delay;
+		int32_t delay;
 		Blip_Buffer* output;
 		short last_amp;
 		short wave_pos;

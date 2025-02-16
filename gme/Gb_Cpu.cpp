@@ -49,7 +49,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 inline void Gb_Cpu::set_code_page( int i, uint8_t* p )
 {
-	state->code_map [i] = p - PAGE_OFFSET( i * (blargg_long) page_size );
+	state->code_map [i] = p - PAGE_OFFSET( i * (int32_t) page_size );
 }
 
 void Gb_Cpu::reset( void* unmapped )
@@ -90,9 +90,9 @@ static unsigned const n_flag = 0x40;
 static unsigned const h_flag = 0x20;
 static unsigned const c_flag = 0x10;
 
-bool Gb_Cpu::run( blargg_long cycle_count )
+bool Gb_Cpu::run( int32_t cycle_count )
 {
-	state_.remain = blargg_ulong (cycle_count + clocks_per_instr) / clocks_per_instr;
+	state_.remain = uint32_t (cycle_count + clocks_per_instr) / clocks_per_instr;
 	state_t s;
 	this->state = &s;
 	memcpy( &s, &this->state_, sizeof s );
@@ -679,7 +679,7 @@ loop:
 // Add 16-bit
 
 	{
-		blargg_ulong temp; // need more than 16 bits for carry
+		uint32_t temp; // need more than 16 bits for carry
 		unsigned prev;
 
 	case 0xF8: // LD HL,SP+imm
