@@ -250,7 +250,7 @@ blargg_err_t Music_Emu::seek( long msec )
 
 blargg_err_t Music_Emu::seek_scaled( long msec )
 {
-	require(tempo_ > 0);
+	require( tempo_ > 0 );
 	int32_t frames = (msec / 1000.0) * sample_rate();
 	if ( frames < out_time_scaled )
 		RETURN_ERR( start_track( current_track_ ) );
