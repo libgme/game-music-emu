@@ -85,7 +85,7 @@ static void get_spc_xid6( byte const* begin, long size, track_info_t* out )
 		}
 
 		// handle specific block types
-		char* field = 0;
+		char* field = nullptr;
 		switch ( id )
 		{
 			case 0x01: field = out->song;    break;
@@ -203,14 +203,14 @@ static void get_spc_info( Spc_Emu::header_t const& h, byte const* xid6, long xid
 blargg_err_t Spc_Emu::track_info_( track_info_t* out, int ) const
 {
 	get_spc_info( header(), trailer(), trailer_size(), out );
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_spc_header( void const* header )
 {
 	if ( memcmp( header, "SNES-SPC700 Sound File Data", 27 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Spc_File : Gme_Info_
@@ -234,13 +234,13 @@ struct Spc_File : Gme_Info_
 			RETURN_ERR( in.skip( spc_size - head_size ) );
 			RETURN_ERR( in.read( xid6.begin(), xid6.size() ) );
 		}
-		return 0;
+		return nullptr;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		get_spc_info( header, xid6.begin(), xid6.size(), out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -262,7 +262,7 @@ blargg_err_t Spc_Emu::set_sample_rate_( long sample_rate )
 		RETURN_ERR( resampler.buffer_size( native_sample_rate / 20 * 2 ) );
 		resampler.time_ratio( (double) native_sample_rate / sample_rate, 0.9965 );
 	}
-	return 0;
+	return nullptr;
 }
 
 void Spc_Emu::enable_accuracy_( bool b )
@@ -314,14 +314,14 @@ blargg_err_t Spc_Emu::start_track_( int track )
 	// Set a default track length, need a non-zero fadeout
 	if ( autoload_playback_limit() && ( spc_info.length > 0 ) )
 		set_fade ( spc_info.length, 50 );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Spc_Emu::play_and_filter( long count, sample_t out [] )
 {
 	RETURN_ERR( apu.play( count, out ) );
 	filter.run( out, count );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Spc_Emu::skip_( long count )
@@ -363,5 +363,5 @@ blargg_err_t Spc_Emu::play_( long count, sample_t* out )
 		}
 	}
 	check( remain == 0 );
-	return 0;
+	return nullptr;
 }

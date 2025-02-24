@@ -669,7 +669,7 @@ void Spc_Dsp::init( void* ram_64k )
 	mute_voices( 0 );
 	disable_surround( false );
 	disable_echo( false );
-	set_output( 0, 0 );
+	set_output( nullptr, 0 );
 	reset();
 
 	// be sure this sign-extends

@@ -72,9 +72,9 @@ Sap_Apu_Impl::Sap_Apu_Impl()
 
 Sap_Apu::Sap_Apu()
 {
-	impl = 0;
+	impl = nullptr;
 	for ( int i = 0; i < osc_count; i++ )
-		osc_output( i, 0 );
+		osc_output( i, nullptr );
 }
 
 void Sap_Apu::reset( Sap_Apu_Impl* new_impl )

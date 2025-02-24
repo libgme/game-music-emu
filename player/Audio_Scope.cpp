@@ -139,7 +139,7 @@ const char* Audio_Scope::draw( const short* in, long count, int step )
 
 	SDL_RenderPresent( window_renderer );
 
-	return 0; // success
+	return nullptr; // success
 }
 
 void Audio_Scope::render( short const* in, long count, int step )

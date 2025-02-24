@@ -182,13 +182,13 @@ Music_Emu* gme_new_( Music_Emu*, long sample_rate );
 #endif
 
 inline gme_type_t Gme_File::type() const            { return type_; }
-inline int Gme_File::error_count() const            { return warning_ != 0; }
+inline int Gme_File::error_count() const            { return warning_ != nullptr; }
 inline int Gme_File::track_count() const            { return track_count_; }
 
 inline const char* Gme_File::warning()
 {
 	const char* s = warning_;
-	warning_ = 0;
+	warning_ = nullptr;
 	return s;
 }
 

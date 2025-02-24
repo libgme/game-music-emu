@@ -53,12 +53,12 @@ int Nsf_Emu::pcm_read( void* emu, nes_addr_t addr )
 
 Nsf_Emu::Nsf_Emu()
 {
-	vrc6  = 0;
-	namco = 0;
-	fme7  = 0;
-	fds   = 0;
-	mmc5  = 0;
-	vrc7  = 0;
+	vrc6  = nullptr;
+	namco = nullptr;
+	fme7  = nullptr;
+	fds   = nullptr;
+	mmc5  = nullptr;
+	vrc7  = nullptr;
 
 	set_type( gme_nsf_type );
 	set_silence_lookahead( 6 );
@@ -75,22 +75,22 @@ void Nsf_Emu::unload()
 	#if !NSF_EMU_APU_ONLY
 	{
 		delete vrc6;
-		vrc6  = 0;
+		vrc6  = nullptr;
 
 		delete namco;
-		namco = 0;
+		namco = nullptr;
 
 		delete fme7;
-		fme7  = 0;
+		fme7  = nullptr;
 
 		delete fds;
-		fds   = 0;
+		fds   = nullptr;
 
 		delete mmc5;
-		mmc5  = 0;
+		mmc5  = nullptr;
 
 		delete vrc7;
-		vrc7  = 0;
+		vrc7  = nullptr;
 	}
 	#endif
 
@@ -112,14 +112,14 @@ static void copy_nsf_fields( Nsf_Emu::header_t const& h, track_info_t* out )
 blargg_err_t Nsf_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_nsf_fields( header_, out );
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_nsf_header( void const* header )
 {
 	if ( memcmp( header, "NESM\x1A", 5 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Nsf_File : Gme_Info_
@@ -144,7 +144,7 @@ struct Nsf_File : Gme_Info_
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_nsf_fields( h, out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -325,7 +325,7 @@ blargg_err_t Nsf_Emu::init_sound()
 
 	apu.volume( adjusted_gain );
 
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Nsf_Emu::load_( Data_Reader& in )
@@ -611,7 +611,7 @@ blargg_err_t Nsf_Emu::start_track_( int track )
 	r.a  = track;
 	r.x  = pal_only;
 
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Nsf_Emu::run_clocks( blip_time_t& duration, int )
@@ -687,5 +687,5 @@ blargg_err_t Nsf_Emu::run_clocks( blip_time_t& duration, int )
 	}
 	#endif
 
-	return 0;
+	return nullptr;
 }

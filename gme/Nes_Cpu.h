@@ -14,7 +14,7 @@ class Nes_Cpu {
 public:
 	// Clear registers, map low memory and its three mirrors to address 0,
 	// and mirror unmapped_page in remaining memory
-	void reset( void const* unmapped_page = 0 );
+	void reset( void const* unmapped_page = nullptr );
 
 	// Map code memory (memory accessed via the program counter). Start and size
 	// must be multiple of page_size. If mirror is true, repeats code page
