@@ -159,7 +159,7 @@ gme_err_t Zip_Reader::open( const char* path )
 
 gme_err_t Zip_Reader::next( void* buf_ptr, arc_entry_t* entry )
 {
-	ssize_t res;
+	ptrdiff_t res;
 	if ( (res = archive_read_next_header( zip, &head )) != ARCHIVE_OK )
 		return (res == ARCHIVE_EOF) ? arc_eof : archive_error_string( zip );
 

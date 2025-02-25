@@ -5,11 +5,12 @@
 #define MUSIC_PLAYER_H
 
 #include "gme/gme.h"
+#include <cstdint>
 
 class Music_Player {
 public:
 	// Initialize player and set sample rate
-	gme_err_t init( long sample_rate = 44100 );
+	gme_err_t init( uint32_t sample_rate = 44100 );
 
 	// Load game music file. NULL on success, otherwise error string.
 	gme_err_t load_file( const char* path, bool by_mem );
@@ -72,7 +73,7 @@ public:
 private:
 	Music_Emu* emu_;
 	sample_t* scope_buf;
-	long sample_rate;
+	uint32_t sample_rate;
 	int scope_buf_size;
 	bool paused;
 	gme_info_t* track_info_;
