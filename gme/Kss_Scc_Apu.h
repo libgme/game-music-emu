@@ -90,7 +90,7 @@ inline void Scc_Apu::output( Blip_Buffer* buf )
 
 inline Scc_Apu::Scc_Apu()
 {
-	output( 0 );
+	output( nullptr );
 }
 
 inline void Scc_Apu::reset()

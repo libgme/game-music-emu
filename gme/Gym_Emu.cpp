@@ -27,8 +27,8 @@ static const long clock_rate = base_clock / 15;
 
 Gym_Emu::Gym_Emu()
 {
-	data = 0;
-	pos  = 0;
+	data = nullptr;
+	pos  = nullptr;
 	set_type( gme_gym_type );
 
 	static const char* const names [] = {
@@ -81,7 +81,7 @@ static void get_gym_info( Gym_Emu::header_t const& h, long length, track_info_t*
 blargg_err_t Gym_Emu::track_info_( track_info_t* out, int ) const
 {
 	get_gym_info( header_, track_length(), out );
-	return 0;
+	return nullptr;
 }
 
 static long gym_track_length( byte const* p, byte const* end )
@@ -110,7 +110,7 @@ static long gym_track_length( byte const* p, byte const* end )
 
 long Gym_Emu::track_length() const { return gym_track_length( data, data_end ); }
 
-static blargg_err_t check_header( byte const* in, long size, int* data_offset = 0 )
+static blargg_err_t check_header( byte const* in, long size, int* data_offset = nullptr )
 {
 	if ( size < 4 )
 		return gme_wrong_file_type;
@@ -131,7 +131,7 @@ static blargg_err_t check_header( byte const* in, long size, int* data_offset = 
 		return gme_wrong_file_type;
 	}
 
-	return 0;
+	return nullptr;
 }
 
 struct Gym_File : Gme_Info_
@@ -154,7 +154,7 @@ struct Gym_File : Gme_Info_
 	{
 		long length = gym_track_length( &file_begin [data_offset], file_end );
 		get_gym_info( *(Gym_Emu::header_t const*) file_begin, length, out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -182,7 +182,7 @@ blargg_err_t Gym_Emu::set_sample_rate_( long sample_rate )
 	RETURN_ERR( fm.set_rate( fm_sample_rate, base_clock / 7.0 ) );
 	RETURN_ERR( Dual_Resampler::reset( long (1.0 / 60 / min_tempo * sample_rate) ) );
 
-	return 0;
+	return nullptr;
 }
 
 void Gym_Emu::set_tempo_( double t )
@@ -205,7 +205,7 @@ void Gym_Emu::mute_voices_( int mask )
 	Music_Emu::mute_voices_( mask );
 	fm.mute_voices( mask );
 	dac_muted = (mask & 0x40) != 0;
-	apu.output( (mask & 0x80) ? 0 : &blip_buf );
+	apu.output( (mask & 0x80) ? nullptr : &blip_buf );
 }
 
 blargg_err_t Gym_Emu::load_mem_( byte const* in, long size )
@@ -217,14 +217,14 @@ blargg_err_t Gym_Emu::load_mem_( byte const* in, long size )
 
 	data     = in + offset;
 	data_end = in + size;
-	loop_begin = 0;
+	loop_begin = nullptr;
 
 	if ( offset )
 		header_ = *(header_t const*) in;
 	else
 		memset( &header_, 0, sizeof header_ );
 
-	return 0;
+	return nullptr;
 }
 
 // Emulation
@@ -244,7 +244,7 @@ blargg_err_t Gym_Emu::start_track_( int track )
 	apu.reset();
 	blip_buf.clear();
 	Dual_Resampler::clear();
-	return 0;
+	return nullptr;
 }
 
 void Gym_Emu::run_dac( int dac_count )
@@ -376,5 +376,5 @@ int Gym_Emu::play_frame( blip_time_t blip_time, int sample_count, sample_t* buf 
 blargg_err_t Gym_Emu::play_( long count, sample_t* out )
 {
 	Dual_Resampler::dual_play( count, out, blip_buf );
-	return 0;
+	return nullptr;
 }

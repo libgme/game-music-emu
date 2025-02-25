@@ -37,9 +37,9 @@ void Gme_File::unload()
 
 Gme_File::Gme_File()
 {
-	type_         = 0;
-	user_data_    = 0;
-	user_cleanup_ = 0;
+	type_         = nullptr;
+	user_data_    = nullptr;
+	user_cleanup_ = nullptr;
 	unload(); // clears fields
 	blargg_verify_byte_order(); // used by most emulator types, so save them the trouble
 }
@@ -194,7 +194,7 @@ blargg_err_t Gme_File::remap_track_( int* track_io ) const
 	{
 		check( !playlist.size() );
 	}
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
@@ -251,5 +251,5 @@ blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
 		if ( e.fade   >= 0 ) out->fade_length  = e.fade;
 		if ( e.repeat >= 0 ) out->repeat_count = e.repeat;
 	}
-	return 0;
+	return nullptr;
 }
