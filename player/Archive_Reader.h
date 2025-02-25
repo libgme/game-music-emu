@@ -1,4 +1,5 @@
-#include "blargg_common.h"
+#include "gme/gme.h"
+#include <stdint.h>
 
 class Archive_Reader {
 protected:
@@ -9,8 +10,8 @@ public:
 	int count() const { return count_; }
 	long size() const { return size_; }
 public:
-	virtual blargg_err_t open( const char* path, bool skip = false ) = 0;
-	virtual blargg_err_t read( void* ) = 0;
+	virtual gme_err_t open( const char* path, bool skip = false ) = 0;
+	virtual gme_err_t read( void* ) = 0;
 
 	virtual const char* entry_name() const = 0;
 	virtual long entry_size() const = 0;
@@ -49,10 +50,10 @@ class Rar_Reader : public Archive_Reader {
 	RARHeaderData head;
 	void* rar = nullptr;
 	void* bp = nullptr;
-	blargg_err_t restart( RAROpenArchiveData* );
+	gme_err_t restart( RAROpenArchiveData* );
 public:
-	blargg_err_t open( const char* path, bool skip );
-	blargg_err_t read( void* );
+	gme_err_t open( const char* path, bool skip );
+	gme_err_t read( void* );
 
 	const char* entry_name() const { return head.FileName; }
 	long entry_size() const { return head.UnpSize; }

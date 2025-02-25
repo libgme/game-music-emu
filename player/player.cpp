@@ -57,7 +57,7 @@ static void init( void )
 	atexit( SDL_Quit );
 
 	// Init scope
-	scope = new Audio_Scope;
+	scope = GME_NEW Audio_Scope;
 	if ( !scope )
 		handle_error( "Out of memory" );
 	std::string err_msg = scope->init( scope_width, scope_height );
@@ -66,7 +66,7 @@ static void init( void )
 	memset( scope_buf, 0, sizeof scope_buf );
 
 	// Create player
-	player = new Music_Player;
+	player = GME_NEW Music_Player;
 	if ( !player )
 		handle_error( "Out of memory" );
 	handle_error( player->init() );

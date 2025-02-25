@@ -4,13 +4,12 @@
 #define AUDIO_SCOPE_H
 
 #include "SDL.h"
+#include "gme/gme.h"
 
 #include <string>
 
 class Audio_Scope {
 public:
-	typedef const char* error_t;
-
 	// Initialize scope window of specified size. Height must be 16384 or less.
 	// If result is not an empty string, it is an error message
 	std::string init( int width, int height );
@@ -18,7 +17,7 @@ public:
 	// Draw at most 'count' samples from 'in', skipping 'step' samples after
 	// each sample drawn. Step should be 2 but wouldn't be hard to adapt
 	// to be 1.
-	error_t draw( const short* in, long count, int step = 2 );
+	gme_err_t draw( const short* in, long count, int step = 2 );
 
 	Audio_Scope();
 	~Audio_Scope();
