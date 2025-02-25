@@ -4,9 +4,6 @@
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
-#include <stddef.h>
-#include <assert.h>
-#include <stdlib.h>
 #include "gme/gme.h"
 
 class Music_Player {
@@ -88,33 +85,5 @@ private:
 // Use to force disable exceptions for a specific allocation no matter what class
 #include <new>
 #define GME_NEW new (std::nothrow)
-
-// gme_vector - very lightweight vector of POD types (no constructor/destructor)
-template<class T>
-class gme_vector {
-	T* begin_;
-	size_t size_;
-public:
-	gme_vector() : begin_( 0 ), size_( 0 ) { }
-	~gme_vector() { free( begin_ ); }
-	size_t size() const { return size_; }
-	T* begin() const { return begin_; }
-	T* end() const { return begin_ + size_; }
-	gme_err_t resize( size_t n )
-	{
-		void* p = realloc( begin_, n * sizeof (T) );
-		if ( !p && n )
-			return "Out of memory";
-		begin_ = (T*) p;
-		size_ = n;
-		return 0;
-	}
-	void clear() { free( begin_ ); begin_ = nullptr; size_ = 0; }
-	T& operator [] ( size_t n ) const
-	{
-		assert( n <= size_ ); // <= to allow past-the-end value
-		return begin_ [n];
-	}
-};
 
 #endif
