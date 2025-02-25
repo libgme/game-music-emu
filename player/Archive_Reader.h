@@ -49,10 +49,10 @@ struct arc_entry_t {
 class Archive_Reader {
 protected:
 	int count_ = 0;
-	long size_ = 0;
+	size_t size_ = 0;
 public:
 	int count() const { return count_; }
-	long size() const { return size_; }
+	size_t size() const { return size_; }
 	virtual gme_err_t open( const char* path ) = 0;
 	virtual gme_err_t next( void* buf_ptr, arc_entry_t* entry ) = 0;
 	virtual ~Archive_Reader() { }

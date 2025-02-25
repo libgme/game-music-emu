@@ -37,7 +37,7 @@ static const int fill_rate = 80;
 
 // Simple sound driver using SDL
 typedef void (*sound_callback_t)( void* data, short* out, int count );
-static const char* sound_init( long sample_rate, int buf_size, sound_callback_t, void* data );
+static const char* sound_init( uint32_t sample_rate, int buf_size, sound_callback_t, void* data );
 static void sound_start();
 static void sound_stop();
 static void sound_cleanup();
@@ -65,7 +65,7 @@ Music_Player::Music_Player()
 	track_info_ = nullptr;
 }
 
-gme_err_t Music_Player::init( long rate )
+gme_err_t Music_Player::init( uint32_t rate )
 {
 	sample_rate = rate;
 
@@ -229,7 +229,7 @@ gme_err_t Music_Player::start_track( int track )
 						track_info_->loop_length * 2;
 
 		if ( track_info_->length <= 0 )
-			track_info_->length = (long) (2.5 * 60 * 1000);
+			track_info_->length = (uint32_t) (2.5 * 60 * 1000);
 		gme_set_fade_msecs( emu_, track_info_->length, 8000 );
 
 		paused = false;
@@ -348,7 +348,7 @@ static void sdl_callback( void* /* data */, Uint8* out, int count )
 		sound_callback( sound_callback_data, (short*) out, count / 2 );
 }
 
-static const char* sound_init( long sample_rate, int buf_size,
+static const char* sound_init( uint32_t sample_rate, int buf_size,
 		sound_callback_t cb, void* data )
 {
 	sound_callback = cb;
