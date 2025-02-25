@@ -42,18 +42,22 @@ static void sound_start();
 static void sound_stop();
 static void sound_cleanup();
 
+// GME_4CHAR('a','b','c','d') = 'abcd' (four character integer constant)
+#define GME_4CHAR( a, b, c, d ) \
+	((a&0xFF)*0x1000000L + (b&0xFF)*0x10000L + (c&0xFF)*0x100L + (d&0xFF))
+
 struct arc_type_t {
 	long header;
 	Archive_Reader* (*new_arc)();
 };
 
 #ifdef RARDLL
-static Archive_Reader* new_rar_reader() { return BLARGG_NEW Rar_Reader; }
+static Archive_Reader* new_rar_reader() { return GME_NEW Rar_Reader; }
 #endif
 
 static const arc_type_t arcs[] = {
 #ifdef RARDLL
-	{ BLARGG_4CHAR('R','a','r','!'), &new_rar_reader },
+	{ GME_4CHAR('R','a','r','!'), &new_rar_reader },
 #endif
 	{ 0, nullptr }
 };
@@ -102,7 +106,7 @@ const arc_type_t* identify_archive( const char* path )
 		return nullptr;
 	fread( h, 1, sizeof h, in );
 	fclose( in );
-	header = BLARGG_4CHAR( h[0], h[1], h[2], h[3] );
+	header = GME_4CHAR( h[0], h[1], h[2], h[3] );
 	for ( const arc_type_t* arc = arcs; arc->header; arc++ )
 		if ( arc->header == header )
 			return arc;
@@ -154,8 +158,8 @@ gme_err_t Music_Player::load_file(const char* path , bool by_mem)
 			if ( !ptr )
 				return "Failed to create archive reader";
 			Archive_Reader& in = *ptr;
-			blargg_vector<long> sizes;
-			blargg_vector<uint8_t> buf;
+			gme_vector<long> sizes;
+			gme_vector<uint8_t> buf;
 			RETURN_ERR( in.open( path ) );
 			RETURN_ERR( sizes.resize( in.count() ) );
 			RETURN_ERR( buf.resize( in.size() ) );

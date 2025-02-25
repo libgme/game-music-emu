@@ -14,7 +14,7 @@ static int CALLBACK call_rar( UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2 )
 	return 0;
 }
 
-blargg_err_t Rar_Reader::restart( RAROpenArchiveData* data )
+gme_err_t Rar_Reader::restart( RAROpenArchiveData* data )
 {
 	if ( rar )
 		close();
@@ -25,9 +25,9 @@ blargg_err_t Rar_Reader::restart( RAROpenArchiveData* data )
 	return nullptr;
 }
 
-blargg_err_t Rar_Reader::open( const char* path, bool skip )
+gme_err_t Rar_Reader::open( const char* path, bool skip )
 {
-	blargg_err_t err;
+	gme_err_t err;
 	RAROpenArchiveData data;
 	memset( &data, 0, sizeof data );
 	data.ArcName = (char *)path;
@@ -47,7 +47,7 @@ blargg_err_t Rar_Reader::open( const char* path, bool skip )
 	return restart( &data );
 }
 
-blargg_err_t Rar_Reader::read( void* p )
+gme_err_t Rar_Reader::read( void* p )
 {
 	bp = p;
 	if ( RARProcessFile( rar, -1, nullptr, nullptr ) != ERAR_SUCCESS )
