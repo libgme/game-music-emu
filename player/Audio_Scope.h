@@ -3,9 +3,9 @@
 #ifndef AUDIO_SCOPE_H
 #define AUDIO_SCOPE_H
 
-#include "SDL.h"
 #include "gme/gme.h"
-
+#include "SDL_render.h"
+#include "SDL_video.h"
 #include <string>
 
 class Audio_Scope {
@@ -17,7 +17,7 @@ public:
 	// Draw at most 'count' samples from 'in', skipping 'step' samples after
 	// each sample drawn. Step should be 2 but wouldn't be hard to adapt
 	// to be 1.
-	gme_err_t draw( const short* in, long count, int step = 2 );
+	gme_err_t draw( const short* in, uint32_t count, int step = 2 );
 
 	Audio_Scope();
 	~Audio_Scope();
@@ -29,12 +29,12 @@ private:
 	SDL_Window* window;
 	SDL_Renderer* window_renderer;
 	SDL_Point* scope_lines = nullptr; // lines to be drawn each frame
-	int buf_size;
+	unsigned int buf_size;
 	int scope_height;
 	int sample_shift;
 	int v_offset;
 
-	void render( short const* in, long count, int step );
+	void render( short const* in, uint32_t count, int step );
 };
 
 #endif
