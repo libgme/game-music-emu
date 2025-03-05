@@ -19,7 +19,6 @@ void wave_close( void );
 #endif
 
 #ifdef __cplusplus
-#include <cstddef>
 #include <cstdio>
 
 /* C++ interface */

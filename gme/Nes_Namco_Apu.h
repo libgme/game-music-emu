@@ -6,6 +6,7 @@
 
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
 
 struct namco_state_t;
 

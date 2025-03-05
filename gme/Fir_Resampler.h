@@ -6,6 +6,7 @@
 
 #include "blargg_common.h"
 #include <cstring>
+#include <cstdint>
 
 class Fir_Resampler_ {
 public:

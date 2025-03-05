@@ -4,7 +4,6 @@
 
 #include <cstring>
 #include <cstdlib>
-#include <cstdio>
 #include <cmath>
 
 /* Copyright (C) 2004-2006 Shay Green. This module is free software; you

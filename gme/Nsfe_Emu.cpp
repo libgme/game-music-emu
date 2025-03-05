@@ -4,7 +4,6 @@
 
 #include "blargg_endian.h"
 #include <cstring>
-#include <cctype>
 #include <algorithm>
 
 /* Copyright (C) 2005-2006 Shay Green. This module is free software; you

@@ -2,8 +2,6 @@
 
 #include "Blip_Buffer.h"
 
-#include <cassert>
-#include <climits>
 #include <cstring>
 #include <cstdlib>
 #include <cmath>

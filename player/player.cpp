@@ -23,6 +23,7 @@ static int const scope_height = 512;
 #include "Music_Player.h"
 #include "Audio_Scope.h"
 
+#include <new>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
@@ -57,7 +58,7 @@ static void init( void )
 	atexit( SDL_Quit );
 
 	// Init scope
-	scope = GME_NEW Audio_Scope;
+	scope = new (std::nothrow) Audio_Scope;
 	if ( !scope )
 		handle_error( "Out of memory" );
 	std::string err_msg = scope->init( scope_width, scope_height );
@@ -66,7 +67,7 @@ static void init( void )
 	memset( scope_buf, 0, sizeof scope_buf );
 
 	// Create player
-	player = GME_NEW Music_Player;
+	player = new (std::nothrow) Music_Player;
 	if ( !player )
 		handle_error( "Out of memory" );
 	handle_error( player->init() );

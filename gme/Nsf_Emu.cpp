@@ -4,7 +4,6 @@
 
 #include "blargg_endian.h"
 #include <cstring>
-#include <cstdio>
 #include <algorithm>
 
 #if !NSF_EMU_APU_ONLY

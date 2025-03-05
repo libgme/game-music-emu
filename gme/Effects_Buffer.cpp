@@ -3,6 +3,7 @@
 #include "Effects_Buffer.h"
 
 #include <cstring>
+#include <cstdint>
 #include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you

@@ -4,7 +4,7 @@
 #ifndef AY_CPU_H
 #define AY_CPU_H
 
-#include "blargg_endian.h"
+#include <cstdint>
 
 typedef int32_t cpu_time_t;
 

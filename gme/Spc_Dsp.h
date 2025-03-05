@@ -5,6 +5,7 @@
 #define SPC_DSP_H
 
 #include "blargg_common.h"
+#include <cstdint>
 
 struct Spc_Dsp {
 public:

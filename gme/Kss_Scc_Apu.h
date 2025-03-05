@@ -4,9 +4,9 @@
 #ifndef KSS_SCC_APU_H
 #define KSS_SCC_APU_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer.h"
 #include <cstring>
+#include <cstddef>
 
 class Scc_Apu {
 public:

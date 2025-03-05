@@ -5,8 +5,6 @@
 #define SNES_SPC_H
 
 #include "Spc_Dsp.h"
-#include "blargg_endian.h"
-
 #include <cstdint>
 
 struct Snes_Spc {

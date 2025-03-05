@@ -1,6 +1,7 @@
 // Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 
 #include "Kss_Scc_Apu.h"
+#include <cstdint>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -12,8 +13,6 @@ FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
 details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
-
-#include "blargg_source.h"
 
 // Tones above this frequency are treated as disabled tone at half volume.
 // Power of two is more efficient (avoids division).

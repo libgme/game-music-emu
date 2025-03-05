@@ -3,7 +3,7 @@
 #include "Data_Reader.h"
 
 #include "blargg_endian.h"
-#include <cassert>
+#include <climits>
 #include <cstring>
 #include <cstdio>
 #include <algorithm>
@@ -24,7 +24,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
 #include <cstdlib>
-#include <cerrno>
 static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 #endif /* HAVE_ZLIB_H */
 

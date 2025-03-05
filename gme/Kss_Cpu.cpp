@@ -8,6 +8,7 @@ Last validated with zexall 2006.11.14 2:19 PM
 
 #include "Kss_Cpu.h"
 
+#include "blargg_common.h"
 #include "blargg_endian.h"
 #include <cstring>
 

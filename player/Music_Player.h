@@ -85,10 +85,6 @@ private:
 	static void fill_buffer( void*, sample_t*, int );
 };
 
-// Use to force disable exceptions for a specific allocation no matter what class
-#include <new>
-#define GME_NEW new (std::nothrow)
-
 // gme_vector - very lightweight vector of POD types (no constructor/destructor)
 template<class T>
 class gme_vector {

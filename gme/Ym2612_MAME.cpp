@@ -140,7 +140,6 @@
 
 #include <cstdlib>
 #include <cstring>	/* for memset */
-#include <cstddef>	/* for NULL */
 #include <cmath>
 #include <cstdint>
 
