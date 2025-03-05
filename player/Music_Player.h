@@ -4,9 +4,9 @@
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
-#include <stddef.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cassert>
+#include <cstdlib>
 #include "gme/gme.h"
 
 class Music_Player {

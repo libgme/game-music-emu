@@ -2,7 +2,7 @@
 
 #include "Effects_Buffer.h"
 
-#include <string.h>
+#include <cstring>
 #include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you

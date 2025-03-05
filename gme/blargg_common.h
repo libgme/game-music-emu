@@ -6,10 +6,10 @@
 
 #include "blargg_config.h"
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <limits.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cassert>
+#include <climits>
 
 // BLARGG_RESTRICT: equivalent to restrict, where supported
 #if (defined(__GNUC__) && (__GNUC__ >= 3)) || \
@@ -91,6 +91,6 @@ public:
 	((a&0xFF)*0x100L + (b&0xFF))
 
 // int8_t etc.
-#include <stdint.h>
+#include <cstdint>
 
 #endif

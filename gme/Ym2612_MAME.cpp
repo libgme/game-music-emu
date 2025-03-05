@@ -138,11 +138,11 @@
 /*    YM2610B : PSG:3ch FM:6ch ADPCM(18.5KHz):6ch DeltaT ADPCM:1ch      */
 /************************************************************************/
 
-#include <stdlib.h>
-#include <string.h>	/* for memset */
-#include <stddef.h>	/* for NULL */
-#include <math.h>
-#include <stdint.h>
+#include <cstdlib>
+#include <cstring>	/* for memset */
+#include <cstddef>	/* for NULL */
+#include <cmath>
+#include <cstdint>
 
 namespace Ym2612_MameImpl
 {
@@ -954,7 +954,7 @@ typedef struct
 static UINT8 IsVGMInit = 0;
 #endif
 static UINT8 PseudoSt = 0x00;
-/*#include <stdio.h>
+/*#include <cstdio>
 static FILE* hFile;
 static UINT32 FileSample;*/
 

@@ -6,7 +6,7 @@
 
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
-#include <string.h>
+#include <cstring>
 
 class Scc_Apu {
 public:

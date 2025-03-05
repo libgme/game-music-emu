@@ -9,7 +9,7 @@ Last validated with zexall 2006.11.21 5:26 PM
 #include "Ay_Cpu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
 
 //#include "z80_cpu_log.h"
 

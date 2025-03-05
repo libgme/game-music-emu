@@ -2,7 +2,7 @@
 
 #ifdef RARDLL
 
-#include <string.h>
+#include <cstring>
 
 static int CALLBACK call_rar( UINT msg, LPARAM UserData, LPARAM P1, LPARAM P2 )
 {

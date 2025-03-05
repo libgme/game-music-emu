@@ -7,7 +7,7 @@
 #include "Spc_Dsp.h"
 #include "blargg_endian.h"
 
-#include <stdint.h>
+#include <cstdint>
 
 struct Snes_Spc {
 public:
@@ -258,7 +258,7 @@ private:
 	void save_regs( uint8_t out [reg_count] );
 };
 
-#include <assert.h>
+#include <cassert>
 
 inline int Snes_Spc::sample_count() const { return (m.extra_clocks >> 5) * 2; }
 

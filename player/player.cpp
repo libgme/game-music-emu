@@ -23,9 +23,9 @@ static int const scope_height = 512;
 #include "Music_Player.h"
 #include "Audio_Scope.h"
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
 #include "SDL.h"
 
 static const char *usage = R"(

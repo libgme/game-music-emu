@@ -2,8 +2,8 @@
 
 #include "Music_Player.h"
 
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 #include "SDL_rwops.h"
 #include "Archive_Reader.h"
 

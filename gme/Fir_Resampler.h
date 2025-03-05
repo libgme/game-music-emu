@@ -5,7 +5,7 @@
 #define FIR_RESAMPLER_H
 
 #include "blargg_common.h"
-#include <string.h>
+#include <cstring>
 
 class Fir_Resampler_ {
 public:

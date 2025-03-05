@@ -3,7 +3,7 @@
 #include "Classic_Emu.h"
 
 #include "Multi_Buffer.h"
-#include <string.h>
+#include <cstring>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser

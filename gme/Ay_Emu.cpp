@@ -3,7 +3,7 @@
 #include "Ay_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
 
 #include <algorithm> // min, max
 

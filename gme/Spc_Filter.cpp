@@ -2,7 +2,7 @@
 
 #include "Spc_Filter.h"
 
-#include <string.h>
+#include <cstring>
 
 /* Copyright (C) 2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser

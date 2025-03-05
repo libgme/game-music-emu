@@ -2,7 +2,7 @@
 
 #include "Gb_Cpu.h"
 
-#include <string.h>
+#include <cstring>
 
 //#include "gb_cpu_log.h"
 

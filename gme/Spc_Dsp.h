@@ -156,7 +156,7 @@ private:
 	void update_voice_vol( int addr );
 };
 
-#include <assert.h>
+#include <cassert>
 
 inline int Spc_Dsp::sample_count() const { return m.out - m.out_begin; }
 
