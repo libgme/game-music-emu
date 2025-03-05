@@ -28,7 +28,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 #endif /* HAVE_ZLIB_H */
 
-using std::min;
 using std::max;
 
 const char Data_Reader::eof_error [] = "Unexpected end of file";

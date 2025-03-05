@@ -39,7 +39,6 @@ static int const fme7_flag  = 0x20;
 static long const clock_divisor = 12;
 
 using std::min;
-using std::max;
 
 Nsf_Emu::equalizer_t const Nsf_Emu::nes_eq     =
 	Music_Emu::make_equalizer( -1.0, 80 );

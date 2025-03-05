@@ -21,7 +21,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 static unsigned const vol_reg    = 0xFF24;
 static unsigned const status_reg = 0xFF26;
 
-using std::min;
 using std::max;
 
 Gb_Apu::Gb_Apu()

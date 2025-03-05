@@ -25,7 +25,6 @@ static double const rolloff = 0.990;
 static double const oversample_factor = 1.0;
 
 using std::min;
-using std::max;
 
 Vgm_Emu::Vgm_Emu()
 {

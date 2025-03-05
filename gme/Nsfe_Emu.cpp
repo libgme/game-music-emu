@@ -21,7 +21,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #include "blargg_source.h"
 
 using std::min;
-using std::max;
 
 Nsfe_Info::Nsfe_Info() { playlist_disabled = false; }
 

@@ -27,7 +27,6 @@ static unsigned const ram_start = 0x4000;
 static int const osc_count = Ay_Apu::osc_count + 1;
 
 using std::min;
-using std::max;
 
 Ay_Emu::Ay_Emu()
 {

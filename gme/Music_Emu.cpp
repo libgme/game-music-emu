@@ -25,7 +25,6 @@ static long const fade_block_size = 512;
 static int const fade_shift = 8; // fade ends with gain at 1.0 / (1 << fade_shift)
 
 using std::min;
-using std::max;
 
 Music_Emu::equalizer_t const Music_Emu::tv_eq =
 	Music_Emu::make_equalizer( -8.0, 180 );

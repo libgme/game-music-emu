@@ -27,7 +27,6 @@ static int const unmapped    = 0xFF;
 static long const period_60hz = 262 * 455L; // scanlines * clocks per scanline
 
 using std::min;
-using std::max;
 
 Hes_Emu::Hes_Emu()
 {
