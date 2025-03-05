@@ -2,7 +2,7 @@
 
 #include "Gb_Cpu.h"
 
-#include <string.h>
+#include <cstring>
 
 //#include "gb_cpu_log.h"
 
@@ -20,6 +20,7 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 #include "gb_cpu_io.h"
 
 #include "blargg_source.h"
+#include "blargg_endian.h"
 
 // Common instructions:
 //

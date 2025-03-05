@@ -2,9 +2,9 @@
 
 #include "Wave_Writer.h"
 
-#include <assert.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
 
 /* Copyright (C) 2003-2006 by Shay Green. Permission is hereby granted, free
 of charge, to any person obtaining a copy of this software and associated

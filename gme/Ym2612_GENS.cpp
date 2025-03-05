@@ -6,12 +6,12 @@
 
 #include "Ym2612_GENS.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
-#include <stdio.h>
-#include <math.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <climits>
+#include <cstdio>
+#include <cmath>
 
 /* Copyright (C) 2002 Stéphane Dallongeville (gens AT consolemul.com) */
 /* Copyright (C) 2004-2006 Shay Green. This module is free software; you
