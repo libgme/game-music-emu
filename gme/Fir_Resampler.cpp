@@ -32,7 +32,7 @@ static void gen_sinc( double rolloff, int width, double offset, double spacing, 
 	double const pow_a_n = pow( rolloff, maxh );
 	scale /= maxh * 2;
 
-	double angle = (count / 2 - 1 + offset) * -step;
+	double angle = ((int)(count / 2) - 1 + offset) * -step;
 	while ( count-- )
 	{
 		*out++ = 0;

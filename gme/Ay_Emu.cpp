@@ -158,7 +158,7 @@ void Ay_Emu::set_voice( int i, Blip_Buffer* center, Blip_Buffer*, Blip_Buffer* )
 
 void Ay_Emu::set_tempo_( double t )
 {
-	play_period = blip_time_t (clock_rate() / 50 / t);
+	play_period = blip_time_t (clock_rate() / (50 * t));
 }
 
 blargg_err_t Ay_Emu::start_track_( int track )

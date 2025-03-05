@@ -195,7 +195,7 @@ void Gym_Emu::set_tempo_( double t )
 
 	if ( blip_buf.sample_rate() )
 	{
-		clocks_per_frame = long (clock_rate / 60 / tempo());
+		clocks_per_frame = long (clock_rate / (60 * tempo()));
 		Dual_Resampler::resize( long (sample_rate() / (60.0 * tempo())) );
 	}
 }
