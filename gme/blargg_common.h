@@ -4,12 +4,9 @@
 #ifndef BLARGG_COMMON_H
 #define BLARGG_COMMON_H
 
-#include "blargg_config.h"
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <limits.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cassert>
 
 // BLARGG_RESTRICT: equivalent to restrict, where supported
 #if (defined(__GNUC__) && (__GNUC__ >= 3)) || \
@@ -89,8 +86,5 @@ public:
 
 #define BLARGG_2CHAR( a, b ) \
 	((a&0xFF)*0x100L + (b&0xFF))
-
-// int8_t etc.
-#include <stdint.h>
 
 #endif

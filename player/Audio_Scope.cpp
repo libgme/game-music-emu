@@ -2,8 +2,8 @@
 
 #include "Audio_Scope.h"
 
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <sstream>
 
 /* Copyright (C) 2005-2006 by Shay Green. Permission is hereby granted, free of

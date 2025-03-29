@@ -2,11 +2,9 @@
 
 #include "Blip_Buffer.h"
 
-#include <assert.h>
-#include <limits.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser

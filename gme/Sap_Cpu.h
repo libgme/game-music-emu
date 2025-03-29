@@ -4,7 +4,8 @@
 #ifndef SAP_CPU_H
 #define SAP_CPU_H
 
-#include "blargg_common.h"
+#include <cstdint>
+#include <climits>
 
 typedef int32_t sap_time_t; // clock cycle count
 typedef unsigned sap_addr_t; // 16-bit address
