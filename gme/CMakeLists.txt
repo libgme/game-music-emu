@@ -423,7 +423,7 @@ if(GME_BUILD_STATIC)
         set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
     endif()
 
-    if(WIN32 AND GME_BUILD_SHARED)
+    if(MSVC AND GME_BUILD_SHARED)
         set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme-static)
     else()
         set_target_properties(gme_static PROPERTIES OUTPUT_NAME gme)
