@@ -200,7 +200,7 @@ static blargg_err_t parse_info( byte const* in, long size, Sap_Emu::info_t* out 
 		return "ROM data missing";
 	out->rom_data = in + 2;
 
-	return 0;
+	return nullptr;
 }
 
 static void copy_sap_fields( Sap_Emu::info_t const& in, track_info_t* out )
@@ -213,7 +213,7 @@ static void copy_sap_fields( Sap_Emu::info_t const& in, track_info_t* out )
 blargg_err_t Sap_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_sap_fields( info, out );
-	return 0;
+	return nullptr;
 }
 
 struct Sap_File : Gme_Info_
@@ -226,13 +226,13 @@ struct Sap_File : Gme_Info_
 	{
 		RETURN_ERR( parse_info( begin, size, &info ) );
 		set_track_count( info.track_count );
-		return 0;
+		return nullptr;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_sap_fields( info, out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -248,7 +248,7 @@ blargg_err_t Sap_Emu::load_mem_( byte const* in, long size )
 {
 	file_end = in + size;
 
-	info.warning    = 0;
+	info.warning    = nullptr;
 	info.type       = 'B';
 	info.stereo     = false;
 	info.init_addr  = -1;
@@ -368,7 +368,7 @@ blargg_err_t Sap_Emu::start_track_( int track )
 
 	next_play = play_period();
 
-	return 0;
+	return nullptr;
 }
 
 // Emulation
@@ -443,5 +443,5 @@ blargg_err_t Sap_Emu::run_clocks( blip_time_t& duration, int )
 	if ( info.stereo )
 		apu2.end_frame( duration );
 
-	return 0;
+	return nullptr;
 }

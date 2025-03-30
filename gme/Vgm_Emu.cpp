@@ -111,12 +111,12 @@ byte const* Vgm_Emu::gd3_data( int* size ) const
 
 	long gd3_offset = get_le32( header().gd3_offset ) - 0x2C;
 	if ( gd3_offset < 0 )
-		return 0;
+		return nullptr;
 
 	byte const* gd3 = data + header_size + gd3_offset;
 	long gd3_size = check_gd3_header( gd3, data_end - gd3 );
 	if ( !gd3_size )
-		return 0;
+		return nullptr;
 
 	if ( size )
 		*size = gd3_size + gd3_header_size;
@@ -153,14 +153,14 @@ blargg_err_t Vgm_Emu::track_info_( track_info_t* out, int ) const
 	if ( gd3 )
 		parse_gd3( gd3 + gd3_header_size, gd3 + size, out );
 
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_vgm_header( Vgm_Emu::header_t const& h )
 {
 	if ( memcmp( h.tag, "Vgm ", 4 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Vgm_File : Gme_Info_
@@ -193,7 +193,7 @@ struct Vgm_File : Gme_Info_
 				RETURN_ERR( in.read( gd3.begin(), gd3.size() ) );
 			}
 		}
-		return 0;
+		return nullptr;
 	}
 
 	blargg_err_t track_info_( track_info_t* out, int ) const
@@ -201,7 +201,7 @@ struct Vgm_File : Gme_Info_
 		get_vgm_length( h, out );
 		if ( gd3.size() )
 			parse_gd3( gd3.begin(), gd3.end(), out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -300,9 +300,9 @@ void Vgm_Emu::mute_voices_( int mask )
 	dac_synth.output( &blip_buf );
 	if ( uses_fm )
 	{
-		psg[0].output( (mask & 0x80) ? 0 : &blip_buf );
+		psg[0].output( (mask & 0x80) ? nullptr : &blip_buf );
 		if ( psg_dual )
-			psg[1].output( (mask & 0x80) ? 0 : &blip_buf );
+			psg[1].output( (mask & 0x80) ? nullptr : &blip_buf );
 		if ( ym2612[0].enabled() )
 		{
 			dac_synth.volume( (mask & 0x40) ? 0.0 : 0.1115 / 256 * fm_gain * gain() );
@@ -408,7 +408,7 @@ blargg_err_t Vgm_Emu::setup_fm()
 		int result = ym2413[0].set_rate( fm_rate, ym2413_rate );
 		if ( result == 2 )
 			return "YM2413 FM sound isn't supported";
-		CHECK_ALLOC( !result );
+		RETURN_ERR( result ? "Out of memory" : nullptr );
 		ym2413[0].enable( true );
 		if ( ym2413_dual )
 		{
@@ -416,7 +416,7 @@ blargg_err_t Vgm_Emu::setup_fm()
 			int result = ym2413[1].set_rate( fm_rate, ym2413_rate );
 			if ( result == 2 )
 				return "YM2413 FM sound isn't supported";
-			CHECK_ALLOC( !result );
+			RETURN_ERR( result ? "Out of memory" : nullptr );
 		}
 		set_voice_count( 8 );
 	}
@@ -438,7 +438,7 @@ blargg_err_t Vgm_Emu::setup_fm()
 		psg[1].volume( gain() );
 	}
 
-	return 0;
+	return nullptr;
 }
 
 // Emulation
@@ -482,7 +482,7 @@ blargg_err_t Vgm_Emu::start_track_( int track )
 		blip_buf.clear();
 		Dual_Resampler::clear();
 	}
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Vgm_Emu::run_clocks( blip_time_t& time_io, int msec )
@@ -491,7 +491,7 @@ blargg_err_t Vgm_Emu::run_clocks( blip_time_t& time_io, int msec )
 	psg[0].end_frame( time_io );
 	if ( psg_dual )
 		psg[1].end_frame( time_io );
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Vgm_Emu::play_( long count, sample_t* out )
@@ -500,5 +500,5 @@ blargg_err_t Vgm_Emu::play_( long count, sample_t* out )
 		return Classic_Emu::play_( count, out );
 
 	Dual_Resampler::dual_play( count, out, blip_buf );
-	return 0;
+	return nullptr;
 }
