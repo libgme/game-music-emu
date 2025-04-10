@@ -468,5 +468,5 @@ unset(TMP_PC_LIBS)
 
 configure_file(libgme.pc.in libgme.pc @ONLY)
 
-install(FILES ${EXPORTED_HEADERS} DESTINATION include/gme)
+install(FILES ${EXPORTED_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/gme)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libgme.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
