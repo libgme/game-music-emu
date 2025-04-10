@@ -1,5 +1,5 @@
 #include "gme/gme.h"
-#include <stdint.h>
+#include <cstdint>
 
 class Archive_Reader {
 protected:

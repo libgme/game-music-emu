@@ -6,6 +6,7 @@
 
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
 
 struct vrc6_apu_state_t;
 
