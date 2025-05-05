@@ -64,14 +64,14 @@ static void copy_gbs_fields( Gbs_Emu::header_t const& h, track_info_t* out )
 blargg_err_t Gbs_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_gbs_fields( header_, out );
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_gbs_header( void const* header )
 {
 	if ( memcmp( header, "GBS", 3 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Gbs_File : Gme_Info_
@@ -93,7 +93,7 @@ struct Gbs_File : Gme_Info_
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_gbs_fields( h, out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -237,7 +237,7 @@ blargg_err_t Gbs_Emu::start_track_( int track )
 	cpu_time  = 0;
 	cpu_jsr( get_le16( header_.init_addr ) );
 
-	return 0;
+	return nullptr;
 }
 
 blargg_err_t Gbs_Emu::run_clocks( blip_time_t& duration, int )
@@ -289,5 +289,5 @@ blargg_err_t Gbs_Emu::run_clocks( blip_time_t& duration, int )
 		next_play = 0;
 	apu.end_frame( cpu_time );
 
-	return 0;
+	return nullptr;
 }
