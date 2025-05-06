@@ -9,6 +9,10 @@
 #include "Data_Reader.h"
 #include "M3u_Playlist.h"
 
+#ifdef SJIS_CONV
+  #include "sjis.h"
+#endif
+
 // Error returned if file is wrong type
 //extern const char gme_wrong_file_type []; // declared in gme.h
 
@@ -172,8 +176,15 @@ public:
 
 Music_Emu* gme_new_( Music_Emu*, long sample_rate );
 
-#define GME_COPY_FIELD( in, out, name ) \
-	{ Gme_File::copy_field_( out->name, in.name, sizeof in.name ); }
+#ifdef SJIS_CONV
+  #define GME_COPY_FIELD( in, out, name ) \
+    do { Gme_File::copy_field_( out->name, in.name, sizeof in.name ); \
+         convert_sjis((unsigned char *)out->name); \
+    } while (0);
+#else
+  #define GME_COPY_FIELD( in, out, name ) \
+    { Gme_File::copy_field_( out->name, in.name, sizeof in.name ); }
+#endif
 
 #ifndef GME_FILE_READER
 	#define GME_FILE_READER Std_File_Reader
