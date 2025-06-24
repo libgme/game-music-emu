@@ -423,7 +423,7 @@ blargg_err_t Music_Emu::play( long out_count, sample_t* out )
 			memset( out, 0, pos * sizeof *out );
 			silence_count -= pos;
 
-			if ( emu_time - silence_time > silence_max * out_channels() * sample_rate() )
+			if ( !ignore_silence_ && emu_time - silence_time > silence_max * out_channels() * sample_rate() )
 			{
 				track_ended_  = emu_track_ended_ = true;
 				silence_count = 0;
