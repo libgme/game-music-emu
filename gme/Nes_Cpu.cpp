@@ -963,6 +963,42 @@ imm##op:
 
 // Unofficial
 
+	case 0xB3: { // LAX (ind),Y
+		uint16_t addr = READ_LOW( data ) + y;
+		HANDLE_PAGE_CROSSING( addr );
+		addr += 0x100 * READ_LOW( (uint8_t) (data + 1) );
+		pc++;
+		a = x = nz = READ_PROG( addr );
+		if ( (addr ^ 0x8000) <= 0x9FFF )
+			goto loop;
+		FLUSH_TIME();
+		a = x = nz = READ( addr );
+		CACHE_TIME();
+		goto loop;
+	}
+
+	case 0x8F: { // SAX abs
+		uint16_t addr = GET_ADDR();
+		uint8_t temp = a & x;
+		pc += 2;
+		if ( addr <= 0x7FF )
+		{
+			WRITE_LOW( addr, temp );
+			goto loop;
+		}
+		FLUSH_TIME();
+		WRITE( addr, temp );
+		CACHE_TIME();
+		goto loop;
+	}
+
+	case 0xCB:  // SBX #imm
+		x = nz = (a & x) - data;
+		pc++;
+		c = ~nz;
+		nz &= 0xFF;
+		goto loop;
+
 	// SKW - Skip word
 	case 0x1C: case 0x3C: case 0x5C: case 0x7C: case 0xDC: case 0xFC:
 		HANDLE_PAGE_CROSSING( data + x );/*FALLTHRU*/
@@ -1003,8 +1039,6 @@ imm##op:
 
 		if ( (opcode >> 4) == 0x0B )
 		{
-			if ( opcode == 0xB3 )
-				data = READ_LOW( data );
 			if ( opcode != 0xB7 )
 				HANDLE_PAGE_CROSSING( data + y );
 		}
