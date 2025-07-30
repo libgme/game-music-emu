@@ -578,6 +578,14 @@ blargg_err_t Nsf_Emu::start_track_( int track )
 	for ( int i = 0; i < bank_count; ++i )
 		cpu_write( bank_select_addr + i, initial_banks [i] );
 
+	// For FDS the initial load values at $076 and $077
+	// specify the banks used for $6000-7FFF as well as $E000-FFFF
+	if (fds)
+	{
+		cpu_write( bank_select_addr - 2, initial_banks [bank_count - 2] );
+		cpu_write( bank_select_addr - 1, initial_banks [bank_count - 1] );
+	}
+
 	apu.reset( pal_only, (header_.speed_flags & 0x20) ? 0x3F : 0 );
 	apu.write_register( 0, 0x4015, 0x0F );
 	apu.write_register( 0, 0x4017, (header_.speed_flags & 0x10) ? 0x80 : 0 );
