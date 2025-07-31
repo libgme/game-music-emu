@@ -367,6 +367,9 @@ endmacro()
 # Building the Shared version of GME
 if(GME_BUILD_SHARED)
     add_library(gme_shared SHARED ${libgme_SRCS})
+    if ("cxx_std_11" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+        target_compile_features(gme_shared PRIVATE cxx_std_11)
+    endif()
     set_target_properties(gme_shared PROPERTIES OUTPUT_NAME gme)
 
     if(WIN32)
@@ -413,6 +416,9 @@ endif()
 if(GME_BUILD_STATIC)
     # Static build.
     add_library(gme_static STATIC ${libgme_SRCS})
+    if ("cxx_std_11" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+        target_compile_features(gme_static PRIVATE cxx_std_11)
+    endif()
 
     # Static builds need to find static zlib (and static forms of other needed
     # libraries.  Ensure CMake looks only for static libs if we're doing a static

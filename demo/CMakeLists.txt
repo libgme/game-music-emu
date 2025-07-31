@@ -5,9 +5,10 @@
 include_directories(${CMAKE_SOURCE_DIR}/gme ${CMAKE_SOURCE_DIR})
 link_directories(${CMAKE_BINARY_DIR}/gme)
 
-set (CMAKE_C_STANDARD 99)
-
 add_executable(demo Wave_Writer.cpp basics.c)
+if ("c_std_99" IN_LIST CMAKE_C_COMPILE_FEATURES)
+    target_compile_features(demo PRIVATE c_std_99)
+endif()
 
 # Add command to copy build file over.
 add_custom_command(TARGET demo
@@ -21,6 +22,9 @@ target_link_libraries(demo gme::gme)
 
 
 add_executable(demo_mem Wave_Writer.cpp basics_mem.c)
+if ("c_std_99" IN_LIST CMAKE_C_COMPILE_FEATURES)
+    target_compile_features(demo_mem PRIVATE c_std_99)
+endif()
 
 add_custom_command(TARGET demo_mem
     POST_BUILD
@@ -32,12 +36,14 @@ target_link_libraries(demo_mem gme::gme)
 
 
 add_executable(demo_multi Wave_Writer.cpp basics_multi.c)
+if ("c_std_99" IN_LIST CMAKE_C_COMPILE_FEATURES)
+    target_compile_features(demo_multi PRIVATE c_std_99)
+endif()
 target_link_libraries(demo_multi gme::gme)
 
 #
 # Testing
 #
-
 if(GME_BUILD_TESTING)
     add_test(NAME sanity_test_NSF
         COMMAND demo)

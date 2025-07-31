@@ -19,6 +19,9 @@ if(SDL2_FOUND)
     message(STATUS "SDL2 library located, player demo is available to be built in the /player directory")
 
     add_executable(gme_player ${player_SRCS})
+    if ("cxx_std_11" IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+        target_compile_features(gme_player PRIVATE cxx_std_11)
+    endif()
     target_include_directories(gme_player PRIVATE
         ${SDL2_INCLUDE_DIRS}
         ${PROJECT_SOURCE_DIR}/gme

@@ -1,5 +1,6 @@
 # CMake project definition file.
-cmake_minimum_required(VERSION 3.3...3.10)
+
+cmake_minimum_required(VERSION 3.8...4.0)
 project(libgme)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
@@ -63,10 +64,6 @@ option(GME_BUILD_FRAMEWORK "Build framework instead of dylib on macOS" ${BUILD_F
 option(GME_ENABLE_UBSAN "Enable Undefined Behavior Sanitizer error-checking" ${ENABLE_UBSAN})
 option(GME_BUILD_TESTING "Build demo tests" ${BUILD_TESTING})
 option(GME_BUILD_EXAMPLES "Add example project build rules" ${GME_IS_ROOT})
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 test_big_endian(WORDS_BIGENDIAN)
 
