@@ -1318,7 +1318,7 @@ possibly_out_of_time:
 			goto loop;
 
 		default:
-			debug_printf( "Opcode $ED $%02X not supported\n", data );
+			debug_printf( "Opcode $ED $%02X not supported\n", (unsigned int)data );
 			warning = true;
 			goto loop;
 		}

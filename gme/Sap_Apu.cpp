@@ -66,7 +66,7 @@ Sap_Apu_Impl::Sap_Apu_Impl()
 		uint32_t rev = n & 1;
 		for ( int i = 1; i < poly5_len; i++ )
 			rev |= (n >> i & 1) << (poly5_len - i);
-		debug_printf( "poly5: 0x%08lX\n", rev );
+		debug_printf( "poly5: 0x%08lX\n", (long unsigned int)rev );
 	}
 }
 
