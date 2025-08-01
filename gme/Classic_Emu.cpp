@@ -182,9 +182,9 @@ void Rom_Data_::set_addr_( long addr, int unit )
 
 	if ( 0 )
 	{
-		debug_printf( "addr: %X\n", addr );
-		debug_printf( "file_size: %d\n", file_size_ );
-		debug_printf( "rounded: %d\n", rounded );
+		debug_printf( "addr: %X\n", (int)addr );
+		debug_printf( "file_size: %ld\n", file_size_ );
+		debug_printf( "rounded: %ld\n", rounded );
 		debug_printf( "mask: $%X\n", mask );
 	}
 }
