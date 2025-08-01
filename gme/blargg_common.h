@@ -11,6 +11,12 @@
 #include <assert.h>
 #include <limits.h>
 
+#if defined(__GNUC__)
+#define BLARGG_PRINTFN(x,y) __attribute__((__format__(__printf__,x,y)))
+#else
+#define BLARGG_PRINTFN(x,y)
+#endif
+
 // BLARGG_RESTRICT: equivalent to restrict, where supported
 #if (defined(__GNUC__) && (__GNUC__ >= 3)) || \
     (defined(_MSC_VER) && (_MSC_VER >= 1100))
