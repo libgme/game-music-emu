@@ -3,7 +3,7 @@
 #include "Nes_Cpu.h"
 
 #include "blargg_endian.h"
-#include <limits.h>
+#include <climits>
 
 #define BLARGG_CPU_X86 1
 

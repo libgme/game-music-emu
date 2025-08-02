@@ -35,8 +35,8 @@
  */
 
 
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 typedef uintptr_t       Bitu;
 typedef intptr_t        Bits;

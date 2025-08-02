@@ -2,7 +2,8 @@
 
 #include "Sap_Apu.h"
 
-#include <string.h>
+#include <cstring>
+#include <cstdint>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -15,6 +16,7 @@ details. You should have received a copy of the GNU Lesser General Public
 License along with this module; if not, write to the Free Software Foundation,
 Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
+#include "blargg_common.h"
 #include "blargg_source.h"
 
 static int const max_frequency = 12000; // pure waves above this frequency are silenced

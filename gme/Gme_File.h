@@ -8,6 +8,7 @@
 #include "blargg_common.h"
 #include "Data_Reader.h"
 #include "M3u_Playlist.h"
+#include <cstdint>
 
 // Error returned if file is wrong type
 //extern const char gme_wrong_file_type []; // declared in gme.h
