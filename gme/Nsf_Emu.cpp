@@ -205,6 +205,7 @@ blargg_err_t Nsf_Emu::init_sound()
 		apu_names[count + 2] = "Triangle";
 		apu_names[count + 3] = "Noise";
 		apu_names[count + 4] = "DMC";
+		apu_names[count + 5] = "FM";
 		count += Nes_Apu::osc_count;
 	}
 
