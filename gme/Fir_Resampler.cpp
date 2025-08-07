@@ -57,7 +57,7 @@ Fir_Resampler_::Fir_Resampler_( int width, sample_t* impulses_ ) :
 	write_offset( width * stereo - stereo ),
 	impulses( impulses_ )
 {
-	write_pos = 0;
+	write_pos = nullptr;
 	res       = 1;
 	imp_phase = 0;
 	skip_bits = 0;
@@ -81,7 +81,7 @@ blargg_err_t Fir_Resampler_::buffer_size( int new_size )
 {
 	RETURN_ERR( buf.resize( new_size + write_offset ) );
 	clear();
-	return 0;
+	return nullptr;
 }
 
 double Fir_Resampler_::time_ratio( double new_factor, double rolloff, double gain )

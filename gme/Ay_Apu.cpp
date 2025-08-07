@@ -89,7 +89,7 @@ Ay_Apu::Ay_Apu()
 		}
 	}
 
-	output( 0 );
+	output( nullptr );
 	volume( 1.0 );
 	reset();
 }

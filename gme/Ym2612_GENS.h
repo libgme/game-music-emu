@@ -9,7 +9,7 @@ struct Ym2612_GENS_Impl;
 class Ym2612_GENS_Emu  {
 	Ym2612_GENS_Impl* impl;
 public:
-	Ym2612_GENS_Emu() { impl = 0; }
+	Ym2612_GENS_Emu() { impl = nullptr; }
 	~Ym2612_GENS_Emu();
 
 	// Set output sample rate and chip clock rates, in Hz. Returns non-zero

@@ -135,7 +135,7 @@ private:
 class Callback_Reader : public Data_Reader {
 public:
 	typedef const char* (*callback_t)( void* data, void* out, int count );
-	Callback_Reader( callback_t, long size, void* data = 0 );
+	Callback_Reader( callback_t, long size, void* data = nullptr );
 public:
 	long read_avail( void*, long );
 	blargg_err_t read( void*, long );

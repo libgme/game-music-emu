@@ -72,11 +72,11 @@ static byte const* copy_field( byte const* in, char* out )
 		int i = 0;
 		for ( i = 0; i < len && in [i]; i++ )
 			if ( ((in [i] + 1) & 0xFF) < ' ' + 1 ) // also treat 0xFF as non-text
-				return 0; // non-ASCII found
+				return nullptr; // non-ASCII found
 
 		for ( ; i < len; i++ )
 			if ( in [i] )
-				return 0; // data after terminator
+				return nullptr; // data after terminator
 
 		Gme_File::copy_field_( out, (char const*) in, len );
 		in += len;
@@ -97,14 +97,14 @@ static void copy_hes_fields( byte const* in, track_info_t* out )
 blargg_err_t Hes_Emu::track_info_( track_info_t* out, int ) const
 {
 	copy_hes_fields( rom.begin() + 0x20, out );
-	return 0;
+	return nullptr;
 }
 
 static blargg_err_t check_hes_header( void const* header )
 {
 	if ( memcmp( header, "HESM", 4 ) )
 		return gme_wrong_file_type;
-	return 0;
+	return nullptr;
 }
 
 struct Hes_File : Gme_Info_
@@ -129,7 +129,7 @@ struct Hes_File : Gme_Info_
 	blargg_err_t track_info_( track_info_t* out, int ) const
 	{
 		copy_hes_fields( h.fields, out );
-		return 0;
+		return nullptr;
 	}
 };
 
@@ -253,7 +253,7 @@ blargg_err_t Hes_Emu::start_track_( int track )
 	recalc_timer_load();
 	last_frame_hook = 0;
 
-	return 0;
+	return nullptr;
 }
 
 // Hardware
@@ -531,5 +531,5 @@ blargg_err_t Hes_Emu::run_clocks( blip_time_t& duration_, int )
 	::adjust_time( irq.vdp,   duration );
 	apu.end_frame( duration );
 
-	return 0;
+	return nullptr;
 }

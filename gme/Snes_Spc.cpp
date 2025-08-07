@@ -74,7 +74,7 @@ blargg_err_t Snes_Spc::init()
 	#endif
 
 	reset();
-	return 0;
+	return nullptr;
 }
 
 void Snes_Spc::init_rom( uint8_t const in [rom_size] )
@@ -156,7 +156,7 @@ void Snes_Spc::regs_loaded()
 
 void Snes_Spc::reset_time_regs()
 {
-	m.cpu_error     = 0;
+	m.cpu_error     = nullptr;
 	m.echo_accessed = 0;
 	m.spc_time      = 0;
 	m.dsp_time      = 0;
@@ -243,7 +243,7 @@ blargg_err_t Snes_Spc::load_spc( void const* data, long size )
 
 	reset_time_regs();
 
-	return 0;
+	return nullptr;
 }
 
 void Snes_Spc::clear_echo()
@@ -272,9 +272,9 @@ void Snes_Spc::reset_buf()
 		*out++ = 0;
 
 	m.extra_pos = out;
-	m.buf_begin = 0;
+	m.buf_begin = nullptr;
 
-	dsp.set_output( 0, 0 );
+	dsp.set_output( nullptr, 0 );
 }
 
 void Snes_Spc::set_output( sample_t* out, int size )
@@ -347,7 +347,7 @@ blargg_err_t Snes_Spc::play( int count, sample_t* out )
 	}
 
 	const char* err = m.cpu_error;
-	m.cpu_error = 0;
+	m.cpu_error = nullptr;
 	return err;
 }
 
@@ -356,7 +356,7 @@ blargg_err_t Snes_Spc::skip( int count )
 	#if SPC_LESS_ACCURATE
 	if ( count > 2 * sample_rate * 2 )
 	{
-		set_output( 0, 0 );
+		set_output( nullptr, 0 );
 
 		// Skip a multiple of 4 samples
 		time_t end = count;
@@ -379,5 +379,5 @@ blargg_err_t Snes_Spc::skip( int count )
 	}
 	#endif
 
-	return play( count, 0 );
+	return play( count, nullptr );
 }

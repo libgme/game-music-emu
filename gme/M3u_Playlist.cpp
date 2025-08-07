@@ -350,7 +350,7 @@ static void parse_comment( char* in, M3u_Playlist::info_t& info, char *& last_co
 			else if ( !strcmp( "Artist"   , field ) ) info.artist    = text;
 			else if ( !strcmp( "Copyright", field ) ) info.copyright = text;
 			else
-				text = 0;
+				text = nullptr;
 			if ( text )
 				return;
 			*in = ':';
@@ -375,7 +375,7 @@ static void parse_comment( char* in, M3u_Playlist::info_t& info, char *& last_co
 			else if ( !strcmp( "RIPPER"   , field ) ) info.ripping   = text;
 			else if ( !strcmp( "TAGGER"   , field ) ) info.tagging   = text;
 			else
-				text = 0;
+				text = nullptr;
 			if ( text )
 			{
 				last_comment_value = (char*)text;
@@ -420,7 +420,7 @@ blargg_err_t M3u_Playlist::parse_()
 	int line  = 0;
 	int count = 0;
 	char* in  = data.begin();
-	char* last_comment_value = 0;
+	char* last_comment_value = nullptr;
 	while ( in < data.end() )
 	{
 		// find end of line and terminate it
@@ -453,7 +453,7 @@ blargg_err_t M3u_Playlist::parse_()
 				first_error_ = line;
 			first_comment = false;
 		}
-		else last_comment_value = 0;
+		else last_comment_value = nullptr;
 	}
 	if ( count <= 0 )
 		return "Not an m3u playlist";

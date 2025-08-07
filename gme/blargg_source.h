@@ -54,7 +54,9 @@ static inline void BLARGG_PRINTFN(1,2)
 
 /* If ptr is 0, return out of memory error string. */
 #undef CHECK_ALLOC
-#define CHECK_ALLOC( ptr ) do { if ( (ptr) == 0 ) return "Out of memory"; } while ( 0 )
+#define CHECK_ALLOC( ptr ) do {                         \
+		if ( (ptr) == nullptr ) return "Out of memory"; \
+	} while ( 0 )
 
 /* TODO: good idea? bad idea? */
 #undef byte
