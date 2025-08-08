@@ -118,6 +118,8 @@ if(USE_GME_HES)
     list(APPEND libgme_SRCS
                 Hes_Apu.cpp
                 Hes_Apu.h
+                Hes_Apu_Adpcm.cpp
+                Hes_Apu_Adpcm.h
                 Hes_Cpu.cpp
                 Hes_Cpu.h
                 Hes_Emu.cpp
