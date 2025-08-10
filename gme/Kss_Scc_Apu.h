@@ -17,7 +17,7 @@ public:
 	void reset();
 
 	// Write to register at specified time
-	static const int reg_count = 0x90;
+	static const int reg_count = 0xB0;
 	void write( blip_time_t time, int reg, int data );
 
 	// Run sound to specified time, end current time frame, then start a new
@@ -69,9 +69,33 @@ inline void Scc_Apu::osc_output( int index, Blip_Buffer* b )
 
 inline void Scc_Apu::write( blip_time_t time, int addr, int data )
 {
-	assert( (unsigned) addr < reg_count );
+	//assert( (unsigned) addr < reg_count );
+	assert( ( addr >= 0x9800 && addr <= 0x988F ) || ( addr >= 0xB800 && addr <= 0xB8AF ) );
 	run_until( time );
-	regs [addr] = data;
+
+	addr -= 0x9800;
+	if ( ( unsigned ) addr < 0x90 )
+	{
+		// SCC
+		if ( ( unsigned ) addr < 0x60 )
+			regs [addr] = data;
+		else if ( ( unsigned ) addr < 0x80 )
+		{
+			// split waveform channel 4 and 5
+			regs [addr] = regs[addr + 0x20] = data;
+		}
+		else
+		{
+			regs [addr + 0x20] = data;
+		}
+	}
+	else
+	{
+		// SCC+
+	    addr -= 0xB800 - 0x9800;
+	    if ( ( unsigned ) addr < 0xB0 )
+            regs [addr] = data;
+	}
 }
 
 inline void Scc_Apu::end_frame( blip_time_t end_time )
