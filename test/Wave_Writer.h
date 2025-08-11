@@ -19,8 +19,7 @@ void wave_close( void );
 #endif
 
 #ifdef __cplusplus
-#include <stddef.h>
-#include <stdio.h>
+#include <cstdio>
 
 /* C++ interface */
 class Wave_Writer {
