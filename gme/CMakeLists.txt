@@ -159,11 +159,6 @@ if(USE_GME_NSF OR USE_GME_NSFE)
                 Nes_Vrc7_Apu.h
                 ext/emu2413.c
                 ext/emu2413.h
-                ext/panning.c
-                ext/panning.h
-                ext/emutypes.h
-                ext/2413tone.h
-                ext/vrc7tone.h
                 Nsf_Emu.cpp
                 Nsf_Emu.h
         )
