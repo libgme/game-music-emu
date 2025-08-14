@@ -1198,7 +1198,7 @@ void OPLL_setRate(OPLL *opll, uint32_t rate) {
   reset_rate_conversion_params(opll);
 }
 
-void OPLL_setQuality(OPLL *, uint8_t) {}
+void OPLL_setQuality(OPLL *opll, uint8_t q) { (void)opll;(void)q; }
 
 void OPLL_setChipType(OPLL *opll, uint8_t type) { opll->chip_type = type; }
 
