@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #ifndef INLINE
 #if defined(_MSC_VER)
@@ -1197,7 +1198,7 @@ void OPLL_setRate(OPLL *opll, uint32_t rate) {
   reset_rate_conversion_params(opll);
 }
 
-void OPLL_setQuality(OPLL *opll, uint8_t q) {}
+void OPLL_setQuality(OPLL *, uint8_t) {}
 
 void OPLL_setChipType(OPLL *opll, uint8_t type) { opll->chip_type = type; }
 
@@ -1212,6 +1213,7 @@ void OPLL_writeReg(OPLL *opll, uint32_t reg, uint8_t data) {
     reg -= 9;
   }
 
+  assert(reg<0x40); // Just to silence a stringop-overflow warning
   opll->reg[reg] = (uint8_t)data;
 
   switch (reg) {
