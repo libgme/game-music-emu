@@ -30,17 +30,6 @@ Kss_Emu::Kss_Emu()
 	sn = 0;
 	set_type( gme_kss_type );
 	set_silence_lookahead( 6 );
-	static const char* const names [osc_count] = {
-		"Square 1", "Square 2", "Square 3",
-		"Wave 1", "Wave 2", "Wave 3", "Wave 4", "Wave 5"
-	};
-	set_voice_names( names );
-
-	static int const types [osc_count] = {
-		wave_type | 0, wave_type | 1, wave_type | 2,
-		wave_type | 3, wave_type | 4, wave_type | 5, wave_type | 6, wave_type | 7
-	};
-	set_voice_types( types );
 
 	memset( unmapped_read, 0xFF, sizeof unmapped_read );
 }
@@ -159,10 +148,57 @@ blargg_err_t Kss_Emu::load_( Data_Reader& in )
 	if ( header_.device_flags & 0x04 )
 		scc_enabled = 0;
 
-	if ( header_.device_flags & 0x02 && !sn )
-		CHECK_ALLOC( sn = BLARGG_NEW( Sms_Apu ) );
+	if ( header_.device_flags & 0x02 ) // Sega Master System
+	{
+		int const osc_count = Sms_Apu::osc_count;
+		static const char* const names [osc_count] = {
+			"Square 1", "Square 2", "Square 3", "Noise"
+		};
+		set_voice_names( names );
 
-	set_voice_count( osc_count );
+		static int const types [osc_count] = {
+			wave_type+1, wave_type+3, wave_type+2, mixed_type+1
+		};
+		set_voice_types( types );
+
+		set_voice_count( Sms_Apu::osc_count );
+
+		if (!sn)
+			CHECK_ALLOC( sn = BLARGG_NEW( Sms_Apu ) );
+	}
+	else // MSX
+	{
+		int const osc_count = Ay_Apu::osc_count;
+		static const char* const names [osc_count] = {
+			"Square 1", "Square 2", "Square 3"
+		};
+		set_voice_names( names );
+
+		static int const types [osc_count] = {
+			wave_type+1, wave_type+3, wave_type+2
+		};
+		set_voice_types( types );
+
+		set_voice_count( Ay_Apu::osc_count );
+
+		if ( !(header_.device_flags & 0x80) )
+		{
+			int const osc_count = Ay_Apu::osc_count + Scc_Apu::osc_count;
+			static const char* const names [osc_count] = {
+				"Square 1", "Square 2", "Square 3",
+				"Wave 1", "Wave 2", "Wave 3", "Wave 4", "Wave 5"
+			};
+			set_voice_names( names );
+
+			static int const types [osc_count] = {
+				wave_type+1, wave_type+3, wave_type+2,
+				wave_type+0, wave_type+4, wave_type+5, wave_type+6, wave_type+7
+			};
+			set_voice_types( types );
+
+			set_voice_count( osc_count );
+		}
+	}
 
 	return setup_buffer( ::clock_rate );
 }
