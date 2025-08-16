@@ -34,7 +34,7 @@ public:
 		byte data_size [4];
 		byte unused [4];
 		byte first_track [2];
-		byte last_tack [2];
+		byte last_track [2];
 		byte psg_vol;
 		byte scc_vol;
 		byte msx_music_vol;

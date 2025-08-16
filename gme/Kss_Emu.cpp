@@ -133,16 +133,24 @@ blargg_err_t Kss_Emu::load_( Data_Reader& in )
 			set_warning( "Unknown data in header" );
 		}
 	}
-	else
+	else if ( header_.extra_header )
 	{
-		ext_header_t& ext = header_;
-		memcpy( &ext, rom.begin(), min( (int) ext_header_size, (int) header_.extra_header ) );
-		if ( header_.extra_header > 0x10 )
-			set_warning( "Unknown data in header" );
+		if ( header_.extra_header != ext_header_size )
+		{
+			header_.extra_header = 0;
+			set_warning( "Invalid extra_header_size" );
+		}
+		else
+		{
+			memcpy( header_.data_size, rom.begin(), ext_header_size );
+		}
 	}
 
 	if ( header_.device_flags & 0x09 )
 		set_warning( "FM sound not supported" );
+
+	if ( header_.tag [3] == 'X' && header_.extra_header )
+		set_track_count( get_le16( header_.last_track ) + 1 );
 
 	scc_enabled = 0xC000;
 	if ( header_.device_flags & 0x04 )
