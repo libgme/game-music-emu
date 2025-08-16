@@ -56,6 +56,7 @@ LOCAL_SRC_FILES := \
 	gme/Gbs_Emu.cpp \
 	gme/Gme_File.cpp \
 	gme/Gym_Emu.cpp \
+	gme/Hes_Apu_Adpcm.cpp \
 	gme/Hes_Apu.cpp \
 	gme/Hes_Cpu.cpp \
 	gme/Hes_Emu.cpp \
