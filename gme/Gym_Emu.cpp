@@ -3,7 +3,7 @@
 #include "Gym_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -195,7 +195,7 @@ void Gym_Emu::set_tempo_( double t )
 
 	if ( blip_buf.sample_rate() )
 	{
-		clocks_per_frame = long (clock_rate / 60 / tempo());
+		clocks_per_frame = long (clock_rate / (60 * tempo()));
 		Dual_Resampler::resize( long (sample_rate() / (60.0 * tempo())) );
 	}
 }

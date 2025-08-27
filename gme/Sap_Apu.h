@@ -4,7 +4,6 @@
 #ifndef SAP_APU_H
 #define SAP_APU_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer.h"
 
 class Sap_Apu_Impl;

@@ -4,8 +4,11 @@
 #ifndef NES_OSCS_H
 #define NES_OSCS_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
+
+typedef int32_t nes_time_t; // CPU clock cycle count
+typedef unsigned nes_addr_t; // 16-bit memory address
 
 class Nes_Apu;
 

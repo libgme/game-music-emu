@@ -2,7 +2,7 @@
 
 #include "Sap_Cpu.h"
 
-#include <limits.h>
+#include <climits>
 #include "blargg_endian.h"
 
 //#include "nes_cpu_log.h"
