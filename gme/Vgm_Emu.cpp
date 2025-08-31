@@ -66,10 +66,28 @@ static byte const* get_gd3_str( byte const* in, byte const* end, char* field )
 	int len = (mid - in) / 2 - 1;
 	if ( len > 0 )
 	{
-		len = min( len, (int) Gme_File::max_field_ );
-		field [len] = 0;
+		int max_len = ((int) Gme_File::max_field_) - 1;
+		int o = 0;
 		for ( int i = 0; i < len; i++ )
-			field [i] = (in [i * 2 + 1] ? '?' : in [i * 2]); // TODO: convert to utf-8
+		{
+			unsigned short unicode_data = in [i * 2 + 1] << 8 | in [i * 2];
+			if ( unicode_data < 0x80 && o < max_len )
+			{
+				field[o++] = (unsigned char)unicode_data;
+			}
+			else if ( unicode_data < 0x800 && o < max_len-1 )
+			{
+				field[o++] = 0xC0 | (unsigned char)(unicode_data >> 6);
+				field[o++] = 0x80 | (unsigned char)(unicode_data & 0x3f);
+			}
+			else if ( o < max_len-2 )
+			{
+				field[o++] = 0xE0 | (unsigned char)(unicode_data >> 12);
+				field[o++] = 0x80 | (unsigned char)((unicode_data >> 6) & 0x3f);
+				field[o++] = 0x80 | (unsigned char)(unicode_data & 0x3f);
+			}
+		}
+		field[o] = 0;
 	}
 	return mid;
 }
