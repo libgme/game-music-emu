@@ -106,6 +106,7 @@ static void parse_gd3( byte const* in, byte const* end, track_info_t* out )
 	in = get_gd3_str ( in, end, out->copyright );
 	in = get_gd3_pair( in, end, out->dumper );
 	in = get_gd3_str ( in, end, out->comment );
+	out->isUtf8 = 1;
 }
 
 static int const gd3_header_size = 12;

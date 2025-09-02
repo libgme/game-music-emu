@@ -206,6 +206,7 @@ blargg_err_t Gme_File::track_info( track_info_t* out, int track ) const
 	out->fade_length   = -1;
 	out->play_length   = -1;
 	out->repeat_count  = -1;
+	out->isUtf8        = 0;
 	out->song [0]      = 0;
 
 	out->game [0]      = 0;
