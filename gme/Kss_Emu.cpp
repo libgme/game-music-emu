@@ -298,13 +298,17 @@ void Kss_Emu::cpu_write( unsigned addr, int data )
 	case 0xB000:
 		set_bank( 1, data );
 		return;
+
+	case 0xBFFE: // selects between mapping areas (SCC/SCC+), we just always enable both
+		if ( data == 0 || data == 0x20 )
+			return;
 	}
 
-	int scc_addr = (addr & 0xDFFF) ^ 0x9800;
-	if ( scc_addr < scc.reg_count )
+	int scc_addr = (addr & 0xDFFF) - 0x9800;
+	if ( (unsigned) scc_addr < scc.reg_count && scc_enabled )
 	{
 		scc_accessed = true;
-		scc.write( time(), scc_addr, data );
+		scc.write( time(), addr, data );
 		return;
 	}
 
