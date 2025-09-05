@@ -145,7 +145,10 @@ struct gme_info_t
 	/* fade length in milliseconds; -1 if unknown */
 	int fade_length;
 
-	int i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15; /* reserved */
+	/* strings encoding, 1 if UTF-8, 0 if unknown ANSI codepage */
+	int isUtf8;
+
+	int i6,i7,i8,i9,i10,i11,i12,i13,i14,i15; /* reserved */
 
 	/* empty string ("") if not available */
 	const char* system;

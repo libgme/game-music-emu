@@ -208,6 +208,7 @@ static void copy_sap_fields( Sap_Emu::info_t const& in, track_info_t* out )
 	Gme_File::copy_field_( out->game,      in.name );
 	Gme_File::copy_field_( out->author,    in.author );
 	Gme_File::copy_field_( out->copyright, in.copyright );
+	out->isUtf8 = 1;
 }
 
 blargg_err_t Sap_Emu::track_info_( track_info_t* out, int ) const

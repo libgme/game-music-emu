@@ -326,7 +326,6 @@ gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
 	COPY( loop_length );
 	COPY( fade_length );
 
-	info->i5  = -1;
 	info->i6  = -1;
 	info->i7  = -1;
 	info->i8  = -1;
@@ -336,7 +335,9 @@ gme_err_t gme_track_info( Music_Emu const* me, gme_info_t** out, int track )
 	info->i12 = -1;
 	info->i13 = -1;
 	info->i14 = -1;
-	info->i15 = -1;
+	info->i15  = -1;
+
+	COPY( isUtf8 );
 
 	info->s7  = "";
 	info->s8  = "";
