@@ -39,6 +39,8 @@ struct track_info_t
 	 * otherwise a default of 150000 (2.5 minutes) */
 	long play_length;
 
+	long isUtf8;
+
 	/* empty string if not available */
 	char system    [256];
 	char game      [256];
