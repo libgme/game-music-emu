@@ -321,7 +321,7 @@ blargg_err_t Music_Emu::skip_( long count )
 
 void Music_Emu::set_fade( long start_msec, long length_msec )
 {
-	fade_step = sample_rate() * length_msec / (fade_block_size * fade_shift * 1000 / out_channels());
+	fade_step = max(1L, sample_rate() * length_msec / (fade_block_size * fade_shift * 1000 / out_channels()));
 	fade_start = msec_to_samples( start_msec );
 }
 
