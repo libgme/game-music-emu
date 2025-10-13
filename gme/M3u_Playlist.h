@@ -4,7 +4,6 @@
 #ifndef M3U_PLAYLIST_H
 #define M3U_PLAYLIST_H
 
-#include "blargg_common.h"
 #include "Data_Reader.h"
 
 class M3u_Playlist {

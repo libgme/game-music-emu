@@ -4,7 +4,6 @@
 #ifndef HES_APU_H
 #define HES_APU_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer.h"
 
 struct Hes_Osc

@@ -3,7 +3,8 @@
 #include "Spc_Dsp.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
+#include <climits>
 
 /* Copyright (C) 2007 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser

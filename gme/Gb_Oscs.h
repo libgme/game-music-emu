@@ -4,8 +4,8 @@
 #ifndef GB_OSCS_H
 #define GB_OSCS_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
 
 struct Gb_Osc
 {
