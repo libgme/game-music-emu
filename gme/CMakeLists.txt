@@ -216,6 +216,11 @@ if(USE_GME_VGM)
         )
 endif()
 
+if(GME_SJIS)
+    list(APPEND libgme_SRCS sjis.c sjis.h)
+    add_definitions(-DSJIS_CONV)
+endif()
+
 # These headers are part of the generic gme interface.
 set (EXPORTED_HEADERS gme.h)
 
