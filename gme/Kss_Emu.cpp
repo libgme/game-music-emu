@@ -3,7 +3,7 @@
 #include "Kss_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
 #include <algorithm>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
@@ -23,7 +23,6 @@ static long const clock_rate = 3579545;
 static int const osc_count = Ay_Apu::osc_count + Scc_Apu::osc_count;
 
 using std::min;
-using std::max;
 
 Kss_Emu::Kss_Emu()
 {

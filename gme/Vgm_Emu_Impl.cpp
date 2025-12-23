@@ -1,9 +1,9 @@
 // Game_Music_Emu https://bitbucket.org/mpyne/game-music-emu/
 
-#include "Vgm_Emu.h"
+#include "Vgm_Emu_Impl.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 #include "blargg_endian.h"
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you

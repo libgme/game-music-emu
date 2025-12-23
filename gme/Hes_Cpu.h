@@ -4,7 +4,9 @@
 #ifndef HES_CPU_H
 #define HES_CPU_H
 
-#include "blargg_common.h"
+#include <cassert>
+#include <climits>
+#include <cstdint>
 
 typedef int32_t hes_time_t; // clock cycle count
 typedef unsigned hes_addr_t; // 16-bit address

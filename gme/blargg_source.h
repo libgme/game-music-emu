@@ -9,7 +9,7 @@
 /* If debugging is enabled, abort program if expr is false. Meant for checking
  * internal state and consistency. A failed assertion indicates a bug in the module.
  * void assert( bool expr ); */
-#include <assert.h>
+#include <cassert>
 
 /* If debugging is enabled and expr is false, abort program. Meant for checking
  * caller-supplied parameters and operations that are outside the control of the

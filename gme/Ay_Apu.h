@@ -4,8 +4,8 @@
 #ifndef AY_APU_H
 #define AY_APU_H
 
-#include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
 
 class Ay_Apu {
 public:

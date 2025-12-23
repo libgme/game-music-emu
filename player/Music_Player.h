@@ -4,9 +4,9 @@
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
-#include <stddef.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <cstddef>
+#include <cassert>
+#include <cstdlib>
 #include "gme/gme.h"
 
 class Music_Player {
@@ -84,10 +84,6 @@ private:
 	void resume();
 	static void fill_buffer( void*, sample_t*, int );
 };
-
-// Use to force disable exceptions for a specific allocation no matter what class
-#include <new>
-#define GME_NEW new (std::nothrow)
 
 // gme_vector - very lightweight vector of POD types (no constructor/destructor)
 template<class T>

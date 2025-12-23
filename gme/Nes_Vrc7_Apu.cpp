@@ -4,7 +4,7 @@ extern "C" {
 #include "ext/emu2413.h"
 }
 
-#include <string.h>
+#include <cstring>
 
 #include "blargg_source.h"
 

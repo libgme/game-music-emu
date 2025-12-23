@@ -6,6 +6,7 @@
 
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
 
 struct fme7_apu_state_t
 {

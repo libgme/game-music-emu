@@ -3,8 +3,8 @@
 #include "Spc_Emu.h"
 
 #include "blargg_endian.h"
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <algorithm>
 
 /* Copyright (C) 2004-2006 Shay Green. This module is free software; you

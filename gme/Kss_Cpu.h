@@ -4,7 +4,7 @@
 #ifndef KSS_CPU_H
 #define KSS_CPU_H
 
-#include "blargg_endian.h"
+#include <cstdint>
 
 typedef int32_t cpu_time_t;
 

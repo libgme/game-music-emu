@@ -3,8 +3,7 @@
 #include "Nsf_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
 #include <algorithm>
 
 #if !NSF_EMU_APU_ONLY
@@ -39,7 +38,6 @@ static int const fme7_flag  = 0x20;
 static long const clock_divisor = 12;
 
 using std::min;
-using std::max;
 
 Nsf_Emu::equalizer_t const Nsf_Emu::nes_eq     =
 	Music_Emu::make_equalizer( -1.0, 80 );

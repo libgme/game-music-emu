@@ -11,8 +11,8 @@
 #include "Effects_Buffer.h"
 #endif
 #include "blargg_endian.h"
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser

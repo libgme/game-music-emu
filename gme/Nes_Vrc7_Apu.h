@@ -7,6 +7,7 @@
 
 #include "blargg_common.h"
 #include "Blip_Buffer.h"
+#include <cstdint>
 
 struct vrc7_snapshot_t;
 

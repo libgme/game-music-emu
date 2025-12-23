@@ -2,8 +2,9 @@
 
 #include "Music_Player.h"
 
-#include <string.h>
-#include <ctype.h>
+#include <new>
+#include <cstring>
+#include <cctype>
 #include "SDL_rwops.h"
 #include "Archive_Reader.h"
 
@@ -52,7 +53,7 @@ struct arc_type_t {
 };
 
 #ifdef RARDLL
-static Archive_Reader* new_rar_reader() { return GME_NEW Rar_Reader; }
+static Archive_Reader* new_rar_reader() { return new (std::nothrow) Rar_Reader; }
 #endif
 
 static const arc_type_t arcs[] = {
@@ -336,7 +337,7 @@ void Music_Player::fill_buffer( void* data, sample_t* out, int count )
 
 // Sound output driver using SDL
 
-#include "SDL.h"
+#include "SDL_audio.h"
 
 static sound_callback_t sound_callback;
 static void* sound_callback_data;

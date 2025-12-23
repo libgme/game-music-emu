@@ -3,8 +3,8 @@
 #include "Vgm_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
-#include <math.h>
+#include <cstring>
+#include <cmath>
 #include <algorithm>
 
 /* Copyright (C) 2003-2006 Shay Green. This module is free software; you
@@ -25,7 +25,6 @@ static double const rolloff = 0.990;
 static double const oversample_factor = 1.0;
 
 using std::min;
-using std::max;
 
 Vgm_Emu::Vgm_Emu()
 {

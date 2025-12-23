@@ -5,8 +5,7 @@
 #ifndef GB_CPU_H
 #define GB_CPU_H
 
-#include "blargg_common.h"
-#include "blargg_endian.h"
+#include <cstdint>
 
 typedef unsigned gb_addr_t; // 16-bit CPU address
 

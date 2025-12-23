@@ -3,9 +3,9 @@
 #include "Data_Reader.h"
 
 #include "blargg_endian.h"
-#include <assert.h>
-#include <string.h>
-#include <stdio.h>
+#include <climits>
+#include <cstring>
+#include <cstdio>
 #include <algorithm>
 
 /* Copyright (C) 2005-2006 Shay Green. This module is free software; you
@@ -23,12 +23,10 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 #ifdef HAVE_ZLIB_H
 #include <zlib.h>
-#include <stdlib.h>
-#include <errno.h>
+#include <cstdlib>
 static const unsigned char gz_magic[2] = {0x1f, 0x8b}; /* gzip magic header */
 #endif /* HAVE_ZLIB_H */
 
-using std::min;
 using std::max;
 
 const char Data_Reader::eof_error [] = "Unexpected end of file";

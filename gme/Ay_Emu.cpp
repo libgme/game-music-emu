@@ -3,7 +3,7 @@
 #include "Ay_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
 
 #include <algorithm> // min, max
 
@@ -27,7 +27,6 @@ static unsigned const ram_start = 0x4000;
 static int const osc_count = Ay_Apu::osc_count + 1;
 
 using std::min;
-using std::max;
 
 Ay_Emu::Ay_Emu()
 {
@@ -159,7 +158,7 @@ void Ay_Emu::set_voice( int i, Blip_Buffer* center, Blip_Buffer*, Blip_Buffer* )
 
 void Ay_Emu::set_tempo_( double t )
 {
-	play_period = blip_time_t (clock_rate() / 50 / t);
+	play_period = blip_time_t (clock_rate() / (50 * t));
 }
 
 blargg_err_t Ay_Emu::start_track_( int track )

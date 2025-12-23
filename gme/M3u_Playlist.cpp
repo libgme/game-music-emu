@@ -3,7 +3,7 @@
 #include "M3u_Playlist.h"
 #include "Music_Emu.h"
 
-#include <string.h>
+#include <cstring>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
 can redistribute it and/or modify it under the terms of the GNU Lesser
@@ -342,7 +342,7 @@ static void parse_comment( char* in, M3u_Playlist::info_t& info, char *& last_co
 		if ( *text )
 		{
 			*in = 0;
-				 if ( !strcmp( "Composer" , field ) ) info.composer  = text;
+			if      ( !strcmp( "Composer" , field ) ) info.composer  = text;
 			else if ( !strcmp( "Engineer" , field ) ) info.engineer  = text;
 			else if ( !strcmp( "Ripping"  , field ) ) info.ripping   = text;
 			else if ( !strcmp( "Tagging"  , field ) ) info.tagging   = text;
@@ -366,7 +366,7 @@ static void parse_comment( char* in, M3u_Playlist::info_t& info, char *& last_co
 		if ( *text )
 		{
 			*in = 0;
-				 if ( !strcmp( "TITLE"    , field ) ) info.title     = text;
+			if      ( !strcmp( "TITLE"    , field ) ) info.title     = text;
 			else if ( !strcmp( "ARTIST"   , field ) ) info.artist    = text;
 			else if ( !strcmp( "DATE"     , field ) ) info.date      = text;
 			else if ( !strcmp( "COMPOSER" , field ) ) info.composer  = text;

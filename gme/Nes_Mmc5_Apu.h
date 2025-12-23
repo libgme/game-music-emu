@@ -5,7 +5,6 @@
 #ifndef NES_MMC5_APU_H
 #define NES_MMC5_APU_H
 
-#include "blargg_common.h"
 #include "Nes_Apu.h"
 
 class Nes_Mmc5_Apu : public Nes_Apu {

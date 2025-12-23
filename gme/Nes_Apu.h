@@ -5,10 +5,6 @@
 #define NES_APU_H
 
 #include "blargg_common.h"
-
-typedef int32_t nes_time_t; // CPU clock cycle count
-typedef unsigned nes_addr_t; // 16-bit memory address
-
 #include "Nes_Oscs.h"
 
 struct apu_state_t;

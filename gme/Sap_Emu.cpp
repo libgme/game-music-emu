@@ -3,7 +3,7 @@
 #include "Sap_Emu.h"
 
 #include "blargg_endian.h"
-#include <string.h>
+#include <cstring>
 #include <algorithm>
 
 /* Copyright (C) 2006 Shay Green. This module is free software; you
@@ -22,7 +22,6 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 static long const base_scanline_period = 114;
 
 using std::min;
-using std::max;
 
 Sap_Emu::Sap_Emu()
 {
