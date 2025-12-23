@@ -258,6 +258,7 @@ blargg_err_t Nsfe_Info::track_info_( track_info_t* out, int track ) const
 	GME_COPY_FIELD( info, out, author );
 	GME_COPY_FIELD( info, out, copyright );
 	GME_COPY_FIELD( info, out, dumper );
+	out->isUtf8 = 1;
 	return 0;
 }
 
