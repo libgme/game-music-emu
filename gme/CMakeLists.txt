@@ -203,6 +203,26 @@ if(USE_GME_SPC)
     endif()
 endif()
 
+if(USE_GME_SP2)
+    list(APPEND libgme_SRCS
+                Sp2_Emu.cpp
+                Sp2_Emu.h
+        )
+    # SP2 requires SPC components if not already included
+    if(NOT USE_GME_SPC)
+        list(APPEND libgme_SRCS
+                    Snes_Spc.cpp
+                    Snes_Spc.h
+                    Spc_Cpu.cpp
+                    Spc_Cpu.h
+                    Spc_Dsp.cpp
+                    Spc_Dsp.h
+                    Spc_Filter.cpp
+                    Spc_Filter.h
+            )
+    endif()
+endif()
+
 if(USE_GME_VGM)
     list(APPEND libgme_SRCS
               # Sms_Apu.cpp included earlier
