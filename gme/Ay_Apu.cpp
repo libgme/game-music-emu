@@ -133,7 +133,7 @@ void Ay_Apu::write_data_( int addr, int data )
 	{
 		if ( !(data & 8) ) // convert modes 0-7 to proper equivalents
 			data = (data & 4) ? 15 : 9;
-		env.wave = env.modes [data - 7];
+		env.wave = env.modes [(data - 7) & 0x07];
 		env.pos = -48;
 		env.delay = 0; // will get set to envelope period in run_until()
 	}
