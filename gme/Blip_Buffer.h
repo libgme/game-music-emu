@@ -7,6 +7,7 @@
 
 	// internal
 	#include <limits.h>
+	#include <stdint.h>
 	#if INT_MAX < 0x7FFFFFFF
 		#error "int must be at least 32 bits"
 	#endif
@@ -31,7 +32,7 @@ public:
 	blargg_err_t set_sample_rate( long samples_per_sec, int msec_length = 1000 / 4 );
 
 	// Set number of source time units per second
-	void clock_rate( long );
+	void clock_rate( uint32_t );
 
 	// End current time frame of specified duration and make its samples available
 	// (along with any still-unread samples) for reading with read_samples(). Begins
@@ -53,7 +54,7 @@ public:
 	int length() const;
 
 	// Number of source time units per second
-	long clock_rate() const;
+	uint32_t clock_rate() const;
 
 	// Set frequency high-pass filter frequency, where higher values reduce bass more
 	void bass_freq( int frequency );
@@ -91,7 +92,7 @@ public:
 	void remove_silence( long count );
 	blip_resampled_time_t resampled_duration( int t ) const     { return t * factor_; }
 	blip_resampled_time_t resampled_time( blip_time_t t ) const { return t * factor_ + offset_; }
-	blip_resampled_time_t clock_rate_factor( long clock_rate ) const;
+	blip_resampled_time_t clock_rate_factor( uint32_t clock_rate ) const;
 public:
 	Blip_Buffer();
 	~Blip_Buffer();
@@ -114,7 +115,7 @@ public:
 	int bass_shift_;
 private:
 	long sample_rate_;
-	long clock_rate_;
+	uint32_t clock_rate_;
 	int bass_freq_;
 	int length_;
 	int modified_;
@@ -481,8 +482,8 @@ inline long Blip_Buffer::samples_avail() const
 }
 inline long Blip_Buffer::sample_rate() const    { return sample_rate_; }
 inline int  Blip_Buffer::output_latency() const { return blip_widest_impulse_ / 2; }
-inline long Blip_Buffer::clock_rate() const     { return clock_rate_; }
-inline void Blip_Buffer::clock_rate( long cps ) { factor_ = clock_rate_factor( clock_rate_ = cps ); }
+inline uint32_t Blip_Buffer::clock_rate() const     { return clock_rate_; }
+inline void Blip_Buffer::clock_rate( uint32_t cps ) { factor_ = clock_rate_factor( clock_rate_ = cps ); }
 
 inline int Blip_Reader::begin( Blip_Buffer& blip_buf )
 {

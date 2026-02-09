@@ -44,14 +44,14 @@ public:
 
 public:
 	~Effects_Buffer();
-	blargg_err_t set_sample_rate( long samples_per_sec, int msec = blip_default_length ) noexcept;
-	void clock_rate( long );
-	void bass_freq( int );
-	void clear();
-	channel_t channel( int, int );
-	void end_frame( blip_time_t );
-	long read_samples( blip_sample_t*, long );
-	long samples_avail() const;
+	blargg_err_t set_sample_rate( long samples_per_sec, int msec = blip_default_length ) noexcept override;
+	void clock_rate( uint32_t ) override;
+	void bass_freq( int ) override;
+	void clear() override;
+	channel_t channel( int, int ) override;
+	void end_frame( blip_time_t ) override;
+	long read_samples( blip_sample_t*, long ) override;
+	long samples_avail() const override;
 private:
 	typedef long fixed_t;
 	int max_voices;

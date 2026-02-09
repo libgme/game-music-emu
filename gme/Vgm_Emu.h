@@ -76,8 +76,8 @@ private:
 	// removed; use disable_oversampling() and set_tempo() instead
 	Vgm_Emu( bool oversample, double tempo = 1.0 );
 	double fm_rate;
-	long psg_rate;
-	long vgm_rate;
+	uint32_t psg_rate;
+	uint32_t vgm_rate;
 	bool disable_oversampling_;
 	bool uses_fm;
 	blargg_err_t setup_fm();

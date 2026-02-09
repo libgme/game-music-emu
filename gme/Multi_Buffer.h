@@ -29,7 +29,7 @@ public:
 
 	// See Blip_Buffer.h
 	virtual blargg_err_t set_sample_rate( long rate, int msec = blip_default_length ) = 0;
-	virtual void clock_rate( long ) = 0;
+	virtual void clock_rate( uint32_t ) = 0;
 	virtual void bass_freq( int ) = 0;
 	virtual void clear() = 0;
 	long sample_rate() const;
@@ -77,14 +77,14 @@ public:
 public:
 	Mono_Buffer();
 	~Mono_Buffer();
-	blargg_err_t set_sample_rate( long rate, int msec = blip_default_length );
-	void clock_rate( long rate ) { buf.clock_rate( rate ); }
-	void bass_freq( int freq ) { buf.bass_freq( freq ); }
-	void clear() { buf.clear(); }
-	long samples_avail() const { return buf.samples_avail(); }
-	long read_samples( blip_sample_t* p, long s ) { return buf.read_samples( p, s ); }
-	channel_t channel( int, int ) { return chan; }
-	void end_frame( blip_time_t t ) { buf.end_frame( t ); }
+	blargg_err_t set_sample_rate( long rate, int msec = blip_default_length ) override;
+	void clock_rate( uint32_t rate ) override { buf.clock_rate( rate ); }
+	void bass_freq( int freq ) override { buf.bass_freq( freq ); }
+	void clear() override { buf.clear(); }
+	long samples_avail() const override { return buf.samples_avail(); }
+	long read_samples( blip_sample_t* p, long s ) override { return buf.read_samples( p, s ); }
+	channel_t channel( int, int ) override { return chan; }
+	void end_frame( blip_time_t t ) override { buf.end_frame( t ); }
 };
 
 // Uses three buffers (one for center) and outputs stereo sample pairs.
@@ -99,15 +99,15 @@ public:
 public:
 	Stereo_Buffer();
 	~Stereo_Buffer();
-	blargg_err_t set_sample_rate( long, int msec = blip_default_length );
-	void clock_rate( long );
-	void bass_freq( int );
-	void clear();
-	channel_t channel( int, int ) { return chan; }
-	void end_frame( blip_time_t );
+	blargg_err_t set_sample_rate( long, int msec = blip_default_length ) override;
+	void clock_rate( uint32_t ) override;
+	void bass_freq( int ) override;
+	void clear() override;
+	channel_t channel( int, int ) override { return chan; }
+	void end_frame( blip_time_t ) override;
 
-	long samples_avail() const { return bufs [0].samples_avail() * 2; }
-	long read_samples( blip_sample_t*, long );
+	long samples_avail() const override { return bufs [0].samples_avail() * 2; }
+	long read_samples( blip_sample_t*, long ) override;
 
 private:
 	enum { buf_count = 3 };
@@ -126,14 +126,14 @@ class Silent_Buffer : public Multi_Buffer {
 	channel_t chan;
 public:
 	Silent_Buffer();
-	blargg_err_t set_sample_rate( long rate, int msec = blip_default_length );
-	void clock_rate( long ) { }
-	void bass_freq( int ) { }
-	void clear() { }
-	channel_t channel( int, int ) { return chan; }
-	void end_frame( blip_time_t ) { }
-	long samples_avail() const { return 0; }
-	long read_samples( blip_sample_t*, long ) { return 0; }
+	blargg_err_t set_sample_rate( long rate, int msec = blip_default_length ) override;
+	void clock_rate( uint32_t ) override { }
+	void bass_freq( int ) override { }
+	void clear() override { }
+	channel_t channel( int, int ) override { return chan; }
+	void end_frame( blip_time_t ) override { }
+	long samples_avail() const override { return 0; }
+	long read_samples( blip_sample_t*, long ) override { return 0; }
 };
 
 

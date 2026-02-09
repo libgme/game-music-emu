@@ -79,13 +79,13 @@ void Classic_Emu::mute_voices_( int mask )
 	}
 }
 
-void Classic_Emu::change_clock_rate( long rate )
+void Classic_Emu::change_clock_rate( uint32_t rate )
 {
 	clock_rate_ = rate;
 	buf->clock_rate( rate );
 }
 
-blargg_err_t Classic_Emu::setup_buffer( long rate )
+blargg_err_t Classic_Emu::setup_buffer( uint32_t rate )
 {
 	change_clock_rate( rate );
 	RETURN_ERR( buf->set_channel_count( voice_count() ) );

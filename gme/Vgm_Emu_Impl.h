@@ -35,11 +35,11 @@ protected:
 	enum { fm_time_bits = 12 };
 	typedef int fm_time_t;
 	long fm_time_offset;
-	int fm_time_factor;
+	uint64_t fm_time_factor;
 	fm_time_t to_fm_time( vgm_time_t ) const;
 
 	enum { blip_time_bits = 12 };
-	int blip_time_factor;
+	uint64_t blip_time_factor;
 	blip_time_t to_blip_time( vgm_time_t ) const;
 
 	byte const* data;

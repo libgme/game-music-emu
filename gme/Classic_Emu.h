@@ -18,9 +18,9 @@ protected:
 	// Services
 	enum { wave_type = 0x100, noise_type = 0x200, mixed_type = wave_type | noise_type };
 	void set_voice_types( int const* t ) { voice_types = t; }
-	blargg_err_t setup_buffer( long clock_rate );
+	blargg_err_t setup_buffer( uint32_t clock_rate );
 	long clock_rate() const { return clock_rate_; }
-	void change_clock_rate( long ); // experimental
+	void change_clock_rate( uint32_t ); // experimental
 
 	// Overridable
 	virtual void set_voice( int index, Blip_Buffer* center,
@@ -36,7 +36,7 @@ protected:
 private:
 	Multi_Buffer* buf;
 	Multi_Buffer* stereo_buffer; // NULL if using custom buffer
-	long clock_rate_;
+	uint32_t clock_rate_;
 	unsigned buf_changed_count;
 	int const* voice_types;
 };

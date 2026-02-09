@@ -87,7 +87,7 @@ static void parse_gd3( byte const* in, byte const* end, track_info_t* out )
 	in = get_gd3_pair( in, end, out->author );
 	in = get_gd3_str ( in, end, out->copyright );
 	in = get_gd3_pair( in, end, out->dumper );
-	in = get_gd3_str ( in, end, out->comment );
+	/*in =*/ get_gd3_str ( in, end, out->comment );
 }
 
 static int const gd3_header_size = 12;
@@ -221,15 +221,15 @@ void Vgm_Emu::set_tempo_( double t )
 {
 	if ( psg_rate )
 	{
-		vgm_rate = (long) (44100 * t + 0.5);
-		blip_time_factor = (long) floor( double (1L << blip_time_bits) / vgm_rate * psg_rate + 0.5 );
+		vgm_rate = (uint32_t) (44100u * t + 0.5);
+		blip_time_factor = (uint64_t) floor( double (1L << blip_time_bits) / vgm_rate * psg_rate + 0.5 );
 		//debug_printf( "blip_time_factor: %ld\n", blip_time_factor );
 		//debug_printf( "vgm_rate: %ld\n", vgm_rate );
 		// TODO: remove? calculates vgm_rate more accurately (above differs at most by one Hz only)
 		//blip_time_factor = (long) floor( double (1L << blip_time_bits) * psg_rate / 44100 / t + 0.5 );
 		//vgm_rate = (long) floor( double (1L << blip_time_bits) * psg_rate / blip_time_factor + 0.5 );
 
-		fm_time_factor = 2 + (long) floor( fm_rate * (1L << fm_time_bits) / vgm_rate + 0.5 );
+		fm_time_factor = 2 + (uint64_t) floor( fm_rate * (1L << fm_time_bits) / vgm_rate + 0.5 );
 	}
 }
 

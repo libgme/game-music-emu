@@ -117,7 +117,7 @@ blargg_err_t Effects_Buffer::set_sample_rate( long rate, int msec ) noexcept
 	return Multi_Buffer::set_sample_rate( bufs [0].sample_rate(), bufs [0].length() );
 }
 
-void Effects_Buffer::clock_rate( long rate )
+void Effects_Buffer::clock_rate( uint32_t rate )
 {
 	for ( int i = 0; i < buf_count; i++ )
 		bufs [i].clock_rate( rate );
