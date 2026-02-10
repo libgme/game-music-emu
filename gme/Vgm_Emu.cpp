@@ -341,6 +341,8 @@ blargg_err_t Vgm_Emu::load_mem_( byte const* new_data, long new_size )
 	psg_rate = get_le32( h.psg_rate );
 	if ( !psg_rate )
 		psg_rate = 3579545;
+	else if ( psg_rate > 100000000 )
+		psg_rate = 100000000 ;
 	psg_dual = ( psg_rate & 0x40000000 ) != 0;
 	psg_t6w28 = ( psg_rate & 0x80000000 ) != 0;
 	psg_rate &= 0x0FFFFFFF;
