@@ -34,7 +34,7 @@ public:
 		byte data_size [4];
 		byte unused [4];
 		byte first_track [2];
-		byte last_tack [2];
+		byte last_track [2];
 		byte psg_vol;
 		byte scc_vol;
 		byte msx_music_vol;
@@ -76,6 +76,15 @@ private:
 	blip_time_t next_play;
 	int ay_latch;
 
+	struct {
+		Sms_Apu* psg;
+	} sms;
+
+	struct {
+		Ay_Apu*  psg;
+		Scc_Apu* scc;
+	} msx;
+
 	friend void kss_cpu_out( class Kss_Cpu*, cpu_time_t, unsigned addr, int data );
 	friend int  kss_cpu_in( class Kss_Cpu*, cpu_time_t, unsigned addr );
 	void cpu_write( unsigned addr, int data );
@@ -85,9 +94,6 @@ private:
 	static const unsigned int mem_size = 0x10000;
 	byte ram [mem_size + cpu_padding];
 
-	Ay_Apu ay;
-	Scc_Apu scc;
-	Sms_Apu* sn;
 	byte unmapped_read  [0x100];
 	byte unmapped_write [page_size];
 };
