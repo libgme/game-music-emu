@@ -9,6 +9,8 @@
 
 #include "blargg_source.h"
 
+#include <cstring>
+
 int Nsf_Emu::cpu_read( nes_addr_t addr )
 {
 	int result, i;
@@ -76,6 +78,22 @@ void Nsf_Emu::cpu_write( nes_addr_t addr, int data )
 	{
 		GME_APU_HOOK( this, addr - Nes_Apu::start_addr, data );
 		apu.write_register( cpu::time(), addr, data );
+		return;
+	}
+
+	if ( fds && ( addr >= 0x5FF6 && addr <= 0x5FFD ) )
+	{
+		int32_t offset = rom.mask_addr( data * (int32_t) bank_size );
+		if ( offset >= rom.size() )
+			set_warning( "Invalid bank" );
+		unsigned bank = addr - 0x5FF6;
+		byte* out = sram;
+		if ( bank >= 2 )
+		{
+			out = fds->sram;
+			bank -= 2;
+		}
+		memcpy( &out [bank * bank_size], rom.at_addr( offset ), bank_size );
 		return;
 	}
 
