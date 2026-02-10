@@ -91,7 +91,6 @@ LOCAL_SRC_FILES := \
 	gme/Ym2612_GENS.cpp \
 	gme/Ym2612_MAME.cpp \
 	gme/ext/emu2413.c \
-	gme/ext/panning.c \
 	gme/gme.cpp
 
 LOCAL_EXPORT_C_INCLUDES = $(LOCAL_PATH)
