@@ -122,7 +122,7 @@ std::string Audio_Scope::init( int width, int height )
 	return std::string(); // success
 }
 
-const char* Audio_Scope::draw( const short* in, long count, int step )
+const char* Audio_Scope::draw( const short* in, uint32_t count, int step )
 {
 	if ( count >= buf_size )
 	{
@@ -141,9 +141,9 @@ const char* Audio_Scope::draw( const short* in, long count, int step )
 	return 0; // success
 }
 
-void Audio_Scope::render( short const* in, long count, int step )
+void Audio_Scope::render( short const* in, uint32_t count, int step )
 {
-	for( long i = 0; i < count; i++ )
+	for( uint32_t i = 0; i < count; i++ )
 	{
 		// Average left, right channels
 		int sample = (0x7FFF * 2 - in [i * step] - in [i * step + 1]) >> sample_shift;
