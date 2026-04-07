@@ -31,7 +31,7 @@ public:
 	void reset();
 	
 	// Same as set_output(), but for a particular channel
-	enum { osc_count = 1 }; // 0 <= chan < osc_count
+	static const int osc_count =  1; // 0 <= chan < osc_count
 	void set_output( int chan, Blip_Buffer* center, Blip_Buffer* left = NULL, Blip_Buffer* right = NULL );
 	
 	// Sets treble equalization
@@ -50,7 +50,7 @@ public:
 	typedef unsigned char byte;
 
 private:
-	enum { amp_range = 2048 };
+	static const int amp_range = 2048;
 
 	struct State
 	{

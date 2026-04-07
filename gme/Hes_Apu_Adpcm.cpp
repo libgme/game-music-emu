@@ -55,6 +55,7 @@ void Hes_Apu_Adpcm::set_output( int i, Blip_Buffer* center, Blip_Buffer* left, B
 	// Must be silent (all NULL), mono (left and right NULL), or stereo (none NULL)
 	require( !center || (center && !left && !right) || (center && left && right) );
 	require( (unsigned) i < osc_count ); // fails if you pass invalid osc index
+	(void)i;
 	
 	if ( !center || !left || !right )
 	{
