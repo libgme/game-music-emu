@@ -15,7 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifndef INLINE
 #if defined(_MSC_VER)
@@ -1213,8 +1212,14 @@ void OPLL_writeReg(OPLL *opll, uint32_t reg, uint8_t data) {
     reg -= 9;
   }
 
-  assert(reg<0x40); // Just to silence a stringop-overflow warning
+  #if defined(__GNUC__) && (__GNUC__ >= 7)
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstringop-overflow"
+  #endif
   opll->reg[reg] = (uint8_t)data;
+  #if defined(__GNUC__) && (__GNUC__ >= 7)
+  #pragma GCC diagnostic pop
+  #endif
 
   switch (reg) {
   case 0x00:
