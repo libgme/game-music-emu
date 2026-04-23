@@ -4,15 +4,13 @@
 #ifndef MUSIC_PLAYER_H
 #define MUSIC_PLAYER_H
 
-#include <stddef.h>
-#include <assert.h>
-#include <stdlib.h>
 #include "gme/gme.h"
+#include <cstdint>
 
 class Music_Player {
 public:
 	// Initialize player and set sample rate
-	gme_err_t init( long sample_rate = 44100 );
+	gme_err_t init( uint32_t sample_rate = 44100 );
 
 	// Load game music file. NULL on success, otherwise error string.
 	gme_err_t load_file( const char* path, bool by_mem );
@@ -75,7 +73,7 @@ public:
 private:
 	Music_Emu* emu_;
 	sample_t* scope_buf;
-	long sample_rate;
+	uint32_t sample_rate;
 	int scope_buf_size;
 	bool paused;
 	gme_info_t* track_info_;
@@ -88,33 +86,5 @@ private:
 // Use to force disable exceptions for a specific allocation no matter what class
 #include <new>
 #define GME_NEW new (std::nothrow)
-
-// gme_vector - very lightweight vector of POD types (no constructor/destructor)
-template<class T>
-class gme_vector {
-	T* begin_;
-	size_t size_;
-public:
-	gme_vector() : begin_( 0 ), size_( 0 ) { }
-	~gme_vector() { free( begin_ ); }
-	size_t size() const { return size_; }
-	T* begin() const { return begin_; }
-	T* end() const { return begin_ + size_; }
-	gme_err_t resize( size_t n )
-	{
-		void* p = realloc( begin_, n * sizeof (T) );
-		if ( !p && n )
-			return "Out of memory";
-		begin_ = (T*) p;
-		size_ = n;
-		return 0;
-	}
-	void clear() { free( begin_ ); begin_ = nullptr; size_ = 0; }
-	T& operator [] ( size_t n ) const
-	{
-		assert( n <= size_ ); // <= to allow past-the-end value
-		return begin_ [n];
-	}
-};
 
 #endif

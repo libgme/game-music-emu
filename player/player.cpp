@@ -80,7 +80,7 @@ static void start_track( int track, const char* path )
 
 	// update window title with track info
 
-	long seconds = player->track_info().length / 1000;
+	uint32_t seconds = player->track_info().length / 1000;
 	const char* game = player->track_info().game;
 	if ( !*game )
 	{
@@ -95,7 +95,7 @@ static void start_track( int track, const char* path )
 	}
 
 	char title [512];
-	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%ld:%02ld)",
+	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%d:%02d)",
 			game, track, player->track_count(), player->track_info().song,
 			seconds / 60, seconds % 60 ) )
 	{
