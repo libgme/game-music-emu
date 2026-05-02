@@ -32,15 +32,15 @@ void Scc_Apu::run_until( blip_time_t end_time )
 			continue;
 		output->set_modified();
 
-		blip_time_t period = (regs [0x80 + index * 2 + 1] & 0x0F) * 0x100 +
-				regs [0x80 + index * 2] + 1;
+		blip_time_t period = (regs [0xA0 + index * 2 + 1] & 0x0F) * 0x100 +
+				regs [0xA0 + index * 2] + 1;
 		int volume = 0;
-		if ( regs [0x8F] & (1 << index) )
+		if ( regs [0xAF] & (1 << index) )
 		{
 			blip_time_t inaudible_period = (uint32_t) (output->clock_rate() +
 					inaudible_freq * 32) / (inaudible_freq * 16);
 			if ( period > inaudible_period )
-				volume = (regs [0x8A + index] & 0x0F) * (amp_range / 256 / 15);
+				volume = (regs [0xAA + index] & 0x0F) * (amp_range / 256 / 15);
 		}
 
 		int8_t const* wave = (int8_t*) regs + index * wave_size;
