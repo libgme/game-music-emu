@@ -41,6 +41,7 @@ option(USE_GME_KSS "Enable MSX or other Z80 systems music emulation" ON)
 option(USE_GME_NSF "Enable NES NSF music emulation" ON)
 option(USE_GME_NSFE "Enable NES NSFE and NSF music emulation" ON)
 option(USE_GME_SAP "Enable Atari SAP music emulation" ON)
+option(USE_GME_SP2 "Enable SNES SPC2 compressed collection emulation" ON)
 option(USE_GME_SPC "Enable SNES SPC music emulation" ON)
 option(USE_GME_VGM "Enable Sega VGM/VGZ music emulation" ON)
 
