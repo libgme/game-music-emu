@@ -586,34 +586,23 @@ blargg_err_t Nsf_Emu::start_track_( int track )
 
 	cpu::reset( unmapped_code ); // also maps low_mem
 	cpu::map_code( sram_addr, sizeof sram, sram );
-	for ( int i = 0; i < bank_count; ++i )
-		cpu_write( bank_select_addr + i, initial_banks [i] );
-
 	#if !NSF_EMU_APU_ONLY
 	if (fds)
 	{
+		// On FDS $6000-DFFF is all RAM and the bank writes below copy
+		// into it, so zero and map it before selecting the banks
 		memset( fds->sram, 0, sizeof fds->sram );
+		cpu::map_code( fds->sram_addr, sizeof fds->sram, fds->sram );
+
 		// For FDS the initial load values at $076 and $077
 		// specify the banks used for $6000-7FFF as well as $E000-FFFF
 		cpu_write( bank_select_addr - 2, initial_banks [bank_count - 2] );
 		cpu_write( bank_select_addr - 1, initial_banks [bank_count - 1] );
-		for ( int i = 0; i < bank_count; ++i )
-		{
-			byte* out = fds->sram;
-			unsigned bank = i;
-			if ( bank >= 6 )
-			{
-				out = sram;
-				bank -= 6;
-			}
-			int32_t offset = rom.mask_addr( initial_banks [i] * (int32_t) bank_size );
-			if ( offset >= rom.size() )
-				set_warning( "Invalid bank" );
-			memcpy( &out [bank * bank_size], rom.at_addr( offset ), bank_size );
-		}
-		cpu::map_code( fds->sram_addr, sizeof fds->sram, fds->sram );
 	}
 	#endif
+
+	for ( int i = 0; i < bank_count; ++i )
+		cpu_write( bank_select_addr + i, initial_banks [i] );
 
 	apu.reset( pal_only, (header_.speed_flags & 0x20) ? 0x3F : 0 );
 	apu.write_register( 0, 0x4015, 0x0F );
