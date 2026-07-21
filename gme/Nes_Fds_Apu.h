@@ -6,7 +6,6 @@
 #define NES_FDS_APU_H
 
 #include "blargg_common.h"
-#include "blargg_source.h"
 #include "Blip_Buffer.h"
 
 class Nes_Fds_Apu {
@@ -27,7 +26,7 @@ public:
 
 	// FDS has a RAM area at $8000-DFFF
 	enum { sram_addr = 0x8000 };
-	byte sram [0x6000];
+	unsigned char sram [0x6000];
 public:
 	Nes_Fds_Apu();
 	void write_( unsigned addr, int data );
