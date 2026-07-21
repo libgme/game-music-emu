@@ -545,6 +545,17 @@ void Nsf_Emu::cpu_write_misc( nes_addr_t addr, int data )
 				return;
 			}
 		}
+
+		// FDS has RAM at $8000-DFFF; checked after the expansion chips
+		// so their registers in this range keep precedence
+		if ( fds )
+		{
+			if ( (unsigned) (addr - fds->sram_addr) < sizeof fds->sram )
+			{
+				fds->sram [addr - fds->sram_addr] = data;
+				return;
+			}
+		}
 	}
 	#endif
 
@@ -560,9 +571,6 @@ void Nsf_Emu::cpu_write_misc( nes_addr_t addr, int data )
 
 		// memory mapper?
 		if ( addr == 0xFFF8 ) return;
-
-		// FDS memory
-		if ( fds && (unsigned) (addr - 0x8000) < 0x6000 ) return;
 
 		debug_printf( "write_unmapped( 0x%04X, 0x%02X )\n", (unsigned) addr, (unsigned) data );
 	}
