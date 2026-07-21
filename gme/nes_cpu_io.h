@@ -81,6 +81,7 @@ void Nsf_Emu::cpu_write( nes_addr_t addr, int data )
 		return;
 	}
 
+	#if !NSF_EMU_APU_ONLY
 	if ( fds && ( addr >= 0x5FF6 && addr <= 0x5FFD ) )
 	{
 		int32_t offset = rom.mask_addr( data * (int32_t) bank_size );
@@ -96,6 +97,7 @@ void Nsf_Emu::cpu_write( nes_addr_t addr, int data )
 		memcpy( &out [bank * bank_size], rom.at_addr( offset ), bank_size );
 		return;
 	}
+	#endif
 
 	unsigned bank = addr - bank_select_addr;
 	if ( bank < bank_count )

@@ -589,6 +589,7 @@ blargg_err_t Nsf_Emu::start_track_( int track )
 	for ( int i = 0; i < bank_count; ++i )
 		cpu_write( bank_select_addr + i, initial_banks [i] );
 
+	#if !NSF_EMU_APU_ONLY
 	if (fds)
 	{
 		memset( fds->sram, 0, sizeof fds->sram );
@@ -612,6 +613,7 @@ blargg_err_t Nsf_Emu::start_track_( int track )
 		}
 		cpu::map_code( fds->sram_addr, sizeof fds->sram, fds->sram );
 	}
+	#endif
 
 	apu.reset( pal_only, (header_.speed_flags & 0x20) ? 0x3F : 0 );
 	apu.write_register( 0, 0x4015, 0x0F );
