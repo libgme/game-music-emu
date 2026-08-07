@@ -27,20 +27,11 @@ using std::max;
 
 Kss_Emu::Kss_Emu()
 {
-	sn = 0;
+	sms.psg = 0;
+	msx.psg = 0;
+	msx.scc = 0;
 	set_type( gme_kss_type );
 	set_silence_lookahead( 6 );
-	static const char* const names [osc_count] = {
-		"Square 1", "Square 2", "Square 3",
-		"Wave 1", "Wave 2", "Wave 3", "Wave 4", "Wave 5"
-	};
-	set_voice_names( names );
-
-	static int const types [osc_count] = {
-		wave_type | 0, wave_type | 1, wave_type | 2,
-		wave_type | 3, wave_type | 4, wave_type | 5, wave_type | 6, wave_type | 7
-	};
-	set_voice_types( types );
 
 	memset( unmapped_read, 0xFF, sizeof unmapped_read );
 }
@@ -49,8 +40,12 @@ Kss_Emu::~Kss_Emu() { unload(); }
 
 void Kss_Emu::unload()
 {
-	delete sn;
-	sn = 0;
+	delete sms.psg;
+	sms.psg = 0;
+	delete msx.psg;
+	msx.psg = 0;
+	delete msx.scc;
+	msx.scc = 0;
 	Classic_Emu::unload();
 }
 
@@ -119,10 +114,12 @@ void Kss_Emu::update_gain()
 	double g = gain() * 1.4;
 	if ( scc_accessed )
 		g *= 1.5;
-	ay.volume( g );
-	scc.volume( g );
-	if ( sn )
-		sn->volume( g );
+	if ( msx.psg )
+		msx.psg->volume( g );
+	if ( msx.scc )
+		msx.scc->volume( g );
+	if ( sms.psg )
+		sms.psg->volume( g );
 }
 
 blargg_err_t Kss_Emu::load_( Data_Reader& in )
@@ -147,46 +144,119 @@ blargg_err_t Kss_Emu::load_( Data_Reader& in )
 			set_warning( "Unknown data in header" );
 		}
 	}
-	else
+	else if ( header_.extra_header )
 	{
-		ext_header_t& ext = header_;
-		memcpy( &ext, rom.begin(), min( (int) ext_header_size, (int) header_.extra_header ) );
-		if ( header_.extra_header > 0x10 )
-			set_warning( "Unknown data in header" );
+		if ( header_.extra_header != ext_header_size )
+		{
+			header_.extra_header = 0;
+			set_warning( "Invalid extra_header_size" );
+		}
+		else
+		{
+			memcpy( header_.data_size, rom.begin(), ext_header_size );
+		}
 	}
 
 	if ( header_.device_flags & 0x09 )
 		set_warning( "FM sound not supported" );
 
+	if ( header_.tag [3] == 'X' && header_.extra_header )
+		set_track_count( get_le16( header_.last_track ) + 1 );
+
 	scc_enabled = 0xC000;
 	if ( header_.device_flags & 0x04 )
 		scc_enabled = 0;
 
-	if ( header_.device_flags & 0x02 && !sn )
-		CHECK_ALLOC( sn = BLARGG_NEW( Sms_Apu ) );
+	if ( header_.device_flags & 0x02 ) // Sega Master System
+	{
+		int const osc_count = Sms_Apu::osc_count;
+		static const char* const names [osc_count] = {
+			"Square 1", "Square 2", "Square 3", "Noise"
+		};
+		set_voice_names( names );
 
-	set_voice_count( osc_count );
+		static int const types [osc_count] = {
+			wave_type+1, wave_type+3, wave_type+2, mixed_type+1
+		};
+		set_voice_types( types );
+
+		set_voice_count( Sms_Apu::osc_count );
+
+		if ( !sms.psg )
+			CHECK_ALLOC( sms.psg = BLARGG_NEW( Sms_Apu ) );
+	}
+	else // MSX
+	{
+		int const osc_count = Ay_Apu::osc_count;
+		static const char* const names [osc_count] = {
+			"Square 1", "Square 2", "Square 3"
+		};
+		set_voice_names( names );
+
+		static int const types [osc_count] = {
+			wave_type+1, wave_type+3, wave_type+2
+		};
+		set_voice_types( types );
+
+		set_voice_count( Ay_Apu::osc_count );
+
+		if (!msx.psg)
+			CHECK_ALLOC( msx.psg = BLARGG_NEW( Ay_Apu ) );
+
+		if ( !(header_.device_flags & 0x80) )
+		{
+			int const osc_count = Ay_Apu::osc_count + Scc_Apu::osc_count;
+			static const char* const names [osc_count] = {
+				"Square 1", "Square 2", "Square 3",
+				"Wave 1", "Wave 2", "Wave 3", "Wave 4", "Wave 5"
+			};
+			set_voice_names( names );
+
+			static int const types [osc_count] = {
+				wave_type+1, wave_type+3, wave_type+2,
+				wave_type+0, wave_type+4, wave_type+5, wave_type+6, wave_type+7
+			};
+			set_voice_types( types );
+
+			set_voice_count( osc_count );
+
+			if (!msx.scc)
+				CHECK_ALLOC( msx.scc = BLARGG_NEW( Scc_Apu ) );
+		}
+	}
 
 	return setup_buffer( ::clock_rate );
 }
 
 void Kss_Emu::update_eq( blip_eq_t const& eq )
 {
-	ay.treble_eq( eq );
-	scc.treble_eq( eq );
-	if ( sn )
-		sn->treble_eq( eq );
+	if ( msx.psg )
+		msx.psg->treble_eq( eq );
+	if ( msx.scc )
+		msx.scc->treble_eq( eq );
+	if ( sms.psg )
+		sms.psg->treble_eq( eq );
 }
 
 void Kss_Emu::set_voice( int i, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right )
 {
-	int i2 = i - ay.osc_count;
-	if ( i2 >= 0 )
-		scc.osc_output( i2, center );
-	else
-		ay.osc_output( i, center );
-	if ( sn && i < sn->osc_count )
-		sn->osc_output( i, center, left, right );
+	if ( sms.psg ) // Sega Master System
+	{
+		if ( i < sms.psg->osc_count )
+		{
+			sms.psg->osc_output( i, center, left, right );
+			return;
+		}
+	}
+	else if ( msx.psg ) // MSX
+	{
+		int i2 = i - msx.psg->osc_count;
+		if ( i2 < 0 )
+			msx.psg->osc_output( i, center );
+		else
+			if ( msx.scc )
+				msx.scc->osc_output( i2, center );
+	}
 }
 
 // Emulation
@@ -245,10 +315,12 @@ blargg_err_t Kss_Emu::start_track_( int track )
 	cpu::reset( unmapped_write, unmapped_read );
 	cpu::map_mem( 0, mem_size, ram, ram );
 
-	ay.reset();
-	scc.reset();
-	if ( sn )
-		sn->reset();
+	if ( msx.psg )
+		msx.psg->reset();
+	if ( msx.scc )
+		msx.scc->reset();
+	if ( sms.psg )
+		sms.psg->reset();
 	r.sp = 0xF380;
 	ram [--r.sp] = idle_addr >> 8;
 	ram [--r.sp] = idle_addr & 0xFF;
@@ -301,10 +373,10 @@ void Kss_Emu::cpu_write( unsigned addr, int data )
 	}
 
 	int scc_addr = (addr & 0xDFFF) ^ 0x9800;
-	if ( scc_addr < scc.reg_count )
+	if ( msx.scc && scc_addr < msx.scc->reg_count )
 	{
 		scc_accessed = true;
-		scc.write( time(), scc_addr, data );
+		msx.scc->write( time(), scc_addr, data );
 		return;
 	}
 
@@ -329,24 +401,28 @@ void kss_cpu_out( Kss_Cpu* cpu, cpu_time_t time, unsigned addr, int data )
 		return;
 
 	case 0xA1:
-		GME_APU_HOOK( &emu, emu.ay_latch, data );
-		emu.ay.write( time, emu.ay_latch, data );
-		return;
+		if ( emu.msx.psg )
+		{
+			GME_APU_HOOK( &emu, emu.ay_latch, data );
+			emu.msx.psg->write( time, emu.ay_latch, data );
+			return;
+		}
+		break;
 
 	case 0x06:
-		if ( emu.sn && (emu.header_.device_flags & 0x04) )
+		if ( emu.sms.psg && (emu.header_.device_flags & 0x04) )
 		{
-			emu.sn->write_ggstereo( time, data );
+			emu.sms.psg->write_ggstereo( time, data );
 			return;
 		}
 		break;
 
 	case 0x7E:
 	case 0x7F:
-		if ( emu.sn )
+		if ( emu.sms.psg )
 		{
 			GME_APU_HOOK( &emu, 16, data );
-			emu.sn->write_data( time, data );
+			emu.sms.psg->write_data( time, data );
 			return;
 		}
 		break;
@@ -414,10 +490,12 @@ blargg_err_t Kss_Emu::run_clocks( blip_time_t& duration, int )
 	next_play -= duration;
 	check( next_play >= 0 );
 	adjust_time( -duration );
-	ay.end_frame( duration );
-	scc.end_frame( duration );
-	if ( sn )
-		sn->end_frame( duration );
+	if ( msx.psg )
+		msx.psg->end_frame( duration );
+	if ( msx.scc )
+		msx.scc->end_frame( duration );
+	if ( sms.psg )
+		sms.psg->end_frame( duration );
 
 	return 0;
 }
