@@ -49,6 +49,8 @@ static Audio_Scope* scope;
 static Music_Player* player;
 static short scope_buf [scope_width * 2];
 
+static const char* encoding = "iso-8859-1";
+
 static void init( void )
 {
 	// Start SDL
@@ -79,6 +81,8 @@ static void start_track( int track, const char* path )
 	handle_error( player->start_track( track - 1 ) );
 
 	// update window title with track info
+	char* game_string;
+	char* song_string;
 
 	long seconds = player->track_info().length / 1000;
 	const char* game = player->track_info().game;
@@ -92,15 +96,25 @@ static void start_track( int track, const char* path )
 			game = path;
 		else
 			game++; // skip path separator
+		game_string = (char*)game;
 	}
+	else
+	{
+		game_string = SDL_iconv_string("UTF-8", encoding, game, strlen(game));
+	}
+
+	song_string = SDL_iconv_string("UTF-8", encoding, player->track_info().song, strlen(player->track_info().song));
 
 	char title [512];
 	if ( 0 < snprintf( title, sizeof title, "%s: %d/%d %s (%ld:%02ld)",
-			game, track, player->track_count(), player->track_info().song,
+			game_string, track, player->track_count(), song_string,
 			seconds / 60, seconds % 60 ) )
 	{
 		scope->set_caption( title );
 	}
+
+	SDL_free(game_string);
+	SDL_free(song_string);
 }
 
 int main( int argc, char** argv )
@@ -114,6 +128,8 @@ int main( int argc, char** argv )
 	{
 		if ( SDL_strcmp( "-m", argv[i] ) == 0 )
 			by_mem = true;
+		else if ( SDL_strcmp( "-sj", argv[i] ) == 0 )
+			encoding = "Shift-jis";
 		else
 			path = argv[i];
 	}
