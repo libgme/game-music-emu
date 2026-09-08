@@ -226,6 +226,7 @@ extern BLARGG_EXPORT const gme_type_t
 	gme_nsf_type,
 	gme_nsfe_type,
 	gme_sap_type,
+	gme_sp2_type,
 	gme_spc_type,
 	gme_vgm_type,
 	gme_vgz_type;

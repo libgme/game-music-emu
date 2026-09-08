@@ -57,6 +57,9 @@ gme_type_t const* gme_type_list( void )
 	#ifdef USE_GME_SAP
 	            gme_sap_type,
 	#endif
+	#ifdef USE_GME_SP2
+	            gme_sp2_type,
+	#endif
 	#ifdef USE_GME_SPC
 	            gme_spc_type,
 	#endif
@@ -81,6 +84,7 @@ const char* gme_identify_header( void const* header )
 		case BLARGG_4CHAR('H','E','S','M'):  return "HES";
 		case BLARGG_4CHAR('K','S','C','C'):
 		case BLARGG_4CHAR('K','S','S','X'):  return "KSS";
+		case BLARGG_4CHAR('K','S','P','C'):  return "SP2";
 		case BLARGG_4CHAR('N','E','S','M'):  return "NSF";
 		case BLARGG_4CHAR('N','S','F','E'):  return "NSFE";
 		case BLARGG_4CHAR('S','A','P',0x0D): return "SAP";

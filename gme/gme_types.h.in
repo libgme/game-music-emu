@@ -16,6 +16,7 @@
 #cmakedefine USE_GME_NSF
 #cmakedefine USE_GME_NSFE
 #cmakedefine USE_GME_SAP
+#cmakedefine USE_GME_SP2
 #cmakedefine USE_GME_SPC
 /* VGM and VGZ are a package deal */
 #cmakedefine USE_GME_VGM
