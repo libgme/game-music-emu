@@ -1,4 +1,5 @@
 option(GME_UNRAR "Enable RAR file format (optional, requires UnRAR library)" ON)
+option(GME_ARCHIVE "Enable ZIP file format (optional, requires LibArchive library)" ON)
 
 find_package(SDL2)
 
@@ -6,6 +7,10 @@ if (GME_UNRAR)
     find_package(UNRAR QUIET)
 endif()
 
+if(GME_ARCHIVE)
+    find_package(LibArchive QUIET)
+    find_package(ZLIB QUIET)
+endif()
 
 set(player_SRCS Audio_Scope.cpp
                 Audio_Scope.h
@@ -49,6 +54,25 @@ if(SDL2_FOUND)
       endif()
     else()
       message(STATUS "RAR file format excluded")
+    endif()
+
+    if(GME_ARCHIVE)
+      if(LibArchive_FOUND)
+          message(STATUS "LibArchive library located, player demo will support the ZIP file format")
+          target_compile_definitions(gme_player PRIVATE HAVE_LIBARCHIVE)
+          target_link_libraries(gme_player PRIVATE ${LibArchive_LIBRARIES})
+          # Is not to be installed though
+          list(APPEND PC_LIBS -larchive) # for libgme.pc
+          if(ZLIB_FOUND)
+            target_compile_definitions(gme_player PRIVATE HAVE_ZLIB_H)
+            target_link_libraries(gme_player PRIVATE ZLIB::ZLIB)
+            list(APPEND PC_LIBS -lz)
+          endif()
+      else()
+          message(STATUS "** LibArchive library not found, player demo will not support zip files")
+      endif()
+    else()
+      message(STATUS "Zip extraction not supported")
     endif()
 
 else()
