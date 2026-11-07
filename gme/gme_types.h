@@ -14,6 +14,7 @@
 #define USE_GME_NSF
 #define USE_GME_NSFE
 #define USE_GME_SAP
+#define USE_GME_SP2
 #define USE_GME_SPC
 /* VGM and VGZ are a package deal */
 #define USE_GME_VGM
