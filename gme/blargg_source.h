@@ -11,6 +11,11 @@
  * void assert( bool expr ); */
 #include <assert.h>
 
+/* Used for printf in debug messages */
+#ifndef NDEBUG
+	#include <stdio.h>
+#endif
+
 /* If debugging is enabled and expr is false, abort program. Meant for checking
  * caller-supplied parameters and operations that are outside the control of the
  * module. A failed requirement indicates a bug outside the module.
@@ -31,13 +36,17 @@
     #define unlikely( x ) (x)
 #endif
 
-/* Like printf() except output goes to debug log file. Might be defined to do
+/* Like printf() when debug is enabled. Might be defined to do
  * nothing (not even evaluate its arguments).
  * void debug_printf( const char* format, ... ); */
 static inline void BLARGG_PRINTFN(1,2)
 		blargg_dprintf_( const char* fmt_str, ... ) { (void) fmt_str; }
 #undef debug_printf
-#define debug_printf (1) ? (void) 0 : blargg_dprintf_
+#ifndef NDEBUG
+	#define debug_printf  printf
+#else
+	#define debug_printf  blargg_dprintf_
+#endif
 
 /* If enabled, evaluate expr and if false, make debug log entry with source file
  * and line. Meant for finding situations that should be examined further, but that
